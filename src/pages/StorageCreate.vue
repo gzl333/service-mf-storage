@@ -19,12 +19,12 @@
 </script>
 
 <template>
-  <div class="${NAME}">
-    this is ${NAME}
+  <div class="StorageCreate">
+    this is StorageCreate
   </div>
 </template>
 
 <style lang="scss" scoped>
-.${NAME} {
+.StorageCreate {
 }
 </style>

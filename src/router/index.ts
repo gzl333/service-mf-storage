@@ -5,7 +5,6 @@ import {
   createWebHashHistory,
   createWebHistory
 } from 'vue-router'
-import { StateInterface } from '../store'
 import routes from './routes'
 
 /*
@@ -17,7 +16,7 @@ import routes from './routes'
  * with the Router instance.
  */
 
-export default route<StateInterface>(function (/* { store, ssrContext } */) {
+export default route(function (/* { store, ssrContext } */) {
   const createHistory = process.env.SERVER
     ? createMemoryHistory
     : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
@@ -32,6 +31,12 @@ export default route<StateInterface>(function (/* { store, ssrContext } */) {
     history: createHistory(
       process.env.MODE === 'ssr' ? void 0 : process.env.VUE_ROUTER_BASE
     )
+  })
+
+  Router.beforeEach((to, from, next) => {
+    console.log('@cnic/storage fullPath: ', to.fullPath)
+
+    next()
   })
 
   return Router

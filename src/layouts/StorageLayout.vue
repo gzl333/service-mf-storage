@@ -1,0 +1,43 @@
+<script setup lang="ts">
+// import { ref, computed } from "vue"
+// import useStore from 'src/store'
+// import { useI18n } from 'vue-i18n'
+
+// const props = defineProps({
+//   foo: {
+//     type: String,
+//     required: false,
+//     default: ''
+//   }
+// })
+// const emits = defineEmits(['change', 'delete'])
+
+// const store = useStore()
+// const { locale } = useI18n({ useScope: 'global' })
+
+// code starts...
+</script>
+
+<template>
+  <q-layout view="lHh Lpr lFf">
+
+    <q-drawer class="column" show-if-above side="left" bordered style="padding-top: 50px;">
+      对象存储服务列表
+      <q-btn to="/my/storage/create">TAB1</q-btn>
+      <q-btn to="/my/storage/2">TAB2</q-btn>
+      <q-btn to="/my/storage/3">TAB3</q-btn>
+      <q-btn to="/my/storage/4">TAB4</q-btn>
+      <q-btn to="/my/storage/5">TAB5</q-btn>
+      <q-btn to="/my/storage/6">TAB6</q-btn>
+      <q-btn to="/my/storage/7">TAB7</q-btn>
+    </q-drawer>
+
+    <q-page-container>
+      <router-view/>
+    </q-page-container>
+
+  </q-layout>
+</template>
+
+<style lang="scss" scoped>
+</style>
