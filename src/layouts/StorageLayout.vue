@@ -1,7 +1,9 @@
 <script setup lang="ts">
-// import { ref, computed } from "vue"
-// import useStore from 'src/store'
-// import { useI18n } from 'vue-i18n'
+import { ref/* , computed */ } from 'vue'
+import { navigateToUrl } from 'single-spa'
+// import { useStore } from 'stores/store'
+import { useRoute/* , useRouter */ } from 'vue-router'
+import { i18n } from 'boot/i18n'
 
 // const props = defineProps({
 //   foo: {
@@ -13,31 +15,80 @@
 // const emits = defineEmits(['change', 'delete'])
 
 // const store = useStore()
-// const { locale } = useI18n({ useScope: 'global' })
+// const router = useRouter()
+const tc = i18n.global.tc
 
-// code starts...
+const route = useRoute()
+const paths = route.path.split('/')
+const activeItem = ref(paths[3] || 'service1') // keep selection when reloading
+
+const releaseTime = process.env.releaseTime
+
 </script>
 
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="hHh LpR fFf">
 
-    <q-drawer class="column" show-if-above side="left" bordered style="padding-top: 50px;">
-      对象存储服务列表
-      <q-btn to="/my/storage/create">TAB1</q-btn>
-      <q-btn to="/my/storage/2">TAB2</q-btn>
-      <q-btn to="/my/storage/3">TAB3</q-btn>
-      <q-btn to="/my/storage/4">TAB4</q-btn>
-      <q-btn to="/my/storage/5">TAB5</q-btn>
-      <q-btn to="/my/storage/6">TAB6</q-btn>
-      <q-btn to="/my/storage/7">TAB7</q-btn>
+    <q-drawer :model-value="true" style="padding-top: 60px;" :breakpoint="0" side="left" width="120" bordered>
+
+      <div class="column full-height bg-grey-2">
+        <q-scroll-area class="col non-selectable" visible>
+
+          <q-list>
+
+            <q-item>
+              <q-item-section class="column items-center q-py-sm text-center text-weight-bold text-grey-8">
+                {{ tc('对象存储') }}
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              clickable
+              :active="activeItem === 'service1'"
+              @click="activeItem = 'service1'; navigateToUrl('/my/stats/service1')"
+              active-class="active-item"
+            >
+              <q-item-section class="column items-center">
+                <q-icon name="las la-video" size="lg"/>
+                <div class="active-text text-center">{{ tc('服务1') }}</div>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              clickable
+              :active="activeItem === 'service2'"
+              @click="activeItem = 'service2'; navigateToUrl('/my/stats/service2')"
+              active-class="active-item"
+            >
+              <q-item-section class="column items-center">
+                <q-icon name="las la-server" size="lg"/>
+                <div class="active-text text-center">{{ tc('服务2') }}</div>
+              </q-item-section>
+            </q-item>
+
+          </q-list>
+
+          <div class="text-grey text-body2 text-center q-pt-xl">v0.0.1</div>
+          <div class="text-grey text-body2 text-center">{{ new Date(releaseTime).toLocaleString() }}</div>
+        </q-scroll-area>
+      </div>
     </q-drawer>
 
     <q-page-container>
-      <router-view/>
+      <q-scroll-area style="height: 100vh;">
+        <router-view/>
+      </q-scroll-area>
     </q-page-container>
 
   </q-layout>
 </template>
 
 <style lang="scss" scoped>
+.active-item {
+  background-color: #DBF0FC; // $grey-4;
+
+  .active-text {
+    color: $primary;
+  }
+}
 </style>

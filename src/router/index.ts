@@ -6,6 +6,7 @@ import {
   createWebHistory
 } from 'vue-router'
 import routes from './routes'
+// import { useStore } from 'stores/store'
 
 /*
  * If not building with SSR mode, you can
@@ -34,7 +35,8 @@ export default route(function (/* { store, ssrContext } */) {
   })
 
   Router.beforeEach((to, from, next) => {
-    console.log('@cnic/storage fullPath: ', to.fullPath)
+    // console.log('@cnic/storage ', 'from:', from.fullPath, ' to:', to.fullPath)
+    // const store = useStore()
 
     next()
   })
