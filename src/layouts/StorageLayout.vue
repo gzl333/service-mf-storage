@@ -45,7 +45,7 @@ const releaseTime = process.env.releaseTime
             <q-item
               clickable
               :active="activeItem === 'service1'"
-              @click="activeItem = 'service1'; navigateToUrl('/my/stats/service1')"
+              @click="activeItem = 'service1'; navigateToUrl('/my/storage/service1')"
               active-class="active-item"
             >
               <q-item-section class="column items-center">
@@ -57,7 +57,7 @@ const releaseTime = process.env.releaseTime
             <q-item
               clickable
               :active="activeItem === 'service2'"
-              @click="activeItem = 'service2'; navigateToUrl('/my/stats/service2')"
+              @click="activeItem = 'service2'; navigateToUrl('/my/storage/service2')"
               active-class="active-item"
             >
               <q-item-section class="column items-center">
