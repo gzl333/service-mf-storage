@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref/* , computed */ } from 'vue'
+import { computed } from 'vue'
 import { navigateToUrl } from 'single-spa'
-// import { useStore } from 'stores/store'
-import { useRoute/* , useRouter */ } from 'vue-router'
+import { useStore } from 'stores/store'
+// import { useRoute, useRouter } from 'vue-router'
 import { i18n } from 'boot/i18n'
 
 // const props = defineProps({
@@ -14,13 +14,12 @@ import { i18n } from 'boot/i18n'
 // })
 // const emits = defineEmits(['change', 'delete'])
 
-// const store = useStore()
+const store = useStore()
+// const route = useRoute()
 // const router = useRouter()
 const tc = i18n.global.tc
 
-const route = useRoute()
-const paths = route.path.split('/')
-const activeItem = ref(paths[3] || 'service1') // keep selection when reloading
+const activeItem = computed(() => store.items.currentPath)
 
 const releaseTime = process.env.releaseTime
 

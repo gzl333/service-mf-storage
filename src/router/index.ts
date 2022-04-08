@@ -6,7 +6,7 @@ import {
   createWebHistory
 } from 'vue-router'
 import routes from './routes'
-// import { useStore } from 'stores/store'
+import { useStore } from 'stores/store'
 
 /*
  * If not building with SSR mode, you can
@@ -36,7 +36,10 @@ export default route(function (/* { store, ssrContext } */) {
 
   Router.beforeEach((to, from, next) => {
     // console.log('@cnic/storage ', 'from:', from.fullPath, ' to:', to.fullPath)
-    // const store = useStore()
+    const store = useStore()
+
+    // 根据当前path更新store.items.currentPath，保证左侧导航栏保持正确选择
+    store.items.currentPath = to.path.split('/')[3] || 'service1'
 
     next()
   })
