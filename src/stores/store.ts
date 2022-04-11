@@ -3,7 +3,9 @@ import { defineStore } from 'pinia'
 export const useStore = defineStore('storage', {
   state: () => ({
     items: {
-      currentPath: '' as string // 左侧导航栏当前位置
+      // 实时记录用户所在app局部路径位置
+      // 例如'/my/server/personal/list' -> ['personal', 'list'], 供二级三级导航栏在刷新时保持选择使用
+      currentPath: [] as string[]
     },
     tables: {}
   }),

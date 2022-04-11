@@ -19,7 +19,7 @@ const store = useStore()
 // const router = useRouter()
 const tc = i18n.global.tc
 
-const activeItem = computed(() => store.items.currentPath)
+const activeItem = computed(() => store.items.currentPath[0])
 
 const releaseTime = process.env.releaseTime
 
