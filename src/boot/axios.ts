@@ -20,7 +20,7 @@ declare module '@vue/runtime-core' {
 // const api = axios.create({ baseURL: 'https://api.example.com' })
 
 // axios instance with base url configured
-export const baseURLStorage = window.location.protocol + '//vms.cstcloud.cn/api' // todo 改成该服务的后端api地址
+export const baseURLStorage = window.location.protocol + '//obs.cstcloud.cn' // todo 改成该服务的后端api地址
 const axiosStorage = axios.create({
   baseURL: baseURLStorage,
   // 序列化器，没有这个无法在query里发送数组参数。body里的数组不需要序列化器。
@@ -34,7 +34,7 @@ const axiosStorage = axios.create({
 axios.interceptors.request.use(config => {
   // get jwt token from @cnic/main's store
   const store = useStoreMain()
-  config.headers.common.Authorization = `Bearer ${store.items.tokenAccess as string}`
+  config.headers.common.Authorization = `AAI-JWT ${store.items.tokenAccess as string}`
 
   return config
 }, (error: AxiosError) => {
@@ -57,7 +57,7 @@ axios.interceptors.response.use(config => {
 axiosStorage.interceptors.request.use(config => {
   // get jwt token from @cnic/main's store
   const store = useStoreMain()
-  config.headers.common.Authorization = `Bearer ${store.items.tokenAccess as string}`
+  config.headers.common.Authorization = `AAI-JWT ${store.items.tokenAccess as string}`
 
   return config
 }, (error: AxiosError) => {

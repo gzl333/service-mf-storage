@@ -43,25 +43,25 @@ const releaseTime = process.env.releaseTime
 
             <q-item
               clickable
-              :active="activeItem === 'service1'"
-              @click="activeItem = 'service1'; navigateToUrl('/my/storage/service1')"
+              :active="activeItem === 'bucket'"
+              @click="activeItem = 'bucket'; navigateToUrl('/my/storage/bucket')"
               active-class="active-item"
             >
               <q-item-section class="column items-center">
-                <q-icon name="las la-video" size="lg"/>
-                <div class="active-text text-center">{{ tc('服务1') }}</div>
+                <q-icon name="lab la-bitbucket" size="lg"/>
+                <div class="active-text text-center">{{ tc('存储桶') }}</div>
               </q-item-section>
             </q-item>
 
             <q-item
               clickable
-              :active="activeItem === 'service2'"
-              @click="activeItem = 'service2'; navigateToUrl('/my/storage/service2')"
+              :active="activeItem === 'instructions'"
+              @click="activeItem = 'instructions'; navigateToUrl('/my/storage/instructions')"
               active-class="active-item"
             >
               <q-item-section class="column items-center">
-                <q-icon name="las la-server" size="lg"/>
-                <div class="active-text text-center">{{ tc('服务2') }}</div>
+                <q-icon name="las la-exchange-alt" size="lg"/>
+                <div class="active-text text-center">{{ tc('使用说明') }}</div>
               </q-item-section>
             </q-item>
 
@@ -74,8 +74,8 @@ const releaseTime = process.env.releaseTime
     </q-drawer>
 
     <q-page-container>
-      <q-scroll-area style="height: 100vh;">
-        <router-view/>
+      <q-scroll-area style="height: calc(100vh - 60px)">
+        <router-view class="q-pa-md" :key="$route.fullPath"/>
       </q-scroll-area>
     </q-page-container>
 
