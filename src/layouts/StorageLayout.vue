@@ -67,8 +67,18 @@ const releaseTime = process.env.releaseTime
 
           </q-list>
 
-          <div class="text-grey text-body2 text-center q-pt-xl">v0.0.1</div>
-          <div class="text-grey text-body2 text-center">{{ new Date(releaseTime).toLocaleString() }}</div>
+<!--          <div class="text-grey text-body2 text-center q-pt-xl">v0.0.1</div>-->
+          <div class="row justify-center q-pt-lg">
+            <q-icon class="text-center" name="info" color="grey-5" size="xs">
+              <q-tooltip class="bg-grey-3">
+                <div class="text-grey text-caption text-center">{{ tc('发布时间') }}</div>
+                <div class="text-grey text-caption text-center">
+                  {{ new Date(releaseTime).toLocaleString(i18n.global.locale) }}
+                </div>
+              </q-tooltip>
+            </q-icon>
+          </div>
+<!--          <div class="text-grey text-body2 text-center">{{ new Date(releaseTime).toLocaleString() }}</div>-->
         </q-scroll-area>
       </div>
     </q-drawer>

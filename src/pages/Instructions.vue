@@ -48,6 +48,7 @@ const goPage = (url: string) => {
              @click="changeTab('s3')" :ripple="false">
       </q-tab>
     </q-tabs>
+    <q-separator/>
     <q-tab-panels v-model="activeItem" animated>
       <q-tab-panel name="ftp" class="no-scroll">
         <div class="text-subtitle1 text-weight-bold">说明</div>
