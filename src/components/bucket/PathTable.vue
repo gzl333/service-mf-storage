@@ -18,7 +18,7 @@ const props = defineProps({
 
 // code starts...
 const store = useStore()
-const tc = i18n.global.tc
+const { tc } = i18n.global
 
 const currentBucket = computed(() => props.pathObj?.bucket_name)
 const currentPath = computed(() => props.pathObj?.dir_path)
@@ -47,7 +47,7 @@ const formatSize1024 = useFormatSize(1024)
 const columns = computed(() => [
   {
     name: 'name',
-    // label: locale.value === 'zh' ? '文件名' : 'File Name',
+    label: i18n.global.locale === 'zh' ? '文件名' : 'File Name',
     field: 'name',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -66,7 +66,7 @@ const columns = computed(() => [
   },
   {
     name: 'time',
-    // label: locale.value === 'zh' ? '上传时间' : 'Upload Time',
+    label: i18n.global.locale === 'zh' ? '上传时间' : 'Upload Time',
     field: 'time',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -76,7 +76,7 @@ const columns = computed(() => [
   },
   {
     name: 'size',
-    // label: locale.value === 'zh' ? '文件大小' : 'File Size',
+    label: i18n.global.locale === 'zh' ? '文件大小' : 'File Size',
     field: 'size',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -86,7 +86,7 @@ const columns = computed(() => [
   },
   {
     name: 'access',
-    // label: locale.value === 'zh' ? '访问权限' : 'Accessibility',
+    label: i18n.global.locale === 'zh' ? '访问权限' : 'Accessibility',
     field: 'access',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -95,7 +95,7 @@ const columns = computed(() => [
   },
   {
     name: 'operation',
-    // label: locale.value === 'zh' ? '操作' : 'Operations',
+    label: i18n.global.locale === 'zh' ? '操作' : 'Operations',
     field: 'operation',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
