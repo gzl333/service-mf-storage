@@ -20,7 +20,7 @@ const props = defineProps({
 
 // code starts...
 const store = useStore()
-// const { tc } = i18n.global
+const tc = i18n.global.tc
 
 // table row hover
 const hoverRow = ref('')
@@ -198,8 +198,7 @@ const columns = computed(() => [
                 </q-btn>
                 <q-btn class="col-shrink q-px-xs q-ma-none" flat dense icon="content_copy" size="xs" color="primary" @click="clickToCopy(props.row.name)">
                   <q-tooltip>
-                    复制到剪切板
-<!--                    {{ $t('复制到剪切板') }}-->
+                    {{ tc('复制到剪切板') }}
                   </q-tooltip>
                 </q-btn>
               </q-td>

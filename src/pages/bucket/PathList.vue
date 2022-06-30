@@ -4,7 +4,7 @@ import PathTable from 'components/bucket/PathTable.vue'
 import { useStore } from 'stores/store'
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
-
+// import { i18n } from 'boot/i18n'
 // import { ref } from "vue"
 // todo fileList 页面是一个万能页面，自动处理所有数据，根据url来判断怎么处理。数据流向： url参数 -> 本页面 -> fileTable
 
@@ -20,7 +20,7 @@ import { computed } from 'vue'
 // code starts...
 const store = useStore()
 const route = useRoute()
-// const { locale } = useI18n({ useScope: 'global' })
+// const tc = i18n.global.tc
 // 获取url所传参数.
 const bucket = route.query.bucket as string // string or undefined
 const path = route.query.path as string

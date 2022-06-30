@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useStore } from 'stores/store'
-// import { useI18n } from 'vue-i18n'
+import { i18n } from 'boot/i18n'
 
 import { Notify, QInput, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
@@ -17,7 +17,7 @@ import axios from 'axios'
 defineEmits([...useDialogPluginComponent.emits])
 
 const store = useStore()
-// const { locale } = useI18n({ useScope: 'global' })
+const tc = i18n.global.tc
 // code starts...
 
 // REQUIRED; must be called inside of setup()
@@ -148,8 +148,7 @@ const inputRef = ref<QInput>()
 
       <q-card-section class="row items-center justify-center q-pb-md">
         <div class="text-primary">
-          新建存储桶
-<!--          {{ $t('新建存储桶') }}-->
+          {{ tc('新建存储桶') }}
         </div>
         <q-space/>
         <q-btn icon="close" flat dense size="sm" v-close-popup/>

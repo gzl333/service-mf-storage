@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, QInput, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
+import { i18n } from 'boot/i18n'
 
 const props = defineProps({
   bucket_name: {
@@ -11,6 +12,7 @@ const props = defineProps({
   }
 })
 const store = useStore()
+const tc = i18n.global.tc
 defineEmits([...useDialogPluginComponent.emits])
 
 const {
@@ -65,8 +67,7 @@ const inputRef = ref<QInput>()
 
       <q-card-section class="row items-center justify-center q-pb-md">
         <div class="text-primary">
-          新建文件夹
-<!--          {{ $t('新建文件夹') }}-->
+          {{ tc('新建文件夹') }}
         </div>
         <q-space/>
         <q-btn icon="close" flat dense size="sm" v-close-popup/>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onBeforeMount } from 'vue'
 import { useStore } from 'stores/store'
-// import { useI18n } from 'vue-i18n'
+// import { i18n } from 'boot/i18n'
 
 import { Notify, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
@@ -15,7 +15,7 @@ const props = defineProps({
 defineEmits([...useDialogPluginComponent.emits])
 
 const store = useStore()
-// const { locale } = useI18n({ useScope: 'global' })
+// const tc = i18n.global.tc
 // code starts...
 
 // top level await: https://stackoverflow.com/questions/69183835/vue-script-setup-top-level-await-causing-template-not-to-render

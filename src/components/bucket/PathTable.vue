@@ -2,9 +2,8 @@
 import { ref, computed, PropType, watch } from 'vue'
 import { FileInterface, PathInterface } from 'src/stores/store'
 import { useStore } from 'stores/store'
-import { i18n } from 'boot/i18n'
 import { navigateToUrl } from 'single-spa'
-// import { useI18n } from 'vue-i18n'
+import { i18n } from 'boot/i18n'
 import useClipText from '../../../src/hooks/useClipText'
 import useFormatSize from '../../../src/hooks/useFormatSize'
 import storage from 'src/api/index'
@@ -19,7 +18,7 @@ const props = defineProps({
 
 // code starts...
 const store = useStore()
-// const { locale } = useI18n({ useScope: 'global' })
+const tc = i18n.global.tc
 
 const currentBucket = computed(() => props.pathObj?.bucket_name)
 const currentPath = computed(() => props.pathObj?.dir_path)
@@ -361,8 +360,7 @@ watch(
       <div class="col-auto bg-grey-1 q-mx-sm rounded-borders q-pa-sm"
            style="height: calc(100vh - 175px); width: 300px;">
         <div v-if="!fileToShow">
-<!--          {{ $t('请点击要查看的文件') }}-->
-          请点击要查看的文件
+          {{ tc('请点击要查看的文件') }}
         </div>
         <div v-else class="column q-gutter-md">
           <div class="col-auto text-bold">

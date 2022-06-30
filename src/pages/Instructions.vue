@@ -19,7 +19,7 @@ import { ref } from 'vue'
 // const router = useRouter()
 // const tc = i18n.global.tc
 
-const activeItem = ref('s3') // keep selection when reloading
+const activeItem = ref('ftp') // keep selection when reloading
 const changeTab = async (name: string) => {
   activeItem.value = name
 }

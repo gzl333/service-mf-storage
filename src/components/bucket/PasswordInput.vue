@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useStore } from 'stores/store'
-// import { useI18n } from 'vue-i18n'
+// import { i18n } from 'boot/i18n'
 import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 
 const props = defineProps({
@@ -25,7 +25,7 @@ const props = defineProps({
 // const emit = defineEmits(['change', 'delete'])
 
 const store = useStore()
-// const { locale } = useI18n({ useScope: 'global' })
+// const tc = i18n.global.tc
 // code starts...
 // 复制信息到剪切板
 const clickToCopy = useCopyToClipboard()

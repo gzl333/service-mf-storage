@@ -4,6 +4,7 @@ import { useStore } from 'stores/store'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
 import { useRoute } from 'vue-router'
+import { i18n } from 'boot/i18n'
 
 const props = defineProps({
   bucket_name: {
@@ -17,6 +18,7 @@ const props = defineProps({
 })
 const store = useStore()
 const $route = useRoute()
+const tc = i18n.global.tc
 defineEmits([...useDialogPluginComponent.emits])
 
 const {
@@ -119,8 +121,7 @@ const share = async () => {
     <q-card class="q-dialog-plugin dialog-primary">
       <q-card-section class="row items-center justify-center q-pb-md">
         <div class="text-primary">
-<!--          {{ $t('分享') }}-->
-          分享
+          {{ tc('分享') }}
         </div>
         <q-space/>
         <q-btn icon="close" flat dense size="sm" v-close-popup/>

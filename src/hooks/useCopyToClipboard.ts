@@ -8,6 +8,7 @@ export default function () {
   return (text: string) => {
     void copyToClipboard(text).then(() => {
       // console.log(i18n.global)
+      console.log(text)
       $q.notify({
         classes: 'notification-primary shadow-15',
         textColor: 'primary',

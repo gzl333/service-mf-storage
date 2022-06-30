@@ -3,7 +3,7 @@ import { PropType, ref } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
-// import { useI18n } from 'vue-i18n'
+import { i18n } from 'boot/i18n'
 
 const props = defineProps({
   bucketNames: {
@@ -14,7 +14,7 @@ const props = defineProps({
 defineEmits([...useDialogPluginComponent.emits])
 
 const store = useStore()
-// const { locale } = useI18n({ useScope: 'global' })
+const tc = i18n.global.tc
 // code starts...
 
 const {
@@ -78,8 +78,7 @@ const onOKClick = async () => {
 
       <q-card-section class="row items-center justify-center q-pb-md">
         <div class="text-negative">
-          删除存储桶
-<!--          {{ $t('删除存储桶') }}-->
+          {{ tc('删除存储桶') }}
         </div>
         <q-space/>
         <q-btn icon="close" flat dense size="sm" v-close-popup/>
@@ -123,8 +122,7 @@ const onOKClick = async () => {
 
         <q-checkbox style="margin-left: -10px;" v-model="check1" color="primary">
           <div :class="check1?'text-primary':'text-black'">
-            我了解删除存储桶将会导致其内部文件丢失
-<!--            {{ $t('我了解删除存储桶将会导致其内部文件丢失') }}-->
+            {{ tc('我了解删除存储桶将会导致其内部文件丢失') }}
           </div>
         </q-checkbox>
 
