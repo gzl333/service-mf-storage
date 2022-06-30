@@ -70,7 +70,7 @@ const columns = computed(() => [
     field: 'time',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
-    style: 'width: 500px',
+    style: 'padding: 15px 0px; width: 500px',
     classes: '',
     sortable: true
   },
@@ -80,7 +80,7 @@ const columns = computed(() => [
     field: 'size',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
-    style: 'width: 500px',
+    style: 'padding: 15px 0px; width: 500px',
     classes: '',
     sortable: true
   },
@@ -90,7 +90,7 @@ const columns = computed(() => [
     field: 'access',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
-    style: 'width: 500px',
+    style: 'padding: 15px 0px; width: 500px',
     classes: ''
   },
   {
@@ -99,7 +99,7 @@ const columns = computed(() => [
     field: 'operation',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
-    style: 'width: 500px',
+    style: 'padding: 15px 0px; width: 500px',
     classes: ''
   }
 ])
