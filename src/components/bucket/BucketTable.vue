@@ -140,7 +140,7 @@ const columns = computed(() => [
     </div>
 
     <div class="row items-center q-gutter-sm q-py-sm text-grey">
-      <q-breadcrumbs class="col-auto text-black">
+      <q-breadcrumbs class="col-auto text-black cursor-pointer">
         <template v-slot:separator>
           <q-icon
             size="xs"
@@ -149,7 +149,7 @@ const columns = computed(() => [
           />
         </template>
         <q-breadcrumbs-el @click="navigateToUrl('/my/storage/bucket')">
-          <div class="row items-center no-wrap">
+          <div class="row items-center no-wrap cursor-pointer">
             <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>
             <div class="col-auto text-bold">全部存储桶</div>
           </div>
@@ -196,10 +196,14 @@ const columns = computed(() => [
                     <div class="col-auto"> {{ clipText80(props.row.name) }}</div>
                   </div>
                 </q-btn>
-                <q-btn class="col-shrink q-px-xs q-ma-none" flat dense icon="content_copy" size="xs" color="primary" @click="clickToCopy(props.row.name)">
+                <q-btn v-if="hoverRow === props.row.name" class="col-shrink q-px-xs q-ma-none" flat dense icon="content_copy" size="xs" color="primary"
+                       @click="clickToCopy(props.row.name)">
                   <q-tooltip>
                     {{ tc('复制到剪切板') }}
                   </q-tooltip>
+                </q-btn>
+                <q-btn v-else
+                       class="col-shrink q-px-xs q-ma-none invisible" flat dense icon="content_copy" size="xs">
                 </q-btn>
               </q-td>
 

@@ -228,21 +228,21 @@ watch(
         </template>
 
         <q-breadcrumbs-el @click="navigateToUrl('/my/storage/bucket')">
-          <div class="row items-center no-wrap">
+          <div class="row items-center no-wrap cursor-pointer">
             <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>
             <div class="col-auto">全部存储桶</div>
           </div>
         </q-breadcrumbs-el>
 
         <q-breadcrumbs-el @click="navigateToUrl('/my/storage/bucket/file?bucket=' + currentBucket)">
-          <div class="row items-center no-wrap">
+          <div class="row items-center no-wrap cursor-pointer">
             <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>
             <div class="col-auto" :class="arrayPaths?.length === 0 ? 'text-bold' : ''"> {{ currentBucket }}</div>
           </div>
         </q-breadcrumbs-el>
 
         <q-breadcrumbs-el v-for="(path, index) in arrayPaths?.slice(0, -1)" :key="path" @click="navigateToUrl('/my/storage/bucket/file?bucket=' + currentBucket + '&path=' + currentPath?.split(arrayPaths[index + 1])[0].slice(0,-1))">
-          <div class="row items-center no-wrap">
+          <div class="row items-center no-wrap cursor-pointer">
             <q-icon class="col-auto" size="xs" color="yellow-8" name="folder"/>
             <div class="col-auto"> {{ clipText7(path) }}</div>
           </div>
@@ -329,7 +329,7 @@ watch(
               </q-td>
 
               <q-td key="operation" :props="props">
-                <q-btn-dropdown label="操作">
+                <q-btn-dropdown unelevated color="primary" label="操作">
                   <q-list>
                     <q-item clickable v-close-popup @click="onItemClick(props.row.name, props.row.fod)">
                       <q-item-section>
@@ -354,6 +354,7 @@ watch(
             </q-tr>
           </template>
         </q-table>
+        <q-separator/>
 
       </div>
 
