@@ -28,7 +28,6 @@ let file: Record<string, File> | null = null
 const isProgress = ref(false)
 const progress = ref(0)
 const factoryFn = async (files: Record<string, File>) => {
-  console.log(files)
   isProgress.value = true
   const formData = new FormData()
   formData.append('file', files[0])
@@ -45,13 +44,15 @@ const factoryFn = async (files: Record<string, File>) => {
     timeout: 5000,
     multiLine: false
   })
-  onDialogOK()
+  // onDialogOK()
 }
 const addFile = (files: Record<string, File>) => {
-  console.log(files)
+  progress.value = 0
   file = files
 }
 const removeFile = () => {
+  progress.value = 0
+  console.log(2333)
   isProgress.value = false
   file = null
 }
@@ -71,6 +72,22 @@ const upload = () => {
     })
   }
 }
+const fileUploading = (info: any) => {
+  console.log(111)
+  console.log('uploading', info)
+}
+const fun1 = (info: any) => {
+  console.log(222)
+  console.log('uploaded', info)
+}
+const fun2 = (info: any) => {
+  console.log(333)
+  console.log('start', info)
+}
+const fun3 = (info: any) => {
+  console.log(444)
+  console.log('finish', info)
+}
 </script>
 
 <template>
@@ -79,6 +96,10 @@ const upload = () => {
           :factory="factoryFn"
           @added="addFile"
           @removed="removeFile"
+          @uploading="fileUploading"
+          @uploaded="fun1"
+          @start="fun2"
+          @finish="fun3"
           label="上传文件"
           :headers="[{'Content-Type': 'multipart/form-data'}]"
           style="width: 450px"
@@ -102,7 +123,17 @@ const upload = () => {
           <template v-slot:list="scope">
             <q-list separator>
 <!--              <div>{{scope}}</div>-->
-              <q-linear-progress :value="progress" color="secondary" class="q-mt-sm" v-if="isProgress"/>
+<!--              <q-linear-progress :value="progress" color="secondary" class="q-mt-sm" v-if="isProgress"/>-->
+              <div class="row">
+                <div class="col-11">
+                  <q-linear-progress :value="progress" color="secondary" class="q-mt-sm" size="md"/>
+                </div>
+                <div>{{`${progress * 100}%`}}</div>
+              </div>
+
+<!--              <div class="gogrogress">-->
+<!--                <progress value="0" max="100">您的浏览器不支持progress元素</progress><span></span>-->
+<!--              </div>-->
               <q-item v-for="file in scope.files" :key="file.__key">
                 <q-item-section>
                   <q-item-label class="full-width ellipsis">
