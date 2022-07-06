@@ -161,6 +161,12 @@ export const useStore = defineStore('storage', {
     }
   }),
   getters: {
+    getFileDetailByName: (state) => (fileName: string): FileInterface[] => {
+      let newArr: FileInterface[]
+      // eslint-disable-next-line prefer-const
+      newArr = state.tables.pathTable.byLocalId[fileName].files.filter(item => item.name === fileName)
+      return newArr
+    }
   },
   actions: {
     async loadBucketTable () {
@@ -185,11 +191,7 @@ export const useStore = defineStore('storage', {
     // bucketStatTable: 累积加载，localId
     async addBucketStatTable (payload: { bucket: string }) {
       // 1. status改为loading
-      this.tables.bucketStatTable = {
-        byLocalId: {},
-        allLocalIds: [],
-        status: 'loading'
-      }
+      this.tables.bucketStatTable.status = 'loading'
       // 2. 发送网络请求，格式化数据，保存对象
       const respGetStatsBucket = await storage.storage.api.getStatsBucket({ path: { bucket_name: payload.bucket } })
       const item = {
@@ -209,11 +211,7 @@ export const useStore = defineStore('storage', {
     // bucketTokenTable: 累积加载，localId
     async addBucketTokenTable (payload: { bucket: string }) {
       // 1. status改为loading
-      this.tables.bucketTokenTable = {
-        byLocalId: {},
-        allLocalIds: [],
-        status: 'loading'
-      }
+      this.tables.bucketTokenTable.status = 'loading'
       // 2. 发送网络请求，格式化数据，保存对象
       const respGetBucketTokenList = await storage.storage.api.getBucketsIdOrNameTokenList({
         query: { 'by-name': true },

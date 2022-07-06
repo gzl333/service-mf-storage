@@ -20,7 +20,7 @@ const props = defineProps({
 
 // code starts...
 const store = useStore()
-const tc = i18n.global.tc
+const { tc } = i18n.global
 
 // table row hover
 const hoverRow = ref('')
@@ -49,7 +49,7 @@ const toggleExpansion = (props: { expand: boolean, row: { name: string } }) => {
     // 更新桶统计信息
     void store.addBucketStatTable({ bucket: props.row.name })
     // 更新桶token信息
-    void store.addBucketTokenTable({ bucket: props.row.name })
+    // void store.addBucketTokenTable({ bucket: props.row.name })
   }
 }
 
@@ -294,6 +294,7 @@ const columns = computed(() => [
                   </div>
 
                   <div class="col-auto row items-center q-gutter-lg">
+                    <div>{{props.row.name}}</div>
                     <div class="col-auto">
                       对象数量: {{ store.tables.bucketStatTable.byLocalId[props.row.name]?.stats.count }} 个
                     </div>

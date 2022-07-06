@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { Ref, ref } from 'vue'
 import { useStore } from 'stores/store'
 import { useRoute } from 'vue-router'
 import { Notify, useDialogPluginComponent } from 'quasar'
-import storage from 'src/api/index'
+import { axiosStorage } from 'boot/axios'
 
 const props = defineProps({
   bucket_name: {
@@ -24,41 +24,121 @@ const {
   onDialogCancel
 } = useDialogPluginComponent()
 const onCancelClick = onDialogCancel
-let file: Record<string, File> | null = null
+const fileArr: Ref = ref([])
+const progressArr: Ref = ref([])
+const isUploading = ref(false)
 const isProgress = ref(false)
-const progress = ref(0)
-const factoryFn = async (files: Record<string, File>) => {
-  isProgress.value = true
+const addFile = (files: string | File[]) => {
+  for (const file of files) {
+    fileArr.value.push(file)
+  }
+}
+const clearFile = (index: string) => {
+  fileArr.value.splice(index, 1)
+}
+const clearAll = () => {
+  fileArr.value = []
+}
+// 上传完整文件不切片
+const putObjPath = async (payload: { path: { objpath: string, bucket_name: string }, body: { file: File }, index: number }) => {
+  console.log(payload)
   const formData = new FormData()
-  formData.append('file', files[0])
-  await storage.storage.api.putObjPath({ path: { objpath: files[0].name, bucket_name: props.bucket_name }, body: { file: formData } })
-  progress.value = 1
-  void await store.addPathTable({ bucket, path })
-  Notify.create({
-    classes: 'notification-positive shadow-15',
-    icon: 'check_circle',
-    textColor: 'positive',
-    message: '上传成功',
-    position: 'bottom',
-    closeBtn: true,
-    timeout: 5000,
-    multiLine: false
+  formData.append('file', payload.body.file)
+  return axiosStorage({
+    url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
+    method: 'put',
+    data: formData,
+    onUploadProgress: function (progressEvent) {
+      if (progressEvent.lengthComputable) {
+        progressArr.value[payload.index] = Math.round(progressEvent.loaded / progressEvent.total * 100)
+      }
+    }
   })
-  // onDialogOK()
 }
-const addFile = (files: Record<string, File>) => {
-  progress.value = 0
-  file = files
+// 切片上传文件
+const postObjPath = async (payload: { path: { bucket_name: string, objpath: string }, query: { reset: boolean }, body: { file: File }, index: number }) => {
+  const file = payload.body.file
+  const chunkSize = 10 * 1024 * 1024
+  let start = 0
+  const fileName = file.name
+  const fileSize = file.size
+  console.log(fileSize)
+  const config = {
+    params: payload?.query
+  }
+  for (let i = 0; i < fileSize; i += chunkSize) {
+    let blob = null
+    if (start + chunkSize > fileSize) {
+      blob = file.slice(start, fileSize)
+    } else {
+      blob = file.slice(start, start + chunkSize)
+    }
+    start += chunkSize
+    const blobFile = new File([blob], fileName)
+    const formData = new FormData()
+    formData.append('chunk', blobFile)
+    formData.append('chunk_offset ', start.toString())
+    console.log(blobFile.size)
+    formData.append('chunk_size', blobFile.size.toString())
+    if (i === 0) {
+      await axiosStorage({
+        url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
+        method: 'post',
+        params: config,
+        data: formData
+      })
+      progressArr.value[payload.index] = Math.round(start / fileSize * 100)
+    } else {
+      await axiosStorage({
+        url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
+        method: 'post',
+        data: formData
+      })
+      progressArr.value[payload.index] = Math.round(start / fileSize * 100)
+    }
+  }
+  progressArr.value[payload.index] = 100
 }
-const removeFile = () => {
-  progress.value = 0
-  console.log(2333)
-  isProgress.value = false
-  file = null
+
+const factoryFn = async (files: File, index: number) => {
+  // const reader: any = new FileReader()
+  // reader.readAsArrayBuffer(files)
+  // reader.onload = async function () {
+  //   const blob = new Blob([reader.result])
+  //   const formdata = new FormData()
+  //   formdata.append('formFile', blob)
+  //   await putObjPath({ path: { objpath: files.name, bucket_name: props.bucket_name }, body: { file: formdata }, index })
+  // }
+  if (files.size / 1024 / 1024 > 500) {
+    await postObjPath({ path: { objpath: files.name, bucket_name: props.bucket_name }, query: { reset: true }, body: { file: files }, index })
+  } else {
+    await putObjPath({ path: { objpath: files.name, bucket_name: props.bucket_name }, body: { file: files }, index })
+  }
 }
-const upload = () => {
-  if (file !== null) {
-    void factoryFn(file)
+const upload = async () => {
+  if (fileArr.value.length !== 0) {
+    for (let index = 0; index < fileArr.value.length; index++) {
+      progressArr.value[index] = 0
+    }
+    isUploading.value = true
+    isProgress.value = true
+    for (let index = 0; index < fileArr.value.length; index++) {
+      void await factoryFn(fileArr.value[index], index)
+    }
+    onDialogOK()
+    Notify.create({
+      classes: 'notification-positive shadow-15',
+      icon: 'check_circle',
+      textColor: 'positive',
+      message: '上传成功',
+      position: 'bottom',
+      closeBtn: true,
+      timeout: 5000,
+      multiLine: false
+    })
+    void await store.addPathTable({ bucket, path })
+    fileArr.value = []
+    isUploading.value = false
   } else {
     Notify.create({
       classes: 'notification-negative shadow-15',
@@ -72,90 +152,67 @@ const upload = () => {
     })
   }
 }
-const fileUploading = (info: any) => {
-  console.log(111)
-  console.log('uploading', info)
-}
-const fun1 = (info: any) => {
-  console.log(222)
-  console.log('uploaded', info)
-}
-const fun2 = (info: any) => {
-  console.log(333)
-  console.log('start', info)
-}
-const fun3 = (info: any) => {
-  console.log(444)
-  console.log('finish', info)
-}
 </script>
 
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-uploader
-          :factory="factoryFn"
-          @added="addFile"
-          @removed="removeFile"
-          @uploading="fileUploading"
-          @uploaded="fun1"
-          @start="fun2"
-          @finish="fun3"
-          label="上传文件"
-          :headers="[{'Content-Type': 'multipart/form-data'}]"
-          style="width: 450px"
-        >
+      :factory="factoryFn"
+      @added="addFile"
+      label="上传文件"
+      multiple
+      :headers="[{'Content-Type': 'multipart/form-data'}]"
+      style="width: 450px"
+    >
       <template v-slot:header="scope">
         <div class="row no-wrap items-center q-pa-sm q-gutter-xs">
-          <q-btn v-if="scope.queuedFiles.length > 0" icon="clear_all" @click="scope.removeQueuedFiles" round dense flat >
+          <q-btn v-if="scope.queuedFiles.length > 0 && isUploading === false" icon="clear_all" @click="scope.removeQueuedFiles(); clearAll()" round dense flat>
             <q-tooltip>清空文件</q-tooltip>
           </q-btn>
-          <q-spinner v-if="scope.isUploading" class="q-uploader__spinner" />
+          <q-spinner v-if="scope.queuedFiles.length > 0 && isUploading === true" class="q-uploader__spinner"/>
           <div class="col">
+<!--            <div>{{scope}}</div>-->
             <div class="q-uploader__title">上传文件</div>
-            <div class="q-uploader__subtitle">{{ scope.uploadSizeLabel }} / {{ scope.uploadProgressLabel }}</div>
+            <div class="q-uploader__subtitle">{{ scope.uploadSizeLabel }}</div>
           </div>
-          <q-btn v-if="scope.canAddFiles" type="a" icon="add_box" @click="scope.pickFiles" round dense flat>
-            <q-uploader-add-trigger />
+          <q-btn v-if="isUploading === false" type="a" icon="add_box" @click="scope.pickFiles" round dense flat>
+            <q-uploader-add-trigger/>
             <q-tooltip>选择文件</q-tooltip>
           </q-btn>
         </div>
       </template>
-          <template v-slot:list="scope">
-            <q-list separator>
-<!--              <div>{{scope}}</div>-->
-<!--              <q-linear-progress :value="progress" color="secondary" class="q-mt-sm" v-if="isProgress"/>-->
-              <div class="row">
-                <div class="col-11">
-                  <q-linear-progress :value="progress" color="secondary" class="q-mt-sm" size="md"/>
+      <template v-slot:list="scope">
+        <q-list separator>
+          <q-item v-for="(file, index) in scope.files" :key="file.__key">
+            <q-item-section>
+              <q-item-label class="full-width ellipsis">
+                {{ file.name }}
+              </q-item-label>
+              <q-item-label caption>
+                {{ file.__sizeLabel }}
+              </q-item-label>
+              <q-item-label>
+                <div class="row" v-if="isProgress">
+                  <div class="col-11">
+                    <q-linear-progress :value="progressArr[index] / 100" color="primary" class="q-mt-sm" size="md"/>
+                  </div>
+                  <div class="col-1 text-center">{{progressArr[index]}}%</div>
                 </div>
-                <div>{{`${progress * 100}%`}}</div>
-              </div>
-
-<!--              <div class="gogrogress">-->
-<!--                <progress value="0" max="100">您的浏览器不支持progress元素</progress><span></span>-->
-<!--              </div>-->
-              <q-item v-for="file in scope.files" :key="file.__key">
-                <q-item-section>
-                  <q-item-label class="full-width ellipsis">
-                    {{ file.name }}
-                  </q-item-label>
-                  <q-item-label caption>
-                    {{ file.__sizeLabel }} / {{ file.__progressLabel }}
-                  </q-item-label>
-                </q-item-section>
-                <q-item-section top side>
-                  <q-btn class="gt-xs" size="12px" flat dense round icon="delete" @click="scope.removeFile(file)">
-                    <q-tooltip>删除文件</q-tooltip>
-                  </q-btn>
-                </q-item-section>
-              </q-item>
-            </q-list>
-            <div class="row justify-center q-mt-xl">
-              <q-btn class="q-ma-sm" color="primary" label="上传" unelevated @click="upload"/>
-              <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
-            </div>
-          </template>
-        </q-uploader>
+              </q-item-label>
+            </q-item-section>
+            <q-item-section top side>
+              <q-btn class="gt-xs" size="12px" flat dense round icon="delete" @click="scope.removeFile(file); clearFile(index)" :disable="isUploading">
+                <q-tooltip>删除文件</q-tooltip>
+              </q-btn>
+            </q-item-section>
+          </q-item>
+        </q-list>
+        <div class="row justify-center q-mt-xl">
+          <q-btn class="q-ma-sm" color="primary" label="上传" unelevated @click="upload" :disable="isUploading"/>
+          <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
+        </div>
+      </template>
+    </q-uploader>
   </q-dialog>
 </template>
 

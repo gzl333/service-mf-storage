@@ -147,6 +147,22 @@ export default {
     }) {
       return axiosStorage.get('/share/obs/' + payload.path.objpath, { responseType: 'blob' })
     },
+    // 切片下载文件
+    getV1ObjPath (payload: {
+      path: {
+        objpath: string
+        bucket_name : string
+      },
+      query: {
+        offset: number
+        size: number
+      }
+    }) {
+      const config = {
+        params: payload?.query
+      }
+      return axiosStorage.get('/api/v1/obj/' + payload.path.bucket_name + '/' + payload.path.objpath, config)
+    },
     // 下载分享文件
     getSdShareBase (payload: {
       path: {
