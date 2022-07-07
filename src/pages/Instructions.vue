@@ -47,6 +47,9 @@ const goPage = (url: string) => {
       <q-tab no-caps name="s3" class="q-px-none q-py-md q-mr-md" icon="las la-comment-dots" label="S3兼容API使用说明"
              @click="changeTab('s3')" :ripple="false">
       </q-tab>
+      <q-tab no-caps name="rclone" class="q-px-none q-py-md q-mr-md" icon="las la-copy" label="Rclone使用说明"
+             @click="changeTab('rclone')" :ripple="false">
+      </q-tab>
     </q-tabs>
     <q-separator/>
     <q-tab-panels v-model="activeItem" animated>
@@ -328,6 +331,396 @@ const goPage = (url: string) => {
             </tr>
           </table>
         </div>
+      </q-tab-panel>
+      <q-tab-panel name="rclone" class="no-scroll">
+        <div class="text-h6">Linux操作系统下使用rclone客户端</div>
+        <div class="text-subtitle1 text-weight-bold q-mt-lg">1.下载</div>
+        <div class="q-mt-md">
+          <span>rclone客户端下载：</span>
+          <span  class="download cursor-pointer" @click="goPage('https://gitee.com/gosc-cnic/iHarborRclone/releases')">https://gitee.com/gosc-cnic/iHarborRclone/releases</span>
+        </div>
+        <div>安装包包含2个文件：rclone 执行文件和 rclone.1 用户手册</div>
+        <div class="text-subtitle1 text-weight-bold q-mt-lg">2.安装</div>
+        <div class="q-mt-md">Linux：登录用户不为root，则使用 sudo</div>
+        <div>sudo cp rclone /usr/bin/</div>
+        <div>sudo chown root:root /usr/bin/rclone</div>
+        <div>sudo chmod 755 /usr/bin/rclone</div>
+        <div>sudo mkdir -p /usr/local/share/man/man1</div>
+        <div>sudo cp rclone.1 /usr/local/share/man/man1/</div>
+        <div>sudo mandb</div>
+        <div class="text-subtitle1 text-weight-bold q-mt-lg">3.rclone客户端配置</div>
+        <div class="q-mt-md">以root用户为例</div>
+        <div class="text-weight-bold q-mt-lg">3.1直接修改配置文件</div>
+        <div class="q-mt-md">
+          <span>创建配置文件，</span>
+          <span class="text-weight-bold">/root/.config/rclone/rclone.conf</span>
+          <span>，输入以下配置内容，可填写多个配置</span>
+        </div>
+        <div class="q-mt-md row">
+        <div>
+          <div>[test]</div>
+          <div>type = Iharbor</div>
+          <div>username = test@cnic.cn</div>
+          <div>password = 20220202</div>
+          <div>endpoint = http://obs.cstcloud.cn</div>
+        </div>
+        <div class="q-ml-xl">
+          <div>#远程别名</div>
+          <div>#iharbor类型对象存储</div>
+          <div>#用户名</div>
+          <div>#密码</div>
+          <div>#对象存储endpoint</div>
+        </div>
+        </div>
+        <div class="q-mt-md">[casearth]</div>
+        <div>type = Iharbor</div>
+        <div>username = xxx@cnic.cn</div>
+        <div>password = xxxxxx</div>
+        <div>endpoint = http://obs.casearth.cn</div>
+        <div class="q-mt-md">用户也可通过此配置文件直接修改配置。</div>
+        <div>
+          <span class="text-weight-bold">注意：</span>
+          <span>若在3.1.2中设置了配置文件保护密码，那么只能使用3.1所示命令行方式进行配置修改;&nbsp;&nbsp;因使用密码混淆，在设置好配置文件后需要对应修改密码加密操作。</span>
+        </div>
+        <div class="q-mt-sm">[root@centos9 ~]# rclone config</div>
+        <div>e) Edit existing remote</div>
+        <div class="q-mt-lg text-weight-bold">3.2命令行配置</div>
+        <div class="q-mt-md text-weight-bold">注：标黑标记为用户需要的操作和提示内容</div>
+        <div class="q-mt-md text-weight-bold">rclone config </div>
+        <div class="q-mt-md text-weight-bold">初始运行显示：</div>
+        <div>n) New remote</div>
+        <div>s) Set configuration password</div>
+        <div>q) Quit config</div>
+        <div class="q-mt-md text-weight-bold">已配置过远程显示（可操作对远程的修改）：</div>
+        <div class="q-mt-md">Current remotes:</div>
+        <div class="row">
+        <table border="1" style="border-collapse: collapse;" class="col-3 text-center q-mt-md">
+          <tr class="text-weight-bold">
+            <td>Name</td>
+            <td>Type</td>
+          </tr>
+          <tr>
+            <td>test</td>
+            <td>Iharbor</td>
+          </tr>
+          <tr>
+            <td>test2</td>
+            <td>Iharbor</td>
+          </tr>
+          <tr>
+            <td>test3</td>
+            <td>Iharbor</td>
+          </tr>
+        </table>
+        </div>
+        <div class="q-mt-md">e) Edit existing remote</div>
+        <div>n) New remote</div>
+        <div>d) Delete remote</div>
+        <div>r) Rename remote</div>
+        <div>c) Copy remote</div>
+        <div>s) Set configuration password</div>
+        <div>q) Quit config</div>
+        <div>e/n/d/r/c/s/q></div>
+        <div class="q-mt-lg text-weight-bold">3.2.1新建远程</div>
+        <div class="q-mt-md text-weight-bold">e/n/d/r/c/s/q> n</div>
+        <div class="row">
+          <div>
+            <div class="text-weight-bold">>name> test</div>
+            <div>Option Storage.</div>
+          </div>
+          <div class="q-ml-xl">
+            <div class="text-weight-bold">①远程端的别名</div>
+            <div>②存储类型选项</div>
+          </div>
+        </div>
+        <div>Type of storage to configure.</div>
+        <div>Choose a number from below, or type in your own value.</div>
+        <div class="q-mt-md">20 / Hubic</div>
+        <div>\ (hubic)</div>
+        <div>21 / Iharbor Cloud Object Storage System (OSS) </div>
+        <div> \ (Iharbor)</div>
+        <div>22 / In memory object storage system.</div>
+        <div>\ (memory)</div>
+<div class="row q-mt-md">
+        <div>
+          <div class="text-weight-bold">Storage> 21</div>
+          <div>Option username.</div>
+        </div>
+        <div class="q-ml-xl">
+          <div class="text-weight-bold">选择iharbor对象存储，对应的编号是21</div>
+          <div class="text-weight-bold">③Iharbor对象存储用户名选项 登录obs1.cstcloud.cn/front/自行注册</div>
+        </div>
+</div>
+        <div class="q-mt-md">Ibarbor username.</div>
+        <div>Enter a value. Press Enter to leave empty.</div>
+        <div class="row">
+          <div>
+            <div>username> test@cnic.cn</div>
+            <div>Option password.</div>
+          </div>
+          <div class="q-ml-xl">
+            <div>以test@cnic.cn为例进行演示</div>
+            <div class="text-weight-bold">④Iharbor对象存储用户密码选项</div>
+          </div>
+        </div>
+        <div>Iharbor password</div>
+        <div>Choose an alternative below.</div>
+        <div>y) Yes, type in my own password</div>
+        <div>g) Generate random password</div>
+        <div class="text-weight-bold">y/g>y&nbsp;&nbsp;&nbsp;选择y输入obs1.cstcloud.cn/front/网站的密码；选择g生成随机密码，无法认证</div>
+        <div class="q-mt-md">Enter the password:</div>
+        <div class="text-weight-bold">
+          <span>password: 202202</span>
+          <span class="q-ml-xl">默认不显示后端混淆加密</span>
+        </div>
+        <div>Confirm the password:</div>
+        <div>password: 202202</div>
+        <div class="text-weight-bold">
+          <span>Option endpoint.</span>
+          <span class="q-ml-xl">⑤endpoint选项</span>
+        </div>
+        <div>Endpoint for the service.</div>
+        <div>Enter a value. Press Enter to leave empty.</div>
+        <div class="text-weight-bold">endpoint> http://obs1.cstcloud.cn   对象存储iharbor的endpoint</div>
+        <div>
+          <span>Option apiVersion.</span>
+          <span class="q-ml-xl text-weight-bold">⑥API版本选项</span>
+        </div>
+        <div>api version number</div>
+        <div>Enter a string value. Press Enter for the default (v1).</div>
+        <div class="text-weight-bold">apiVersion> v1</div>
+        <div>
+          <span>Edit advanced config?</span>
+          <span class="q-ml-xl text-weight-bold">⑦是否进行高级配置，若无特殊需求，一般无须配置</span>
+        </div>
+        <div>y) Yes</div>
+        <div>n) No (default)</div>
+        <div class="text-weight-bold">
+          <span>y/n>y</span>
+          <span class="q-ml-xl">输入y，可进行有关高级配置，也可一路enter；输入n，无须进行高级配置</span>
+        </div>
+        <div class="q-mt-md text-weight-bold">以下是高级配置的内容，若不配置，可忽略。</div>
+        <div class="q-mt-md">
+          <span>Option upload_cutoff.</span>
+          <span class="q-ml-xl text-weight-bold">7-1分片上传时分片大小配置</span>
+        </div>
+        <div>Cutoff for switching to chunked upload.</div>
+        <div>This value should be set no larger than 4.657 GiB (== 5 GB).</div>
+        <div>Enter a size with suffix K,M,G,T. Press Enter for the default (200Mi).&nbsp;&nbsp;默认是200M</div>
+        <div class="text-weight-bold q-mt-xs">upload_cutoff></div>
+        <div>
+          <span>Option chunk_size.</span>
+          <span class="q-ml-xl text-weight-bold">7-2大文件上传时分片大小</span>
+        </div>
+        <div>Upload chunk size.</div>
+        <div>When uploading large files, chunk the file into this size.</div>
+        <div>Must fit in memory. These chunks are buffered in memory and there</div>
+        <div>might a maximum of "--transfers" chunks in progress at once.</div>
+        <div>5,000,000 Bytes is the minimum size.</div>
+        <div>Enter a size with suffix K,M,G,T. Press Enter for the default (75Mi).&nbsp;&nbsp;默认是75M</div>
+        <div class="text-weight-bold q-mt-xs">chunk_size></div>
+        <div>
+          <span>Option disable_checksum.</span>
+          <span class="q-ml-xl text-weight-bold">7-4 Md5校验是否开启选项</span>
+        </div>
+        <div>Disable checksums for large (> upload cutoff) files.</div>
+        <div>Normally rclone will calculate the SHA1 checksum of the input before</div>
+        <div>uploading it so it can add it to metadata on the object. This is great</div>
+        <div>for data integrity checking but can cause long delays for large files</div>
+        <div>to start uploading.</div>
+        <div>Enter a boolean value (true or false). Press Enter for the default (false).&nbsp;&nbsp;默认启用</div>
+        <div class="text-weight-bold q-mt-xs">disable_checksum></div>
+        <div>
+          <span>Option encoding.</span>
+          <span class="q-ml-xl text-weight-bold">7-7编码格式选项</span>
+        </div>
+        <div>The encoding for the backend.</div>
+        <div>See the [encoding section in the overview](/overview/#encoding) for more info.</div>
+        <div>Enter a encoder.MultiEncoder value. Press Enter for the default </div>
+        <div>(Slash,BackSlash,Del,Ctl,InvalidUtf8,Dot).</div>
+        <div class="text-weight-bold q-mt-xs">encoding> </div>
+        <div>Edit advanced config?</div>
+        <div>y) Yes</div>
+        <div>n) No (default)</div>
+        <div class="text-weight-bold">y/n>n</div>
+        <div class="q-mt-md">[test]</div>
+        <div>type = Iharbor</div>
+        <div>username = wanghuang@cnic.cn</div>
+        <div>password = *** ENCRYPTED ***</div>
+        <div class="q-mt-md">y) Yes this is OK (default)</div>
+        <div>e) Edit this remote</div>
+        <div>d) Delete this remote</div>
+        <div class="text-weight-bold">y/e/d>y</div>
+        <div class="text-weight-bold q-mt-lg">3.2.2设置配置信息保护密码</div>
+        <div class="text-weight-bold q-mt-md">e/n/d/r/c/s/q> s</div>
+        <div>Your configuration is not encrypted.</div>
+        <div>If you add a password, you will protect your login information to cloud services.</div>
+        <div>a) Add Password</div>
+        <div>q) Quit to main menu</div>
+        <div class="text-weight-bold">a/q> a</div>
+        <div>Enter NEW configuration password:</div>
+        <div class="text-weight-bold">password:</div>
+        <div>Confirm NEW configuration password:</div>
+        <div class="text-weight-bold">password:</div>
+        <div>Password set</div>
+        <div>Your configuration is encrypted.</div>
+        <div>c) Change Password</div>
+        <div>u) Unencrypt configuration</div>
+        <div>q) Quit to main menu</div>
+        <div class="text-weight-bold">c/u/q>q</div>
+        <div class="q-mt-lg">以上我们配置了一个密码保护配置文件信息，当我们再次使用rclone config命令查看远程配置信息时，需要输入以上密码，如下所示：</div>
+        <div class="q-mt-md">[root@centos7 rclone]# rclone config</div>
+        <div>Enter configuration password:</div>
+        <div class="text-weight-bold">password:</div>
+        <div>Current remotes:</div>
+        <div class="row">
+          <table border="1" style="border-collapse: collapse;" class="col-3 text-center q-mt-md">
+            <tr class="text-weight-bold">
+              <td>Name</td>
+              <td>Type</td>
+            </tr>
+            <tr>
+              <td>test</td>
+              <td>Iharbor</td>
+            </tr>
+            <tr>
+              <td>ceshi</td>
+              <td>Iharbor</td>
+            </tr>
+          </table>
+        </div>
+        <div class="q-mt-md">如果取消密码的话，如下所示：</div>
+        <div class="text-weight-bold">e/n/d/r/c/s/q> s</div>
+        <div>Your configuration is encrypted.</div>
+        <div>c) Change Password</div>
+        <div>u) Unencrypt configuration</div>
+        <div>q) Quit to main menu</div>
+        <div class="text-weight-bold">c/u/q> u&nbsp;&nbsp;&nbsp;&nbsp;输入u，即可删掉保护密码</div>
+        <div class="text-subtitle1 text-weight-bold q-mt-lg">3.3配置命令</div>
+        <div class="text-weight-bold q-mt-md">3.3.1新建远程：</div>
+        <div class="q-mt-md">rclone config create remote_name cloud_storage_type key=value</div>
+        <div class="q-mt-xs">以键值对(key=value)的形式添加其他需要的参数。key包含3.1.1中新建远程时，基础配置和高级配置中出现的选项，均可进行配置和修改。</div>
+        <div class="text-weight-bold q-mt-md">3.3.2更新远程配置：</div>
+        <div class="q-mt-md">rclone config update remote_name key=value</div>
+        <div class="q-mt-xs">key包含3.1.1中新建远程时，基础配置和高级配置中出现的选项，均可进行配置和修改。</div>
+        <div class="text-weight-bold q-mt-md">3.3.3以json格式查看配置文件：</div>
+        <div class="q-mt-md">rclone config dump</div>
+        <div class="text-weight-bold q-mt-md">3.3.4查看rclone配置文件存储路径：</div>
+        <div class="q-mt-md">rclone config file</div>
+        <div class="text-weight-bold q-mt-md">3.3.5查看配置文件、缓存目录、临时目录的存储路径：</div>
+        <div class="q-mt-md">rclone config paths</div>
+        <div class="text-weight-bold q-mt-md">3.3.6查看远程配置：</div>
+        <div class="q-mt-md">rclone config show</div>
+        <div>rclone config show remote_name</div>
+        <div class="text-weight-bold q-mt-md">3.3.7删除远程：</div>
+        <div class="q-mt-md">rclone config delete remote_name</div>
+        <div class="text-subtitle1 text-weight-bold q-mt-lg">4.常用命令</div>
+        <div class="text-weight-bold q-mt-lg">4.1列出所有的remote</div>
+        <div class="text-weight-bold q-mt-md">rclone listremotes</div>
+        <div>test:</div>
+        <div>ceshi:</div>
+        <div>rclone listremotes --long</div>
+        <div>test:&nbsp;&nbsp;Iharbor</div>
+        <div>ceshi:&nbsp;&nbsp;Iharbor</div>
+        <div class="text-weight-bold">注：（--long 参数可以显示remote对应的云存储类型）</div>
+        <div class="text-weight-bold q-mt-lg">4.2创建存储桶</div>
+        <div class="q-mt-md">rclone mkdir remote_name:bucket_name</div>
+        <div class="q-mt-xs">remote_name: 在3.1.1中配置的别名，即name。以下命令中该字段均为此含义</div>
+        <div class="text-weight-bold q-mt-lg">4.3查看存储桶列表</div>
+        <div class="text-weight-bold q-mt-md">注：lsd 显示桶和目录操作，ls 显示文件操作</div>
+        <div>rclone lsd remote_name:</div>
+        <div class="text-weight-bold q-mt-lg">4.4查看存储桶下目录，不显示文件对象</div>
+        <div class="q-mt-md">rclone lsd remote_name:bucket_name</div>
+        <div class="text-weight-bold q-mt-lg">4.5查看存储桶内文件，不显示目录</div>
+        <div class="q-mt-md">rclone ls remote_name:bucket_name/path</div>
+        <div>path: 存储桶的目录</div>
+        <div class="text-weight-bold q-mt-lg">4.6删除存储桶</div>
+        <div class="q-mt-md">rclone rmdir remote_name:bucket_name</div>
+        <div class="text-weight-bold q-mt-lg">4.7复制文件</div>
+        <div class="q-mt-md">rclone copy local_path_file remote_name:bucket_name/path</div>
+        <div>以上命令表示将本地文件复制到对象存储中</div>
+        <div>rclone copy remote_name:bucket_name/path/filename  local_path </div>
+        <div>以上命令表示将对象存储中的文件对象复制到本地</div>
+        <div>rclone copyto local_path remote_name:bucket_name/path</div>
+        <div>以上命令表示将本地目录复制到对象存储桶的某个目录下，且跳过相同的文件，只上传不同的文件</div>
+        <div class="text-weight-bold q-mt-lg">4.8同步文件</div>
+        <div class="q-mt-md">同步前，需在对象存储桶中提前创建path，否则会报目录不存在的错误。</div>
+        <div>同步的目标是本地目录下的内容，不包括本地目录名，但是包含子目录名称。相同的目录同步，会保持远端和本地内容相同。</div>
+        <div>rclone sync -i local_path remote_name:bucket_name/path</div>
+        <div>（-i）参数显示以下选项：</div>
+        <div class="row">
+          <div>
+            <div>y) Yes, this is OK (default)</div>
+            <div>n) No, skip this</div>
+            <div>s) Skip all copy operations with no more questions</div>
+            <div>!) Do all copy operations with no more questions</div>
+          </div>
+          <div class="q-ml-xl">
+            <div>默认一个文件一个文件地依次同步，速度较慢</div>
+            <div>当前目录下的该文件（该文件不同步到对象存储中）</div>
+            <div>跳过所有文件，即放弃同步该目录下所有文件</div>
+            <div>将该目录下所有文件同步（跳过询问）</div>
+          </div>
+        </div>
+        <div>q) Exit rclone now.</div>
+        <div>rclone sync local_path remote_name:bucket_name/path </div>
+        <div>以上命令不使用-i参数，默认并发同步本地目录下的文件</div>
+        <div class="text-weight-bold q-mt-lg">4.9删除目录</div>
+        <div class="q-mt-md text-weight-bold">注：删除目录时，需要确定该目录下的子文件都可以舍弃掉。</div>
+        <div>rclone purge remote_name:bucket_name/path</div>
+        <div class="text-weight-bold q-mt-lg">4.10删除文件对象</div>
+        <div class="q-mt-md">rclone deletefile remote_name:bucket_name/path/filename</div>
+        <div class="text-weight-bold q-mt-lg">4.11 查看文件md5</div>
+        <div class="q-mt-md">rclone md5sum remote_name:bucket_name/path</div>
+        <div class="text-weight-bold">注意：只显示当前目录下文件对象的md5值，不显示子目录下文件对象的md5值。分片上传的对象不计算md5值。</div>
+        <div class="text-weight-bold q-mt-lg">4.12查看文件数量和大小</div>
+        <div class="q-mt-md">rclone size remote_name:bucket_name/path/filename [--json](可选参数)</div>
+        <div>以json格式查看：</div>
+  <div class="text-weight-bold q-mt-lg">4.13查看目录下总文件数量和大小</div>
+        <div class="q-mt-md">rclone size remote_name:bucket_name/path/ [--json](可选参数)</div>
+        <div class="text-weight-bold">注意：不包含子目录下的文件。</div>
+        <div class="text-weight-bold q-mt-lg">5.挂载</div>
+        <div class="text-weight-bold q-mt-md">5.1 简单挂载</div>
+        <div class="q-mt-md">rclone mount remote:path /localpath  --no-check-certificate --allow-other --allow-non-empty</div>
+        <div>可以通过df 查看是否挂载成功</div>
+        <div>解除挂载（在不使用时必须解除）</div>
+        <div>fusermount -qzu /localpath </div>
+        <div class="text-weight-bold q-mt-md">5.2 缓存挂载</div>
+        <div class="q-mt-md">rclone mount remote:path /localpath   --cache-dir /work/vfsmout/ --vfs-cache-</div>
+        <div>mode=writes --allow-non-empty --vfs-cache-max-size=50M --read-only</div>
+        <div class="row q-mt-sm">
+          <div>
+            <span>参数：</span>
+          </div>
+          <div>
+            <div>--allow-non-empty 允许挂载到非空目录（Windows 不支持）</div>
+            <div>--allow-other 允许其他用户访问（Windows 不支持）</div>
+            <div>--cache-dir 缓存目录</div>
+            <div>--vfs-cache-max-size 缓存的最大值</div>
+            <div>--read-only 只读访问</div>
+          </div>
+        </div>
+        <div class="q-mt-sm">在/localpath目录中可以查看挂载内容的信息</div>
+        <div class="text-weight-bold">注：不能将目录复制到挂载目录中。</div>
+        <div class="text-h6 q-mt-lg">Windows操作系统下使用rclone客户端</div>
+        <div class="text-subtitle1 text-weight-bold q-mt-lg">1.下载</div>
+        <div class="q-mt-md">
+          <span>rclone客户端下载：</span>
+          <span  class="download cursor-pointer" @click="goPage('https://gitee.com/gosc-cnic/iHarborRclone/releases')">https://gitee.com/gosc-cnic/iHarborRclone/releases</span>
+        </div>
+        <div>安装包包含2个文件：rclone.exe 执行文件和 rclone.1用户手册</div>
+        <div class="text-subtitle1 text-weight-bold q-mt-lg">2.安装</div>
+        <div class="q-mt-md">将rclone.exe 和 rclone.1这两个文件复制到C:\Program Files\rclone目录下，您可自行设置rclone工具的安装位置。</div>
+        <div>设置系统环境变量path，添加刚才设置的路径C:\Program Files\rclone，即可全局使用rclone工具。</div>
+        <div>接着，打开cmd命令行工具。</div>
+        <div>输入命令rclone version，显示如下所示rclone客户端版本信息则表示安装成功。</div>
+        <div class="text-subtitle1 text-weight-bold q-mt-lg">3.rclone客户端配置</div>
+        <div class="q-mt-md">
+          <span>Windows操作系统下配置文件存放位置为：</span>
+          <span class="text-weight-bold">C:\Users\xxxx\AppData\Roaming\rclone\rclone.conf</span>
+        </div>
+        <div>rclone配置方法参见linux操作系统下第3节rclone客户端配置。</div>
+        <div>rclone常用命令参见linux操作系统下第4节常用命令。</div>
       </q-tab-panel>
     </q-tab-panels>
   </div>

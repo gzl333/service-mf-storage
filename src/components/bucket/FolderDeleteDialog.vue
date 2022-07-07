@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { ref } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
@@ -22,10 +23,12 @@ const {
   onDialogOK,
   onDialogCancel
 } = useDialogPluginComponent()
+const isDisable = ref(false)
 const onOKClick = async () => {
   const deleteDirArr: string[] = []
   const deleteFileArr: string[] = []
   const deleteFailArr: string[] = []
+  isDisable.value = true
   if (props.dirpath.dirArrs && props.dirpath.dirArrs.length > 0) {
     for (const item of props.dirpath.dirArrs) {
       await storage.storage.api.deleteDirPath({ path: { dirpath: item, bucket_name: props.bucket_name } }).then(() => {
@@ -75,6 +78,7 @@ const onOKClick = async () => {
     })
   }
   onDialogOK()
+  isDisable.value = false
 }
 const onCancelClick = onDialogCancel
 
@@ -86,7 +90,7 @@ const onCancelClick = onDialogCancel
       <div class="text-center"><h5>确认要删除吗？</h5></div>
       <div class="text-center"><h6>此操作是不可逆的！</h6></div>
       <q-card-actions align="center">
-        <q-btn class="q-ma-sm" color="primary" label="确认" unelevated @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="primary" label="确认" unelevated @click="onOKClick" :disable="isDisable"/>
         <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
