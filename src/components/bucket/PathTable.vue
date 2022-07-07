@@ -6,7 +6,6 @@ import { navigateToUrl } from 'single-spa'
 import { i18n } from 'boot/i18n'
 import useClipText from '../../../src/hooks/useClipText'
 import useFormatSize from '../../../src/hooks/useFormatSize'
-import storage from 'src/api/index'
 
 const props = defineProps({
   pathObj: {
@@ -27,7 +26,6 @@ const upperPath = computed(() => currentPath.value === '' ? '/my/storage/bucket'
 // table中选中的对象
 const selected = ref<FileInterface[]>([])
 const fileDetail = ref({})
-console.log(currentBucket)
 // const toggleSelection = (file: FileInterface) => {
 //   if (selected.value.filter((item) => item.name === file.name).length === 0) {
 //     selected.value.push(file)
@@ -169,21 +167,23 @@ const shareFile = async () => {
     }
   })
 }
-const download = async (bucketName: string, name: string) => {
-  const fileName = props.pathObj.localId + '/' + name
-  const res = await storage.storage.api.getObjPath({ path: { objpath: fileName } })
-  const url = window.URL.createObjectURL(new Blob([res.data]))
-  const link = document.createElement('a')
-  link.style.display = 'none'
-  link.href = url
-  link.setAttribute('download', name)
-  document.body.appendChild(link)
-  link.click()
-  // console.log(bucketName)
-  // console.log(name)
+const download = async (fileName: string, download_url: string) => {
+  // 创建a标签
+  const a = document.createElement('a')
+  // 定义下载名称
+  a.download = fileName
+  // 隐藏标签
+  a.style.display = 'none'
+  // 设置文件路径
+  a.href = download_url
+  // 将创建的标签插入dom
+  document.body.appendChild(a)
+  // 点击标签，执行下载
+  a.click()
+  // 将标签从dom移除
+  document.body.removeChild(a)
   // const fileName = props.pathObj.localId + '/' + name
-  // console.log(fileName)
-  // const res = await storage.storage.api.getV1ObjPath({ path: { objpath: fileName, bucket_name: bucketName }, query: {  } })
+  // const res = await storage.storage.api.getObjPath({ path: { objpath: fileName } })
   // const url = window.URL.createObjectURL(new Blob([res.data]))
   // const link = document.createElement('a')
   // link.style.display = 'none'
@@ -394,7 +394,7 @@ watch(
                       创建时间: {{ new Date(fileDetail[props.row.name]?.ult).toLocaleString(i18n.global.locale) }}
                     </div>
                     <div>
-                      文件大小: {{ formatSize1024(fileDetail[props.row.name]?.si) }}
+                      文件大小: {{ fileDetail[props.row.name]?.si }}
                     </div>
                     <div>
                       下载次数: {{ fileDetail[props.row.name]?.dlc }}
@@ -408,7 +408,7 @@ watch(
                 </div>
                 <q-separator/>
                 <div class="q-mt-xs">
-                  <q-btn color="primary" unelevated @click="download(currentBucket, fileDetail[props.row.name]?.name)">下载</q-btn>
+                  <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">下载</q-btn>
                 </div>
               </q-td>
             </q-tr>

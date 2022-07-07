@@ -4,7 +4,7 @@ import { useStore } from 'stores/store'
 import { useRoute } from 'vue-router'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import { axiosStorage } from 'boot/axios'
-
+// import SparkMD5 from 'spark-md5'
 const props = defineProps({
   bucket_name: {
     type: String,
@@ -39,9 +39,24 @@ const clearFile = (index: string) => {
 const clearAll = () => {
   fileArr.value = []
 }
+// 计算MD5
+// const getMD5 = async (file: File) => {
+// 使用sparkMD5的ArrayBuffer类，读取二进制文件
+// const spark = new SparkMD5.ArrayBuffer()
+// const fileReader = new FileReader()
+// 异步操作，读完后的结果
+// fileReader.onload = async (e) => {
+// 把文件开始传入spark
+// spark.append(e.target.result)
+// spark计算出MD5后的结果
+// const _md5 = spark.end()
+// console.log(_md5)
+// }
+// fileReader读取二进制文件
+// fileReader.readAsArrayBuffer(file)
+// }
 // 上传完整文件不切片
 const putObjPath = async (payload: { path: { objpath: string, bucket_name: string }, body: { file: File }, index: number }) => {
-  console.log(payload)
   const formData = new FormData()
   formData.append('file', payload.body.file)
   return axiosStorage({
@@ -62,7 +77,6 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
   let start = 0
   const fileName = file.name
   const fileSize = file.size
-  console.log(fileSize)
   const config = {
     params: payload?.query
   }
@@ -70,22 +84,22 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
     let blob = null
     if (start + chunkSize > fileSize) {
       blob = file.slice(start, fileSize)
+      start = fileSize
     } else {
       blob = file.slice(start, start + chunkSize)
+      start += chunkSize
     }
-    start += chunkSize
     const blobFile = new File([blob], fileName)
     const formData = new FormData()
     formData.append('chunk', blobFile)
-    formData.append('chunk_offset ', start.toString())
-    console.log(blobFile.size)
-    formData.append('chunk_size', blobFile.size.toString())
+    formData.append('chunk_offset ', (start - blobFile.size).toString())
+    formData.append('chunk_size', (blobFile.size).toString())
     if (i === 0) {
       await axiosStorage({
         url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
         method: 'post',
-        params: config,
-        data: formData
+        data: formData,
+        params: config
       })
       progressArr.value[payload.index] = Math.round(start / fileSize * 100)
     } else {
@@ -101,14 +115,7 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
 }
 
 const factoryFn = async (files: File, index: number) => {
-  // const reader: any = new FileReader()
-  // reader.readAsArrayBuffer(files)
-  // reader.onload = async function () {
-  //   const blob = new Blob([reader.result])
-  //   const formdata = new FormData()
-  //   formdata.append('formFile', blob)
-  //   await putObjPath({ path: { objpath: files.name, bucket_name: props.bucket_name }, body: { file: formdata }, index })
-  // }
+  // await getMD5(files, index)
   if (files.size / 1024 / 1024 > 500) {
     await postObjPath({ path: { objpath: files.name, bucket_name: props.bucket_name }, query: { reset: true }, body: { file: files }, index })
   } else {
@@ -155,13 +162,13 @@ const upload = async () => {
 </script>
 
 <template>
+<!--  :headers="[{'Content-Type': 'multipart/form-data'}]"-->
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-uploader
       :factory="factoryFn"
       @added="addFile"
       label="上传文件"
       multiple
-      :headers="[{'Content-Type': 'multipart/form-data'}]"
       style="width: 450px"
     >
       <template v-slot:header="scope">
