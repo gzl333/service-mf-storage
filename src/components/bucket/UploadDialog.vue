@@ -4,6 +4,7 @@ import { useStore } from 'stores/store'
 import { useRoute } from 'vue-router'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import { axiosStorage } from 'boot/axios'
+import { FloatSub } from 'src/hooks/handleFloat'
 // import SparkMD5 from 'spark-md5'
 const props = defineProps({
   bucket_name: {
@@ -26,8 +27,14 @@ const {
 const onCancelClick = onDialogCancel
 const fileArr: Ref = ref([])
 const progressArr: Ref = ref([])
+const uploadSpeed: Ref = ref()
+const uploadTime: Ref = ref()
 const isUploading = ref(false)
 const isProgress = ref(false)
+// 上一次计算时间
+let lastTime = 0
+// 上一次计算的文件大小
+let lastSize = 0
 const addFile = (files: string | File[]) => {
   for (const file of files) {
     fileArr.value.push(file)
@@ -55,6 +62,73 @@ const clearAll = () => {
 // fileReader读取二进制文件
 // fileReader.readAsArrayBuffer(file)
 // }
+const handleTime = (time: number) => {
+  // 超过一小时
+  if (time / 60 / 60 > 1) {
+    const intHour = parseInt((time / 60 / 60).toString())
+    const floatHour = parseFloat((time / 60 / 60).toFixed(1))
+    const num = FloatSub(floatHour, intHour)
+    const min = num * 60
+    if (intHour < 24) {
+      return intHour + '小时' + min + '分钟'
+    } else {
+      return '超过一天'
+    }
+  //  超过一分钟
+  } else if (time / 60 > 1) {
+    const intMin = parseInt((time / 60).toString())
+    const floatMin = parseFloat((time / 60).toFixed(1))
+    const num = FloatSub(floatMin, intMin)
+    const sec = num * 60
+    return intMin + '分钟' + sec + '秒'
+  } else {
+    const sec = parseInt(time.toString())
+    if (sec > 0) {
+      return sec + '秒'
+    } else {
+      return 0 + '秒'
+    }
+  }
+}
+const calcSpeedTime = (event: ProgressEvent, size?: number) => {
+  // 计算间隔
+  const nowTime = new Date().getTime()
+  // 时间单位为毫秒，需转化为秒
+  const intervalTime = (nowTime - lastTime) / 1000
+  const intervalSize = event.loaded - lastSize
+
+  // 重新赋值以便于下次计算
+  lastTime = nowTime
+  lastSize = event.loaded
+
+  // 计算速度
+  let speed = intervalSize / intervalTime
+  // 保存以b/s为单位的速度值，方便计算剩余时间
+  const bSpeed = speed
+  // 单位名称
+  let units = 'b/s'
+  if (speed / 1024 > 1) {
+    speed = speed / 1024
+    units = 'k/s'
+  }
+  if (speed / 1024 > 1) {
+    speed = speed / 1024
+    units = 'M/s'
+  }
+  if (speed > 0) {
+    uploadSpeed.value = speed.toFixed(1) + units
+  } else {
+    uploadSpeed.value = (0.0).toString() + units
+  }
+  // 计算剩余时间
+  if (size) {
+    const leftTime = size / bSpeed
+    uploadTime.value = handleTime(Number(leftTime.toFixed(1)))
+  } else {
+    const leftTime = ((event.total - event.loaded) / bSpeed)
+    uploadTime.value = handleTime(Number(leftTime.toFixed(1)))
+  }
+}
 // 上传完整文件不切片
 const putObjPath = async (payload: { path: { objpath: string, bucket_name: string }, body: { file: File }, index: number }) => {
   const formData = new FormData()
@@ -65,7 +139,9 @@ const putObjPath = async (payload: { path: { objpath: string, bucket_name: strin
     data: formData,
     onUploadProgress: function (progressEvent) {
       if (progressEvent.lengthComputable) {
-        progressArr.value[payload.index] = Math.round(progressEvent.loaded / progressEvent.total * 100)
+        // 计算进度
+        progressArr.value[payload.index] = (progressEvent.loaded / progressEvent.total * 100).toFixed(1)
+        calcSpeedTime(progressEvent)
       }
     }
   })
@@ -73,17 +149,22 @@ const putObjPath = async (payload: { path: { objpath: string, bucket_name: strin
 // 切片上传文件
 const postObjPath = async (payload: { path: { bucket_name: string, objpath: string }, query: { reset: boolean }, body: { file: File }, index: number }) => {
   const file = payload.body.file
+  // 每一片的大小
   const chunkSize = 10 * 1024 * 1024
+  // 开始时的位置
   let start = 0
   const fileName = file.name
   const fileSize = file.size
+  // 上传第一片文件时需要的参数
   const config = {
     params: payload?.query
   }
   for (let i = 0; i < fileSize; i += chunkSize) {
     let blob = null
     if (start + chunkSize > fileSize) {
+      // 文件切片
       blob = file.slice(start, fileSize)
+      // 改变偏移量
       start = fileSize
     } else {
       blob = file.slice(start, start + chunkSize)
@@ -92,6 +173,7 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
     const blobFile = new File([blob], fileName)
     const formData = new FormData()
     formData.append('chunk', blobFile)
+    // 偏移量需要减去上一次的文件大小 否则会切片错误
     formData.append('chunk_offset ', (start - blobFile.size).toString())
     formData.append('chunk_size', (blobFile.size).toString())
     if (i === 0) {
@@ -99,19 +181,31 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
         url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
         method: 'post',
         data: formData,
-        params: config
+        params: config,
+        onUploadProgress: function (progressEvent) {
+          if (progressEvent.lengthComputable) {
+            // 计算进度
+            progressArr.value[payload.index] = (start / fileSize * 100).toFixed(1)
+            calcSpeedTime(progressEvent)
+          }
+        }
       })
-      progressArr.value[payload.index] = Math.round(start / fileSize * 100)
     } else {
       await axiosStorage({
         url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
         method: 'post',
-        data: formData
+        data: formData,
+        onUploadProgress: function (progressEvent) {
+          if (progressEvent.lengthComputable) {
+            // 计算进度
+            progressArr.value[payload.index] = (start / fileSize * 100).toFixed(1)
+            const surplusSize = fileSize - start
+            calcSpeedTime(progressEvent, surplusSize)
+          }
+        }
       })
-      progressArr.value[payload.index] = Math.round(start / fileSize * 100)
     }
   }
-  progressArr.value[payload.index] = 100
 }
 
 const factoryFn = async (files: File, index: number) => {
@@ -162,13 +256,13 @@ const upload = async () => {
 </script>
 
 <template>
-<!--  :headers="[{'Content-Type': 'multipart/form-data'}]"-->
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-uploader
       :factory="factoryFn"
       @added="addFile"
       label="上传文件"
       multiple
+      :headers="[{'Content-Type': 'multipart/form-data'}]"
       style="width: 450px"
     >
       <template v-slot:header="scope">
@@ -178,9 +272,12 @@ const upload = async () => {
           </q-btn>
           <q-spinner v-if="scope.queuedFiles.length > 0 && isUploading === true" class="q-uploader__spinner"/>
           <div class="col">
-<!--            <div>{{scope}}</div>-->
-            <div class="q-uploader__title">上传文件</div>
-            <div class="q-uploader__subtitle">{{ scope.uploadSizeLabel }}</div>
+              <div class="q-uploader__title">上传文件</div>
+              <div class="q-uploader__subtitle row">
+                <div class="col-2">{{ scope.uploadSizeLabel }}</div>
+                <div class="col-4" v-show="isProgress">上传速度：{{uploadSpeed}}</div>
+                <div class="col-4" v-show="isProgress">剩余时间：{{uploadTime}}</div>
+              </div>
           </div>
           <q-btn v-if="isUploading === false" type="a" icon="add_box" @click="scope.pickFiles" round dense flat>
             <q-uploader-add-trigger/>
@@ -198,17 +295,17 @@ const upload = async () => {
               <q-item-label caption>
                 {{ file.__sizeLabel }}
               </q-item-label>
-              <q-item-label>
-                <div class="row" v-if="isProgress">
+              <q-item-label v-if="isProgress">
+                <div class="row">
                   <div class="col-11">
                     <q-linear-progress :value="progressArr[index] / 100" color="primary" class="q-mt-sm" size="md"/>
                   </div>
-                  <div class="col-1 text-center">{{progressArr[index]}}%</div>
+                  <div class="col-1 text-center q-mt-xs">{{progressArr[index]}}%</div>
                 </div>
               </q-item-label>
             </q-item-section>
             <q-item-section top side>
-              <q-btn class="gt-xs" size="12px" flat dense round icon="delete" @click="scope.removeFile(file); clearFile(index)" :disable="isUploading">
+              <q-btn class="gt-xs" size="12px" flat dense round icon="delete" @click="scope.removeFile(file); clearFile(index)" v-if="!isProgress">
                 <q-tooltip>删除文件</q-tooltip>
               </q-btn>
             </q-item-section>

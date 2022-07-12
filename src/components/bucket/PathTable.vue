@@ -4,6 +4,7 @@ import { FileInterface, PathInterface } from 'src/stores/store'
 import { useStore } from 'stores/store'
 import { navigateToUrl } from 'single-spa'
 import { i18n } from 'boot/i18n'
+// import storage from 'src/api/index'
 import useClipText from '../../../src/hooks/useClipText'
 import useFormatSize from '../../../src/hooks/useFormatSize'
 
@@ -14,7 +15,6 @@ const props = defineProps({
   }
 })
 // const emit = defineEmits(['change', 'delete'])
-
 // code starts...
 const store = useStore()
 // const { tc } = i18n.global
@@ -191,6 +191,9 @@ const download = async (fileName: string, download_url: string) => {
   // link.setAttribute('download', name)
   // document.body.appendChild(link)
   // link.click()
+  // document.body.removeChild(link)
+  // 释放blob URL地址
+  // window.URL.revokeObjectURL(url)
 }
 const toggleExpansion = (props: { expand: boolean, row: FileInterface }) => {
   if (props.expand) {
@@ -305,7 +308,7 @@ watch(
           <!--      </template>-->
 
           <template v-slot:body="props">
-            <q-tr :props="props">
+            <q-tr :props="props" :class="props.expand ? 'bg-blue-1':''">
 
               <q-td auto-width>
                 <q-checkbox v-model="props.selected" dense size="xs"/>
@@ -345,29 +348,27 @@ watch(
               </q-td>
 
               <q-td key="operation" :props="props">
-                <q-btn-dropdown unelevated color="primary" label="操作">
+                <q-btn-dropdown unelevated color="primary" label="操作" v-if="props.row.fod === false">
                   <q-list>
                     <q-item clickable v-close-popup @click="onItemClick(props.row.name, props.row.fod)">
                       <q-item-section>
                         <q-item-label>删除</q-item-label>
                       </q-item-section>
                     </q-item>
-                    <q-item v-if="props.row.fod === true" clickable v-close-popup @click="changeName(props.row.name)">
+                    <q-item clickable v-close-popup @click="changeName(props.row.name)">
                       <q-item-section>
                         <q-item-label>重命名</q-item-label>
                       </q-item-section>
                     </q-item>
-                    <q-item clickable v-close-popup
-                            @click="shareItemClick(props.row.name, props.row.access_code, props.row.fod)">
+                    <q-item clickable v-close-popup @click="shareItemClick(props.row.name, props.row.access_code, props.row.fod)">
                       <q-item-section>
                         <q-item-label>公开分享</q-item-label>
                       </q-item-section>
                     </q-item>
                   </q-list>
                 </q-btn-dropdown>
-                <q-btn v-if="props.row.fod === true" class="q-ml-sm q-pt-sm" unelevated dense color="primary"
-                       @click="toggleExpansion(props)"
-                       :icon="props.expand ? 'expand_less' : 'expand_more'" :label="props.expand ? '折叠详情' : '展开详情'">
+                <q-btn v-if="props.row.fod === true" class="q-pt-sm" unelevated dense color="primary" @click="toggleExpansion(props)"
+                       :label="props.expand ? '折叠详情' : '展开详情'" :icon="props.expand ? 'expand_less' : 'expand_more'">
                 </q-btn>
               </q-td>
 
@@ -409,6 +410,10 @@ watch(
                 <q-separator/>
                 <div class="q-mt-xs">
                   <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">下载</q-btn>
+<!--                  <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name].name)">下载</q-btn>-->
+                  <q-btn class="q-ml-sm" color="primary" unelevated @click="onItemClick(fileDetail[props.row.name].name, fileDetail[props.row.name].fod)">删除</q-btn>
+                  <q-btn class="q-ml-sm" color="primary" unelevated @click="changeName(fileDetail[props.row.name].name)">重命名</q-btn>
+                  <q-btn class="q-ml-sm" color="primary" unelevated @click="shareItemClick(fileDetail[props.row.name].name, fileDetail[props.row.name].access_code, fileDetail[props.row.name].fod)">公开分享</q-btn>
                 </div>
               </q-td>
             </q-tr>
@@ -416,42 +421,7 @@ watch(
         </q-table>
         <q-separator/>
       </div>
-
-      <!--      <div class="col-auto bg-grey-1 q-mx-sm rounded-borders q-pa-sm"-->
-      <!--           style="height: calc(100vh - 175px); width: 300px;">-->
-      <!--        <div v-if="!fileToShow">-->
-      <!--          {{ tc('请点击要查看的文件') }}-->
-      <!--        </div>-->
-      <!--        <div v-else class="column q-gutter-md">-->
-      <!--          <div class="col-auto text-bold">-->
-      <!--            {{ fileToShow.name }}-->
-      <!--          </div>-->
-      <!--          <div class="col-auto">-->
-      <!--            创建时间: {{ new Date(fileToShow.ult).toLocaleString(i18n.global.locale) }}-->
-      <!--          </div>-->
-      <!--          <div class="col-auto">-->
-      <!--            最后修改: {{ new Date(fileToShow.upt).toLocaleString(i18n.global.locale) }}-->
-      <!--          </div>-->
-      <!--          <div class="col-auto">-->
-      <!--            文件大小: {{ formatSize1024(fileToShow.si) }}-->
-      <!--          </div>-->
-      <!--          <div class="col-auto">-->
-      <!--            访问权限: {{ fileToShow.access_permission }}-->
-      <!--          </div>-->
-      <!--          <div class="col-auto">-->
-      <!--            下载次数: {{ fileToShow.dlc }}-->
-      <!--          </div>-->
-      <!--          <div class="col-auto">-->
-      <!--            MD5: {{ fileToShow.md5 }}-->
-      <!--          </div>-->
-      <!--          <div class="col-auto">-->
-      <!--            <q-btn color="primary" unelevated @click="download(fileToShow.name)">下载</q-btn>-->
-      <!--          </div>-->
-      <!--        </div>-->
-      <!--      </div>-->
-
     </div>
-
   </div>
 </template>
 

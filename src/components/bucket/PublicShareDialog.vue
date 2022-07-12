@@ -3,7 +3,7 @@ import { ref, Ref } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
-import { useRoute } from 'vue-router'
+// import { useRoute } from 'vue-router'
 import { i18n } from 'boot/i18n'
 
 const props = defineProps({
@@ -17,18 +17,17 @@ const props = defineProps({
   }
 })
 const store = useStore()
-const $route = useRoute()
+// const $route = useRoute()
 const tc = i18n.global.tc
 defineEmits([...useDialogPluginComponent.emits])
-
 const {
   dialogRef,
   onDialogHide,
   onDialogOK,
   onDialogCancel
 } = useDialogPluginComponent()
-const bucket = $route.query.bucket as string // string or undefined
-const path = $route.query.path as string
+// const bucket = $route.query.bucket as string // string or undefined
+// const path = $route.query.path as string
 const onCancelClick = onDialogCancel
 const selectModel = ref(null)
 const isPass = ref(false)
@@ -89,7 +88,8 @@ const share = async () => {
         }
       }
     }
-    void await store.addPathTable({ bucket, path })
+    // void await store.addPathTable({ bucket, path })
+    void store.changeShareStatus({ item: { bucket_name: props.bucket_name, dirpath: { dirArrs: props.pathObj.dirArrs, fileArrs: props.pathObj.fileArrs }, share: shareQuery.value.share } })
     Notify.create({
       classes: 'notification-positive shadow-15',
       icon: 'check_circle',

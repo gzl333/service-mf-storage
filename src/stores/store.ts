@@ -105,6 +105,15 @@ export interface deleteInterface {
   }
 }
 
+// 文件分享需要的参数类型
+export interface shareInterface {
+  bucket_name: string
+  dirpath: {
+    dirArrs: string[]
+    fileArrs: string[]
+  }
+  share: number
+}
 // 添加文件需要的参数类型
 export interface addFileInterface {
   bucket_name: string
@@ -315,6 +324,33 @@ export const useStore = defineStore('storage', {
           item.name = payload.item.newName
         }
       })
+    },
+    // 文件更改分享状态
+    changeShareStatus (payload: { item: shareInterface }) {
+      if (payload.item.dirpath.dirArrs !== undefined && payload.item.dirpath.dirArrs.length > 0) {
+        payload.item.dirpath.dirArrs.forEach((dir: string) => {
+          const index = this.tables.pathTable.byLocalId[payload.item.bucket_name].files.findIndex(item => item.name === dir)
+          if (payload.item.share === 0) {
+            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_code = 0
+            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_permission = '私有'
+          } else {
+            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_code = 1
+            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_permission = '公有'
+          }
+        })
+      }
+      if (payload.item.dirpath.fileArrs !== undefined && payload.item.dirpath.fileArrs.length > 0) {
+        payload.item.dirpath.fileArrs.forEach((file: string) => {
+          const index = this.tables.pathTable.byLocalId[payload.item.bucket_name].files.findIndex(item => item.name === file)
+          if (payload.item.share === 0) {
+            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_code = 0
+            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_permission = '私有'
+          } else {
+            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_code = 1
+            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_permission = '公有'
+          }
+        })
+      }
     },
     // 删除文件
     deleteFile (payload: { item: deleteInterface }) {
