@@ -20,7 +20,7 @@ import { ref } from 'vue'
 // const tc = i18n.global.tc
 
 const activeItem = ref('ftp') // keep selection when reloading
-const changeTab = async (name: string) => {
+const changeTab = (name: string) => {
   activeItem.value = name
 }
 const goPage = (url: string) => {

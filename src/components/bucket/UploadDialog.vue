@@ -30,7 +30,6 @@ const progressArr: Ref = ref([])
 const uploadSpeed: Ref = ref()
 const uploadTime: Ref = ref()
 const isUploading = ref(false)
-const isProgress = ref(false)
 // 上一次计算时间
 let lastTime = 0
 // 上一次计算的文件大小
@@ -222,7 +221,6 @@ const upload = async () => {
       progressArr.value[index] = 0
     }
     isUploading.value = true
-    isProgress.value = true
     for (let index = 0; index < fileArr.value.length; index++) {
       void await factoryFn(fileArr.value[index], index)
     }
@@ -275,41 +273,47 @@ const upload = async () => {
               <div class="q-uploader__title">上传文件</div>
               <div class="q-uploader__subtitle row">
                 <div class="col-2">{{ scope.uploadSizeLabel }}</div>
-                <div class="col-4" v-show="isProgress">上传速度：{{uploadSpeed}}</div>
-                <div class="col-4" v-show="isProgress">剩余时间：{{uploadTime}}</div>
+                <div class="col-4" v-show="isUploading">上传速度：{{uploadSpeed}}</div>
+                <div class="col-4" v-show="isUploading">剩余时间：{{uploadTime}}</div>
               </div>
           </div>
           <q-btn v-if="isUploading === false" type="a" icon="add_box" @click="scope.pickFiles" round dense flat>
             <q-uploader-add-trigger/>
             <q-tooltip>选择文件</q-tooltip>
           </q-btn>
+<!--          <q-btn icon="clear" @click="cancel(scope)" round dense flat >-->
+<!--            <q-tooltip>取消上传</q-tooltip>-->
+<!--          </q-btn>-->
         </div>
       </template>
       <template v-slot:list="scope">
         <q-list separator>
           <q-item v-for="(file, index) in scope.files" :key="file.__key">
             <q-item-section>
-              <q-item-label class="full-width ellipsis">
+              <q-item-label class="full-width ellipsis text-weight-bold">
                 {{ file.name }}
               </q-item-label>
               <q-item-label caption>
                 {{ file.__sizeLabel }}
               </q-item-label>
-              <q-item-label v-if="isProgress">
+              <q-item-label v-if="isUploading">
                 <div class="row">
                   <div class="col-11">
                     <q-linear-progress :value="progressArr[index] / 100" color="primary" class="q-mt-sm" size="md"/>
                   </div>
-                  <div class="col-1 text-center q-mt-xs">{{progressArr[index]}}%</div>
+                  <div class="col-1 text-center q-mt-xs" v-if="parseInt(progressArr[index]) !== 100">{{progressArr[index]}}%</div>
+                  <q-icon class="col-1 q-mt-xs text-center" name="las la-check-circle" color="positive" v-else/>
                 </div>
               </q-item-label>
             </q-item-section>
             <q-item-section top side>
-              <q-btn class="gt-xs" size="12px" flat dense round icon="delete" @click="scope.removeFile(file); clearFile(index)" v-if="!isProgress">
+              <q-btn v-if="!isUploading" class="gt-xs" size="12px" flat dense round icon="clear" @click="scope.removeFile(file); clearFile(index)">
                 <q-tooltip>删除文件</q-tooltip>
               </q-btn>
+<!--              <q-spinner v-show="parseInt(progressArr[index]) > 0 && parseInt(progressArr[index]) !== 100" class="q-uploader__spinner"/>-->
             </q-item-section>
           </q-item>
+          <q-separator v-if="scope.files.length > 0"/>
         </q-list>
         <div class="row justify-center q-mt-xl">
           <q-btn class="q-ma-sm" color="primary" label="上传" unelevated @click="upload" :disable="isUploading"/>
