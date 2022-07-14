@@ -169,14 +169,7 @@ export const useStore = defineStore('storage', {
       } as PathTableInterface
     }
   }),
-  getters: {
-    getFileDetailByName: (state) => (fileName: string): FileInterface[] => {
-      let newArr: FileInterface[]
-      // eslint-disable-next-line prefer-const
-      newArr = state.tables.pathTable.byLocalId[fileName].files.filter(item => item.name === fileName)
-      return newArr
-    }
-  },
+  getters: {},
   actions: {
     async loadBucketTable () {
       // 1. 先清空table内容

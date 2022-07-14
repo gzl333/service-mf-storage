@@ -20,7 +20,7 @@ declare module '@vue/runtime-core' {
 // const api = axios.create({ baseURL: 'https://api.example.com' })
 
 const CancelToken = axios.CancelToken
-const source = CancelToken.source()
+let source = CancelToken.source()
 // axios instance with base url configured
 export const baseURLStorage = window.location.protocol + '//obs.cstcloud.cn' // todo 改成该服务的后端api地址
 const axiosStorage = axios.create({
@@ -79,7 +79,10 @@ axiosStorage.interceptors.response.use(config => {
   throw error // throw error就无法把错误传递给发送请求处
 })
 /* axiosStorage的拦截器 */
-
+const cancelUpload = () => {
+  source.cancel('取消请求')
+  source = axios.CancelToken.source()
+}
 export default boot((/* { app } */) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
 
@@ -92,4 +95,4 @@ export default boot((/* { app } */) => {
   //       so you can easily perform requests against your app's API
 })
 
-export { axiosStorage }
+export { axiosStorage, cancelUpload }

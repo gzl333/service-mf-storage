@@ -6,6 +6,7 @@ import { Notify, useDialogPluginComponent } from 'quasar'
 import { axiosStorage } from 'boot/axios'
 import { FloatSub } from 'src/hooks/handleFloat'
 // import SparkMD5 from 'spark-md5'
+
 const props = defineProps({
   bucket_name: {
     type: String,
@@ -45,21 +46,27 @@ const clearFile = (index: string) => {
 const clearAll = () => {
   fileArr.value = []
 }
+// const cancel = () => {
+//   cancelUpload()
+// }
 // 计算MD5
-// const getMD5 = async (file: File) => {
+// const getMD5 = async (file: File, index: number) => {
 // 使用sparkMD5的ArrayBuffer类，读取二进制文件
-// const spark = new SparkMD5.ArrayBuffer()
-// const fileReader = new FileReader()
+//   const spark = new SparkMD5.ArrayBuffer()
+//   const fileReader = new FileReader()
+//   fileReader.readAsArrayBuffer(file)
 // 异步操作，读完后的结果
-// fileReader.onload = async (e) => {
+// fileReader.onload = async (e: any) => {
 // 把文件开始传入spark
-// spark.append(e.target.result)
+// await spark.append(e.target.result)
 // spark计算出MD5后的结果
-// const _md5 = spark.end()
-// console.log(_md5)
+// const md5 = spark.end()
+// await console.log(md5)
+// await console.log(e.target.result)
+// await putObjPath({ path: { objpath: file.name, bucket_name: props.bucket_name }, body: { file: e.target.result }, index, md5 })
 // }
 // fileReader读取二进制文件
-// fileReader.readAsArrayBuffer(file)
+// await fileReader.readAsArrayBuffer(file)
 // }
 const handleTime = (time: number) => {
   // 超过一小时
@@ -73,7 +80,7 @@ const handleTime = (time: number) => {
     } else {
       return '超过一天'
     }
-  //  超过一分钟
+    //  超过一分钟
   } else if (time / 60 > 1) {
     const intMin = parseInt((time / 60).toString())
     const floatMin = parseFloat((time / 60).toFixed(1))
@@ -95,7 +102,6 @@ const calcSpeedTime = (event: ProgressEvent, size?: number) => {
   // 时间单位为毫秒，需转化为秒
   const intervalTime = (nowTime - lastTime) / 1000
   const intervalSize = event.loaded - lastSize
-
   // 重新赋值以便于下次计算
   lastTime = nowTime
   lastSize = event.loaded
@@ -115,19 +121,43 @@ const calcSpeedTime = (event: ProgressEvent, size?: number) => {
     units = 'M/s'
   }
   if (speed > 0) {
+    // 如果速度大于0
     uploadSpeed.value = speed.toFixed(1) + units
   } else {
+    // 如果速度小于等于0 则赋值为0.0
     uploadSpeed.value = (0.0).toString() + units
   }
   // 计算剩余时间
   if (size) {
+    // 计算切片上传剩余时间
     const leftTime = size / bSpeed
     uploadTime.value = handleTime(Number(leftTime.toFixed(1)))
   } else {
+    // 计算完整上传剩余时间
     const leftTime = ((event.total - event.loaded) / bSpeed)
     uploadTime.value = handleTime(Number(leftTime.toFixed(1)))
   }
 }
+// const putObjPath = async (payload: { path: { objpath: string, bucket_name: string }, body: { file: File }, index: number, md5: string }) => {
+//   console.log(payload)
+//   const formData = new FormData()
+//   formData.append('file', payload.body.file)
+//   return axiosStorage({
+//     url: `/api/v2/obj/${payload.path.bucket_name}/${payload.path.objpath}`,
+//     method: 'put',
+//     headers: {
+//       'Content-MD5': payload.md5
+//     },
+//     data: formData,
+//     onUploadProgress: function (progressEvent) {
+//       if (progressEvent.lengthComputable) {
+//         // 计算进度
+//         progressArr.value[payload.index] = (progressEvent.loaded / progressEvent.total * 100).toFixed(1)
+//         calcSpeedTime(progressEvent)
+//       }
+//     }
+//   })
+// }
 // 上传完整文件不切片
 const putObjPath = async (payload: { path: { objpath: string, bucket_name: string }, body: { file: File }, index: number }) => {
   const formData = new FormData()
@@ -185,7 +215,8 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
           if (progressEvent.lengthComputable) {
             // 计算进度
             progressArr.value[payload.index] = (start / fileSize * 100).toFixed(1)
-            calcSpeedTime(progressEvent)
+            const surplusSize = fileSize - start
+            calcSpeedTime(progressEvent, surplusSize)
           }
         }
       })
@@ -261,59 +292,62 @@ const upload = async () => {
       label="上传文件"
       multiple
       :headers="[{'Content-Type': 'multipart/form-data'}]"
-      style="width: 450px"
+      style="width: 420px"
     >
       <template v-slot:header="scope">
         <div class="row no-wrap items-center q-pa-sm q-gutter-xs">
-          <q-btn v-if="scope.queuedFiles.length > 0 && isUploading === false" icon="clear_all" @click="scope.removeQueuedFiles(); clearAll()" round dense flat>
+          <q-btn v-if="scope.queuedFiles.length > 0 && isUploading === false" icon="clear_all"
+                 @click="scope.removeQueuedFiles(); clearAll()" round dense flat>
             <q-tooltip>清空文件</q-tooltip>
           </q-btn>
           <q-spinner v-if="scope.queuedFiles.length > 0 && isUploading === true" class="q-uploader__spinner"/>
           <div class="col">
-              <div class="q-uploader__title">上传文件</div>
-              <div class="q-uploader__subtitle row">
-                <div class="col-2">{{ scope.uploadSizeLabel }}</div>
-                <div class="col-4" v-show="isUploading">上传速度：{{uploadSpeed}}</div>
-                <div class="col-4" v-show="isUploading">剩余时间：{{uploadTime}}</div>
-              </div>
+            <div class="q-uploader__title">上传文件</div>
+            <div class="q-uploader__subtitle row">
+              <div class="col-2">{{ scope.uploadSizeLabel }}</div>
+              <div class="col-4" v-show="isUploading">上传速度：{{ uploadSpeed }}</div>
+              <div class="col-4" v-show="isUploading">剩余时间：{{ uploadTime }}</div>
+            </div>
           </div>
           <q-btn v-if="isUploading === false" type="a" icon="add_box" @click="scope.pickFiles" round dense flat>
             <q-uploader-add-trigger/>
             <q-tooltip>选择文件</q-tooltip>
           </q-btn>
-<!--          <q-btn icon="clear" @click="cancel(scope)" round dense flat >-->
-<!--            <q-tooltip>取消上传</q-tooltip>-->
-<!--          </q-btn>-->
+          <!--          <q-btn icon="clear" @click="cancel()" round dense flat >-->
+          <!--            <q-tooltip>取消上传</q-tooltip>-->
+          <!--          </q-btn>-->
         </div>
       </template>
       <template v-slot:list="scope">
         <q-list separator>
-          <q-item v-for="(file, index) in scope.files" :key="file.__key">
-            <q-item-section>
-              <q-item-label class="full-width ellipsis text-weight-bold">
-                {{ file.name }}
-              </q-item-label>
-              <q-item-label caption>
-                {{ file.__sizeLabel }}
-              </q-item-label>
-              <q-item-label v-if="isUploading">
-                <div class="row">
-                  <div class="col-11">
-                    <q-linear-progress :value="progressArr[index] / 100" color="primary" class="q-mt-sm" size="md"/>
-                  </div>
-                  <div class="col-1 text-center q-mt-xs" v-if="parseInt(progressArr[index]) !== 100">{{progressArr[index]}}%</div>
-                  <q-icon class="col-1 q-mt-xs text-center" name="las la-check-circle" color="positive" v-else/>
+          <q-card v-for="(file, index) in scope.files" :key="file.__key" flat bordered class="my-card bg-grey-2 q-mt-sm">
+            <q-card-section class="q-py-xs q-px-md">
+              <div class="row items-center no-wrap">
+                <div class="col">
+                  <div class="text-weight-bold">{{ file.name }}</div>
+                  <div>{{ file.__sizeLabel }}</div>
                 </div>
-              </q-item-label>
-            </q-item-section>
-            <q-item-section top side>
-              <q-btn v-if="!isUploading" class="gt-xs" size="12px" flat dense round icon="clear" @click="scope.removeFile(file); clearFile(index)">
-                <q-tooltip>删除文件</q-tooltip>
-              </q-btn>
-<!--              <q-spinner v-show="parseInt(progressArr[index]) > 0 && parseInt(progressArr[index]) !== 100" class="q-uploader__spinner"/>-->
-            </q-item-section>
-          </q-item>
-          <q-separator v-if="scope.files.length > 0"/>
+                <div class="col-auto">
+                  <q-btn v-if="!isUploading" class="gt-xs" size="12px" flat dense round icon="clear"
+                         @click="scope.removeFile(file); clearFile(index)">
+                    <q-tooltip>删除文件</q-tooltip>
+                  </q-btn>
+                  <q-spinner v-show="parseInt(progressArr[index]) > 0 && parseInt(progressArr[index]) !== 100" class="q-uploader__spinner"/>
+                </div>
+              </div>
+            </q-card-section>
+            <q-card-section v-if="isUploading" class="q-py-none q-px-md">
+              <div class="row items-center">
+                <div class="col-11">
+                  <q-linear-progress :value="progressArr[index] / 100" color="primary" size="md"/>
+                </div>
+                <div class="col-1 text-center" v-if="parseInt(progressArr[index]) !== 100">
+                  {{ progressArr[index] }}%
+                </div>
+                <q-icon class="col-1 text-center" name="las la-check-circle" color="positive" v-else/>
+              </div>
+            </q-card-section>
+          </q-card>
         </q-list>
         <div class="row justify-center q-mt-xl">
           <q-btn class="q-ma-sm" color="primary" label="上传" unelevated @click="upload" :disable="isUploading"/>
