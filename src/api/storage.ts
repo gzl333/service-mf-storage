@@ -104,8 +104,8 @@ export default {
     // 删除文件
     deleteObjPath (payload: {
       path: {
-        objpath: string
         bucket_name: string
+        objpath: string
       }
     }) {
       return axiosStorage.delete('/api/v1/obj/' + payload.path.bucket_name + '/' + payload.path.objpath + '/')

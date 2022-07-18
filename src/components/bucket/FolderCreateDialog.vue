@@ -36,6 +36,16 @@ const onOKClick = async () => {
     })
   } else {
     inputRef.value!.$props.loading = true
+    Notify.create({
+      classes: 'notification-positive shadow-15',
+      icon: 'las la-redo-alt',
+      textColor: 'positive',
+      message: '正在创建文件夹',
+      position: 'bottom',
+      closeBtn: true,
+      timeout: 5000,
+      multiLine: false
+    })
     try {
       const respGetDir = await storage.storage.api.postDirPath({ path: { dirpath: dirName.value, bucket_name: props.bucket_name } })
       await store.storeSingleFileItem({ item: { files: respGetDir.data.dir, bucket_name: props.bucket_name } })

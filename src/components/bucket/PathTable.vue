@@ -355,11 +355,6 @@ watch(
                         <q-item-label>删除</q-item-label>
                       </q-item-section>
                     </q-item>
-                    <q-item clickable v-close-popup @click="changeName(props.row.name)">
-                      <q-item-section>
-                        <q-item-label>重命名</q-item-label>
-                      </q-item-section>
-                    </q-item>
                     <q-item clickable v-close-popup @click="shareItemClick(props.row.name, props.row.access_code, props.row.fod)">
                       <q-item-section>
                         <q-item-label>公开分享</q-item-label>

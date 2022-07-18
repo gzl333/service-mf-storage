@@ -16,7 +16,6 @@ const props = defineProps({
 })
 const store = useStore()
 defineEmits([...useDialogPluginComponent.emits])
-
 const {
   dialogRef,
   onDialogHide,
@@ -29,6 +28,16 @@ const onOKClick = async () => {
   const deleteFileArr: string[] = []
   const deleteFailArr: string[] = []
   isDisable.value = true
+  Notify.create({
+    classes: 'notification-positive shadow-15',
+    icon: 'las la-redo-alt',
+    textColor: 'positive',
+    message: '正在删除中',
+    position: 'bottom',
+    closeBtn: true,
+    timeout: 5000,
+    multiLine: false
+  })
   if (props.dirpath.dirArrs && props.dirpath.dirArrs.length > 0) {
     for (const item of props.dirpath.dirArrs) {
       await storage.storage.api.deleteDirPath({ path: { dirpath: item, bucket_name: props.bucket_name } }).then(() => {

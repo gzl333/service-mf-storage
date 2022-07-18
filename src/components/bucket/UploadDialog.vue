@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import { axiosStorage } from 'boot/axios'
 import { FloatSub } from 'src/hooks/handleFloat'
+import storage from 'src/api'
 // import SparkMD5 from 'spark-md5'
 
 const props = defineProps({
@@ -16,7 +17,6 @@ const props = defineProps({
 const $route = useRoute()
 const store = useStore()
 defineEmits([...useDialogPluginComponent.emits])
-
 const bucket = $route.query.bucket as string // string or undefined
 const path = $route.query.path as string
 const {
@@ -25,12 +25,13 @@ const {
   onDialogOK,
   onDialogCancel
 } = useDialogPluginComponent()
-const onCancelClick = onDialogCancel
 const fileArr: Ref = ref([])
 const progressArr: Ref = ref([])
 const uploadSpeed: Ref = ref()
 const uploadTime: Ref = ref()
 const isUploading = ref(false)
+const isClose = ref(false)
+const isCancel = ref(false)
 // 上一次计算时间
 let lastTime = 0
 // 上一次计算的文件大小
@@ -46,8 +47,22 @@ const clearFile = (index: string) => {
 const clearAll = () => {
   fileArr.value = []
 }
-// const cancel = () => {
-//   cancelUpload()
+const onCancelClick = async () => {
+// cancelUpload()
+  isClose.value = true
+  onDialogCancel()
+}
+const isHover = ref(false)
+const onMouseEnter = () => {
+  isHover.value = true
+}
+const onMouseLeave = () => {
+  isHover.value = false
+}
+// const close = () => {
+// cancelUpload()
+// isClose.value = true
+// onDialogCancel()
 // }
 // 计算MD5
 // const getMD5 = async (file: File, index: number) => {
@@ -69,31 +84,35 @@ const clearAll = () => {
 // await fileReader.readAsArrayBuffer(file)
 // }
 const handleTime = (time: number) => {
-  // 超过一小时
-  if (time / 60 / 60 > 1) {
-    const intHour = parseInt((time / 60 / 60).toString())
-    const floatHour = parseFloat((time / 60 / 60).toFixed(1))
-    const num = FloatSub(floatHour, intHour)
-    const min = num * 60
-    if (intHour < 24) {
-      return intHour + '小时' + min + '分钟'
+  if (time > 0) {
+    // 超过一小时
+    if (time / 60 / 60 > 1) {
+      const intHour = parseInt((time / 60 / 60).toString())
+      const floatHour = parseFloat((time / 60 / 60).toFixed(1))
+      const num = FloatSub(floatHour, intHour)
+      const min = num * 60
+      if (intHour < 24) {
+        return intHour + '小时' + min + '分钟'
+      } else {
+        return '超过一天'
+      }
+      //  超过一分钟
+    } else if (time / 60 > 1) {
+      const intMin = parseInt((time / 60).toString())
+      const floatMin = parseFloat((time / 60).toFixed(1))
+      const num = FloatSub(floatMin, intMin)
+      const sec = num * 60
+      return intMin + '分钟' + sec + '秒'
     } else {
-      return '超过一天'
+      const sec = parseInt(time.toString())
+      if (sec > 0) {
+        return sec + '秒'
+      } else {
+        return 0 + '秒'
+      }
     }
-    //  超过一分钟
-  } else if (time / 60 > 1) {
-    const intMin = parseInt((time / 60).toString())
-    const floatMin = parseFloat((time / 60).toFixed(1))
-    const num = FloatSub(floatMin, intMin)
-    const sec = num * 60
-    return intMin + '分钟' + sec + '秒'
   } else {
-    const sec = parseInt(time.toString())
-    if (sec > 0) {
-      return sec + '秒'
-    } else {
-      return 0 + '秒'
-    }
+    return '计算中'
   }
 }
 const calcSpeedTime = (event: ProgressEvent, size?: number) => {
@@ -189,64 +208,81 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
     params: payload?.query
   }
   for (let i = 0; i < fileSize; i += chunkSize) {
-    let blob = null
-    if (start + chunkSize > fileSize) {
-      // 文件切片
-      blob = file.slice(start, fileSize)
-      // 改变偏移量
-      start = fileSize
-    } else {
-      blob = file.slice(start, start + chunkSize)
-      start += chunkSize
-    }
-    const blobFile = new File([blob], fileName)
-    const formData = new FormData()
-    formData.append('chunk', blobFile)
-    // 偏移量需要减去上一次的文件大小 否则会切片错误
-    formData.append('chunk_offset ', (start - blobFile.size).toString())
-    formData.append('chunk_size', (blobFile.size).toString())
-    if (i === 0) {
-      await axiosStorage({
-        url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
-        method: 'post',
-        data: formData,
-        params: config,
-        onUploadProgress: function (progressEvent) {
-          if (progressEvent.lengthComputable) {
-            // 计算进度
-            progressArr.value[payload.index] = (start / fileSize * 100).toFixed(1)
-            const surplusSize = fileSize - start
-            calcSpeedTime(progressEvent, surplusSize)
+    if (isClose.value === false) {
+      let blob = null
+      if (start + chunkSize > fileSize) {
+        // 文件切片
+        blob = file.slice(start, fileSize)
+        // 改变偏移量
+        start = fileSize
+      } else {
+        blob = file.slice(start, start + chunkSize)
+        start += chunkSize
+      }
+      const blobFile = new File([blob], fileName)
+      const formData = new FormData()
+      formData.append('chunk', blobFile)
+      // 偏移量需要减去上一次的文件大小 否则会切片错误
+      formData.append('chunk_offset ', (start - blobFile.size).toString())
+      formData.append('chunk_size', (blobFile.size).toString())
+      if (i === 0) {
+        await axiosStorage({
+          url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
+          method: 'post',
+          data: formData,
+          params: config,
+          onUploadProgress: function (progressEvent) {
+            if (progressEvent.lengthComputable) {
+              // 计算进度
+              progressArr.value[payload.index] = (start / fileSize * 100).toFixed(1)
+              const surplusSize = fileSize - start
+              calcSpeedTime(progressEvent, surplusSize)
+            }
           }
-        }
-      })
-    } else {
-      await axiosStorage({
-        url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
-        method: 'post',
-        data: formData,
-        onUploadProgress: function (progressEvent) {
-          if (progressEvent.lengthComputable) {
-            // 计算进度
-            progressArr.value[payload.index] = (start / fileSize * 100).toFixed(1)
-            const surplusSize = fileSize - start
-            calcSpeedTime(progressEvent, surplusSize)
+        })
+      } else {
+        await axiosStorage({
+          url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
+          method: 'post',
+          data: formData,
+          onUploadProgress: function (progressEvent) {
+            if (progressEvent.lengthComputable) {
+              // 计算进度
+              progressArr.value[payload.index] = (start / fileSize * 100).toFixed(1)
+              const surplusSize = fileSize - start
+              calcSpeedTime(progressEvent, surplusSize)
+            }
           }
-        }
-      })
+        })
+      }
+    } else {
+      break
     }
+  }
+  if (start < fileSize) {
+    isCancel.value = true
+    await storage.storage.api.deleteObjPath({ path: { bucket_name: props.bucket_name, objpath: fileName } })
+    void await store.addPathTable({ bucket, path })
+    fileArr.value = []
+    isUploading.value = false
   }
 }
 
 const factoryFn = async (files: File, index: number) => {
   // await getMD5(files, index)
   if (files.size / 1024 / 1024 > 500) {
-    await postObjPath({ path: { objpath: files.name, bucket_name: props.bucket_name }, query: { reset: true }, body: { file: files }, index })
+    await postObjPath({
+      path: { objpath: files.name, bucket_name: props.bucket_name },
+      query: { reset: true },
+      body: { file: files },
+      index
+    })
   } else {
     await putObjPath({ path: { objpath: files.name, bucket_name: props.bucket_name }, body: { file: files }, index })
   }
 }
 const upload = async () => {
+  isCancel.value = false
   if (fileArr.value.length !== 0) {
     for (let index = 0; index < fileArr.value.length; index++) {
       progressArr.value[index] = 0
@@ -255,17 +291,30 @@ const upload = async () => {
     for (let index = 0; index < fileArr.value.length; index++) {
       void await factoryFn(fileArr.value[index], index)
     }
+    if (isCancel.value === false) {
+      Notify.create({
+        classes: 'notification-positive shadow-15',
+        icon: 'check_circle',
+        textColor: 'positive',
+        message: '上传成功',
+        position: 'bottom',
+        closeBtn: true,
+        timeout: 5000,
+        multiLine: false
+      })
+    } else {
+      Notify.create({
+        classes: 'notification-negative shadow-15',
+        icon: 'las la-times-circle',
+        textColor: 'negative',
+        message: '已取消上传',
+        position: 'bottom',
+        closeBtn: true,
+        timeout: 5000,
+        multiLine: false
+      })
+    }
     onDialogOK()
-    Notify.create({
-      classes: 'notification-positive shadow-15',
-      icon: 'check_circle',
-      textColor: 'positive',
-      message: '上传成功',
-      position: 'bottom',
-      closeBtn: true,
-      timeout: 5000,
-      multiLine: false
-    })
     void await store.addPathTable({ bucket, path })
     fileArr.value = []
     isUploading.value = false
@@ -285,14 +334,14 @@ const upload = async () => {
 </script>
 
 <template>
-  <q-dialog ref="dialogRef" @hide="onDialogHide">
+  <q-dialog ref="dialogRef" persistent @hide="onDialogHide">
     <q-uploader
       :factory="factoryFn"
       @added="addFile"
       label="上传文件"
       multiple
       :headers="[{'Content-Type': 'multipart/form-data'}]"
-      style="width: 420px"
+      style="width: 500px"
     >
       <template v-slot:header="scope">
         <div class="row no-wrap items-center q-pa-sm q-gutter-xs">
@@ -300,27 +349,39 @@ const upload = async () => {
                  @click="scope.removeQueuedFiles(); clearAll()" round dense flat>
             <q-tooltip>清空文件</q-tooltip>
           </q-btn>
-          <q-spinner v-if="scope.queuedFiles.length > 0 && isUploading === true" class="q-uploader__spinner"/>
           <div class="col">
             <div class="q-uploader__title">上传文件</div>
-            <div class="q-uploader__subtitle row">
-              <div class="col-2">{{ scope.uploadSizeLabel }}</div>
-              <div class="col-4" v-show="isUploading">上传速度：{{ uploadSpeed }}</div>
-              <div class="col-4" v-show="isUploading">剩余时间：{{ uploadTime }}</div>
+            <div class="q-uploader__subtitle row justify-between">
+              <div class="col-3">文件总大小：{{ scope.uploadSizeLabel }}</div>
+              <div class="col-4 row justify-end" v-show="isUploading">
+                <div>上传速度：{{ uploadSpeed }}</div>
+              </div>
+              <div class="col-5 row justify-end" v-show="isUploading">
+                <div>剩余时间：{{ uploadTime }}</div>
+              </div>
             </div>
           </div>
-          <q-btn v-if="isUploading === false" type="a" icon="add_box" @click="scope.pickFiles" round dense flat>
-            <q-uploader-add-trigger/>
-            <q-tooltip>选择文件</q-tooltip>
-          </q-btn>
-          <!--          <q-btn icon="clear" @click="cancel()" round dense flat >-->
+          <!--          <q-btn v-if="isUploading === false" type="a" icon="add_box" @click="pickFiles" round dense flat>-->
+          <!--            <q-uploader-add-trigger/>-->
+          <!--            <q-tooltip>选择文件</q-tooltip>-->
+          <!--          </q-btn>-->
+          <!--          <q-btn icon="clear" @click="close()" round dense flat>-->
           <!--            <q-tooltip>取消上传</q-tooltip>-->
           <!--          </q-btn>-->
         </div>
       </template>
       <template v-slot:list="scope">
+        <q-card flat bordered :class="isHover ? 'leave q-py-md cursor-pointer' : 'enter q-py-md cursor-pointer'"
+                @mouseenter="onMouseEnter()" @mouseleave="onMouseLeave" @click="scope.pickFiles">
+          <q-uploader-add-trigger v-if="isUploading === false"/>
+          <div class="text-center">
+            <q-icon name="las la-cloud-upload-alt" size="4em"/>
+            <div class="q-mt-xs">点击选择文件</div>
+          </div>
+        </q-card>
         <q-list separator>
-          <q-card v-for="(file, index) in scope.files" :key="file.__key" flat bordered class="my-card bg-grey-2 q-mt-sm">
+          <q-card v-for="(file, index) in scope.files" :key="file.__key" flat bordered
+                  class="my-card bg-grey-2 q-mt-sm">
             <q-card-section class="q-py-xs q-px-md">
               <div class="row items-center no-wrap">
                 <div class="col">
@@ -332,26 +393,26 @@ const upload = async () => {
                          @click="scope.removeFile(file); clearFile(index)">
                     <q-tooltip>删除文件</q-tooltip>
                   </q-btn>
-                  <q-spinner v-show="parseInt(progressArr[index]) > 0 && parseInt(progressArr[index]) !== 100" class="q-uploader__spinner"/>
+                  <q-spinner v-show="parseInt(progressArr[index]) > 0 && parseInt(progressArr[index]) !== 100"
+                             class="q-uploader__spinner"/>
+                  <q-icon v-show="parseInt(progressArr[index]) === 100" name="las la-check-circle" color="positive"
+                          size="lg"/>
                 </div>
               </div>
             </q-card-section>
             <q-card-section v-if="isUploading" class="q-py-none q-px-md">
               <div class="row items-center">
                 <div class="col-11">
-                  <q-linear-progress :value="progressArr[index] / 100" color="primary" size="md"/>
+                  <q-linear-progress :value="progressArr[index] / 100" color="positive" size="md"/>
                 </div>
-                <div class="col-1 text-center" v-if="parseInt(progressArr[index]) !== 100">
-                  {{ progressArr[index] }}%
-                </div>
-                <q-icon class="col-1 text-center" name="las la-check-circle" color="positive" v-else/>
+                <div class="col-1 text-center">{{ progressArr[index] }}%</div>
               </div>
             </q-card-section>
           </q-card>
         </q-list>
-        <div class="row justify-center q-mt-xl">
-          <q-btn class="q-ma-sm" color="primary" label="上传" unelevated @click="upload" :disable="isUploading"/>
-          <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
+        <div class="row justify-between q-mt-sm">
+          <q-btn class="q-ml-xs" color="primary" label="上传" unelevated @click="upload" :disable="isUploading"/>
+          <q-btn class="q-mr-xs" color="primary" label="取消" unelevated @click="onCancelClick"/>
         </div>
       </template>
     </q-uploader>
@@ -359,4 +420,11 @@ const upload = async () => {
 </template>
 
 <style lang="scss" scoped>
+.enter {
+  border: darkgrey 1px dashed;
+}
+
+.leave {
+  border: $primary 1px dashed;
+}
 </style>

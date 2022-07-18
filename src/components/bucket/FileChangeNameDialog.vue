@@ -50,6 +50,16 @@ const onOKClick = async () => {
     })
   } else {
     inputRef.value!.$props.loading = true
+    Notify.create({
+      classes: 'notification-positive shadow-15',
+      icon: 'las la-redo-alt',
+      textColor: 'positive',
+      message: '正在修改名称中',
+      position: 'bottom',
+      closeBtn: true,
+      timeout: 5000,
+      multiLine: false
+    })
     try {
       const respGetDir = await storage.storage.api.postObjPath({ path: { objpath: props.objpath, bucket_name: props.bucket_name }, query: { rename: dirName.value } })
       await store.changeObjName({

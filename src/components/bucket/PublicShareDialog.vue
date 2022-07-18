@@ -53,6 +53,16 @@ const isHavePass = (value: boolean) => {
 }
 
 const share = async () => {
+  Notify.create({
+    classes: 'notification-positive shadow-15',
+    icon: 'las la-redo-alt',
+    textColor: 'positive',
+    message: '正在分享中',
+    position: 'bottom',
+    closeBtn: true,
+    timeout: 5000,
+    multiLine: false
+  })
   if (selectModel.value !== null) {
     if (props.pathObj.dirArrs && props.pathObj.dirArrs.length > 0) {
       if (isPass.value === false) {

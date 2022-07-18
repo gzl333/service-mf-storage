@@ -135,7 +135,7 @@ const columns = computed(() => [
     <div class="row q-gutter-x-md">
       <q-btn class="col-auto" unelevated color="primary" label="新建存储桶"
              @click="store.triggerCreateBucketDialog"/>
-      <q-btn class="col-auto" unelevated color="primary" label="删除存储桶" :disable="selected.length === 0"
+      <q-btn class="col-auto" unelevated color="primary" :label="tc('删除存储桶')" :disable="selected.length === 0"
              @click="store.triggerDeleteBucketDialog({bucketNames: selected.map((bucket: BucketInterface) => bucket.name)})"/>
     </div>
 
@@ -151,7 +151,7 @@ const columns = computed(() => [
         <q-breadcrumbs-el @click="navigateToUrl('/my/storage/bucket')">
           <div class="row items-center no-wrap cursor-pointer">
             <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>
-            <div class="col-auto text-bold">全部存储桶</div>
+            <div class="col-auto text-bold">{{ tc('全部存储桶') }}</div>
           </div>
         </q-breadcrumbs-el>
       </q-breadcrumbs>
