@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
+import { i18n } from 'boot/i18n'
 
 const props = defineProps({
   bucket_name: {
@@ -15,6 +16,7 @@ const props = defineProps({
   }
 })
 const store = useStore()
+const { tc } = i18n.global
 defineEmits([...useDialogPluginComponent.emits])
 const {
   dialogRef,
@@ -96,11 +98,11 @@ const onCancelClick = onDialogCancel
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin dialog-primary">
-      <div class="text-center"><h5>确认要删除吗？</h5></div>
-      <div class="text-center"><h6>此操作是不可逆的！</h6></div>
+      <div class="text-center"><h5>{{ tc('确认要删除吗') }}？</h5></div>
+      <div class="text-center"><h6>{{ tc('此操作是不可逆的') }}！</h6></div>
       <q-card-actions align="center">
-        <q-btn class="q-ma-sm" color="primary" label="确认" unelevated @click="onOKClick" :disable="isDisable"/>
-        <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('确认')" unelevated @click="onOKClick" :disable="isDisable"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>

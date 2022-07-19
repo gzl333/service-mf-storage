@@ -6,6 +6,7 @@ import { Notify, useDialogPluginComponent } from 'quasar'
 import { axiosStorage } from 'boot/axios'
 import { FloatSub } from 'src/hooks/handleFloat'
 import storage from 'src/api'
+import { i18n } from 'boot/i18n'
 // import SparkMD5 from 'spark-md5'
 
 const props = defineProps({
@@ -16,6 +17,7 @@ const props = defineProps({
 })
 const $route = useRoute()
 const store = useStore()
+const { tc } = i18n.global
 defineEmits([...useDialogPluginComponent.emits])
 const bucket = $route.query.bucket as string // string or undefined
 const path = $route.query.path as string
@@ -282,6 +284,7 @@ const factoryFn = async (files: File, index: number) => {
   }
 }
 const upload = async () => {
+  console.log(fileArr.value)
   isCancel.value = false
   if (fileArr.value.length !== 0) {
     for (let index = 0; index < fileArr.value.length; index++) {
@@ -338,50 +341,46 @@ const upload = async () => {
     <q-uploader
       :factory="factoryFn"
       @added="addFile"
-      label="上传文件"
+      :label="tc('上传文件')"
       multiple
       :headers="[{'Content-Type': 'multipart/form-data'}]"
       style="width: 500px"
     >
       <template v-slot:header="scope">
+<!--        <q-uploader-add-trigger v-if="isUploading === false"/>-->
         <div class="row no-wrap items-center q-pa-sm q-gutter-xs">
-          <q-btn v-if="scope.queuedFiles.length > 0 && isUploading === false" icon="clear_all"
-                 @click="scope.removeQueuedFiles(); clearAll()" round dense flat>
-            <q-tooltip>清空文件</q-tooltip>
+          <q-btn v-if="scope.queuedFiles.length > 0 && isUploading === false" icon="clear_all" @click="scope.removeQueuedFiles(); clearAll()" round dense flat>
+            <q-tooltip>{{ tc('清空文件') }}</q-tooltip>
           </q-btn>
           <div class="col">
-            <div class="q-uploader__title">上传文件</div>
-            <div class="q-uploader__subtitle row justify-between">
-              <div class="col-3">文件总大小：{{ scope.uploadSizeLabel }}</div>
-              <div class="col-4 row justify-end" v-show="isUploading">
-                <div>上传速度：{{ uploadSpeed }}</div>
-              </div>
-              <div class="col-5 row justify-end" v-show="isUploading">
-                <div>剩余时间：{{ uploadTime }}</div>
-              </div>
+            <div class="q-uploader__title">{{ tc('上传文件') }}</div>
+            <div class="q-uploader__subtitle row">
+              <div :class="isUploading === true ? 'col-4' : 'col-5'">{{ tc('文件总大小') }}：{{ scope.uploadSizeLabel }}</div>
+              <div class="col-4 text-center" v-show="isUploading">{{ tc('上传速度') }}：{{ uploadSpeed }}</div>
+              <div class="col-4 text-center" v-show="isUploading">{{ tc('剩余时间') }}：{{ uploadTime }}</div>
             </div>
           </div>
-          <!--          <q-btn v-if="isUploading === false" type="a" icon="add_box" @click="pickFiles" round dense flat>-->
-          <!--            <q-uploader-add-trigger/>-->
-          <!--            <q-tooltip>选择文件</q-tooltip>-->
-          <!--          </q-btn>-->
+          <div v-if="isUploading === false" >
+            <span>选择文件</span>
+            <q-btn type="a" icon="add_box" @click="scope.pickFiles" round dense flat>
+              <q-uploader-add-trigger/>
+              <q-tooltip>{{ tc('选择文件') }}</q-tooltip>
+            </q-btn>
+          </div>
           <!--          <q-btn icon="clear" @click="close()" round dense flat>-->
           <!--            <q-tooltip>取消上传</q-tooltip>-->
           <!--          </q-btn>-->
         </div>
       </template>
       <template v-slot:list="scope">
-        <q-card flat bordered :class="isHover ? 'leave q-py-md cursor-pointer' : 'enter q-py-md cursor-pointer'"
-                @mouseenter="onMouseEnter()" @mouseleave="onMouseLeave" @click="scope.pickFiles">
-          <q-uploader-add-trigger v-if="isUploading === false"/>
+        <q-card flat bordered :class="isHover ? 'leave q-py-md' : 'enter q-py-md'" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave">
           <div class="text-center">
             <q-icon name="las la-cloud-upload-alt" size="4em"/>
-            <div class="q-mt-xs">点击选择文件</div>
+            <div class="q-mt-xs">{{ tc('拖拽文件或者点击右上角选择文件') }}</div>
           </div>
         </q-card>
         <q-list separator>
-          <q-card v-for="(file, index) in scope.files" :key="file.__key" flat bordered
-                  class="my-card bg-grey-2 q-mt-sm">
+          <q-card v-for="(file, index) in scope.files" :key="file.__key" flat bordered class="my-card bg-grey-2 q-mt-sm">
             <q-card-section class="q-py-xs q-px-md">
               <div class="row items-center no-wrap">
                 <div class="col">
@@ -389,14 +388,11 @@ const upload = async () => {
                   <div>{{ file.__sizeLabel }}</div>
                 </div>
                 <div class="col-auto">
-                  <q-btn v-if="!isUploading" class="gt-xs" size="12px" flat dense round icon="clear"
-                         @click="scope.removeFile(file); clearFile(index)">
-                    <q-tooltip>删除文件</q-tooltip>
+                  <q-btn v-if="!isUploading" class="gt-xs" size="12px" flat dense round icon="clear" @click="scope.removeFile(file); clearFile(index)">
+                    <q-tooltip>{{ tc('删除文件') }}</q-tooltip>
                   </q-btn>
-                  <q-spinner v-show="parseInt(progressArr[index]) > 0 && parseInt(progressArr[index]) !== 100"
-                             class="q-uploader__spinner"/>
-                  <q-icon v-show="parseInt(progressArr[index]) === 100" name="las la-check-circle" color="positive"
-                          size="lg"/>
+                  <q-spinner v-show="parseInt(progressArr[index]) > 0 && parseInt(progressArr[index]) !== 100" class="q-uploader__spinner"/>
+                  <q-icon v-show="parseInt(progressArr[index]) === 100" name="las la-check-circle" color="positive" size="lg"/>
                 </div>
               </div>
             </q-card-section>
@@ -411,8 +407,8 @@ const upload = async () => {
           </q-card>
         </q-list>
         <div class="row justify-between q-mt-sm">
-          <q-btn class="q-ml-xs" color="primary" label="上传" unelevated @click="upload" :disable="isUploading"/>
-          <q-btn class="q-mr-xs" color="primary" label="取消" unelevated @click="onCancelClick"/>
+          <q-btn class="q-ml-xs" color="primary" :label="tc('上传')" unelevated @click="upload" :disable="isUploading"/>
+          <q-btn class="q-mr-xs" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
         </div>
       </template>
     </q-uploader>
@@ -423,7 +419,6 @@ const upload = async () => {
 .enter {
   border: darkgrey 1px dashed;
 }
-
 .leave {
   border: $primary 1px dashed;
 }

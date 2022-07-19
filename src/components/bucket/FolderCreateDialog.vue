@@ -12,7 +12,7 @@ const props = defineProps({
   }
 })
 const store = useStore()
-const tc = i18n.global.tc
+const { tc } = i18n.global
 defineEmits([...useDialogPluginComponent.emits])
 
 const {
@@ -89,7 +89,7 @@ const inputRef = ref<QInput>()
 
         <div class="row q-pb-lg  items-center">
           <div class="col-2 text-grey-7">
-            文件夹名称
+            {{ tc('文件夹名称') }}
           </div>
           <div class="col">
             <q-input ref="inputRef" autofocus outlined v-model="dirName" dense clearable clear-icon="close"
@@ -100,10 +100,10 @@ const inputRef = ref<QInput>()
 
         <div class="row q-pb-lg items-start">
           <div class="col-2 text-grey-7">
-            名称规则
+            {{ tc('名称规则') }}
           </div>
           <div class="col">
-            长度介于3-63个字符之间
+            {{ tc('长度介于3-63个字符之间') }}
           </div>
         </div>
 
@@ -112,8 +112,8 @@ const inputRef = ref<QInput>()
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="primary" label="创建" unelevated @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('创建')" unelevated @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>

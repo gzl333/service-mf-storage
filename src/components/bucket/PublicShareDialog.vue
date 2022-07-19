@@ -18,7 +18,7 @@ const props = defineProps({
 })
 const store = useStore()
 // const $route = useRoute()
-const tc = i18n.global.tc
+const { tc } = i18n.global
 defineEmits([...useDialogPluginComponent.emits])
 const {
   dialogRef,
@@ -139,19 +139,19 @@ const share = async () => {
       <q-separator/>
       <q-card-section>
         <div class="row justify-center">
-          <q-select class="col-6" clearable outlined v-model="selectModel" :options="options" @update:model-value="selectFun" label="请选择"/>
+          <q-select class="col-6" clearable outlined v-model="selectModel" :options="options" @update:model-value="selectFun" :label="tc('请选择')"/>
         </div>
         <div class="row justify-center q-mt-md">
-          <q-checkbox v-model="isPass" @update:model-value="isHavePass" label="有分享密码保护"/>
+          <q-checkbox v-model="isPass" @update:model-value="isHavePass" :label="tc('有分享密码保护')"/>
         </div>
         <div class="row justify-center q-mt-lg">
-          <q-btn class="q-ma-sm" color="primary" label="分享" unelevated @click="share"/>
-          <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
+          <q-btn class="q-ma-sm" color="primary" :label="tc('分享')" unelevated @click="share"/>
+          <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
         </div>
       </q-card-section>
       <q-separator/>
       <div class="text-center q-pa-md">
-        提示：创建新的带密码的分享，旧的分享密码会失效
+        {{ tc('提示：创建新的带密码的分享，旧的分享密码会失效') }}
       </div>
     </q-card>
   </q-dialog>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useStore } from 'stores/store'
-// import { i18n } from 'boot/i18n'
+import { i18n } from 'boot/i18n'
 
 import { Notify, QInput, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
@@ -15,7 +15,7 @@ const props = defineProps({
 defineEmits([...useDialogPluginComponent.emits])
 
 const store = useStore()
-// const tc = i18n.global.tc
+const { tc } = i18n.global
 // code starts...
 
 const {
@@ -101,7 +101,7 @@ const onOKClick = async () => {
 
         <div class="row q-pb-lg  items-center">
           <div class="col-2 text-grey-7">
-            备注
+            {{ tc('备注') }}
           </div>
           <div class="col">
             <q-input ref="inputRef" autofocus outlined v-model="note" dense clearable clear-icon="close"
@@ -115,8 +115,8 @@ const onOKClick = async () => {
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="primary" label="修改" unelevated @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('修改')" unelevated @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>

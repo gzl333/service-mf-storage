@@ -17,7 +17,7 @@ import axios from 'axios'
 defineEmits([...useDialogPluginComponent.emits])
 
 const store = useStore()
-const tc = i18n.global.tc
+const { tc } = i18n.global
 // code starts...
 
 // REQUIRED; must be called inside of setup()
@@ -160,7 +160,7 @@ const inputRef = ref<QInput>()
 
         <div class="row q-pb-lg  items-center">
           <div class="col-2 text-grey-7">
-            存储桶名称
+            {{ tc('存储桶名称') }}
           </div>
           <div class="col">
             <q-input ref="inputRef" autofocus outlined v-model="bucketName" dense clearable clear-icon="close"
@@ -171,10 +171,10 @@ const inputRef = ref<QInput>()
 
         <div class="row q-pb-lg items-start">
           <div class="col-2 text-grey-7">
-            名称规则
+            {{ tc('名称规则') }}
           </div>
           <div class="col">
-            长度介于3-63个字符之间，可输入小写英文字母、数字或者-（连字符），但-（连字符）不允许在开头和结尾
+            {{ tc('长度介于3-63个字符之间，可输入小写英文字母、数字或者-（连字符），但-（连字符）不允许在开头和结尾') }}
           </div>
         </div>
 
@@ -183,8 +183,8 @@ const inputRef = ref<QInput>()
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="primary" label="创建" unelevated @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('创建')" unelevated @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>

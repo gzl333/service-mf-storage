@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import { onBeforeMount } from 'vue'
 import { useStore } from 'stores/store'
-// import { i18n } from 'boot/i18n'
-
+import { i18n } from 'boot/i18n'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
 
@@ -15,7 +14,7 @@ const props = defineProps({
 defineEmits([...useDialogPluginComponent.emits])
 
 const store = useStore()
-// const tc = i18n.global.tc
+const { tc } = i18n.global
 // code starts...
 
 // top level await: https://stackoverflow.com/questions/69183835/vue-script-setup-top-level-await-causing-template-not-to-render
@@ -100,7 +99,7 @@ const onOKClick = async (permission: 'readwrite' | 'readonly') => {
 
         <div class="row items-center">
           <div class="col-2 text-grey-7">
-            token数量
+            token{{ tc('数量s') }}
           </div>
           <div class="col">
             {{ store.tables.bucketTokenTable.byLocalId[props.bucketName]?.tokens.length }}
@@ -124,15 +123,15 @@ const onOKClick = async (permission: 'readwrite' | 'readonly') => {
 
       <q-card-actions align="between">
         <div class="q-ma-sm row items-center">
-          <q-btn color="primary" label="创建读写token" unelevated no-caps
+          <q-btn color="primary" :label="tc('创建读写token')" unelevated no-caps
                  :disable="store.tables.bucketTokenTable.byLocalId[props.bucketName]?.tokens.length===2"
                  @click="onOKClick('readwrite')"/>
-          <q-btn class="q-mx-md" color="primary" label="创建只读token" unelevated no-caps
+          <q-btn class="q-mx-md" color="primary" :label="tc('创建只读token')" unelevated no-caps
                  :disable="store.tables.bucketTokenTable.byLocalId[props.bucketName]?.tokens.length===2"
                  @click="onOKClick('readonly')"/>
           <div v-if="store.tables.bucketTokenTable.byLocalId[props.bucketName]?.tokens.length===2"
                class="text-negative">
-            已达最大token数量
+            {{ tc('已达最大token数量') }}
           </div>
         </div>
         <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>

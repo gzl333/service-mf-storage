@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useStore } from 'stores/store'
-// import { i18n } from 'boot/i18n'
+import { i18n } from 'boot/i18n'
 import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 
 const props = defineProps({
@@ -25,7 +25,7 @@ const props = defineProps({
 // const emit = defineEmits(['change', 'delete'])
 
 const store = useStore()
-// const tc = i18n.global.tc
+const { tc } = i18n.global
 // code starts...
 // 复制信息到剪切板
 const clickToCopy = useCopyToClipboard()
@@ -52,14 +52,14 @@ const isPwd = ref(true)
                size="sm"
                @click="clickToCopy(props.password, true)">
           <q-tooltip>
-            复制
+            {{ tc('复制') }}
           </q-tooltip>
         </q-btn>
 
         <q-btn :class="props.isShowBtn?'':'invisible'" icon="edit" size="sm" dense flat color="primary"
                @click="store.triggerEditBucketFtpPasswordDialog(props.editActionParameter)">
           <q-tooltip>
-            修改
+            {{ tc('修改') }}
           </q-tooltip>
         </q-btn>
 

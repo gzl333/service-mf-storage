@@ -17,7 +17,7 @@ import { i18n } from 'boot/i18n'
 const store = useStore()
 // const route = useRoute()
 // const router = useRouter()
-const tc = i18n.global.tc
+const { tc } = i18n.global
 
 const activeItem = computed(() => store.items.currentPath[0])
 

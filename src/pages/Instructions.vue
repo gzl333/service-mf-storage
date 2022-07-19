@@ -3,7 +3,7 @@ import { ref } from 'vue'
 // import { navigateToUrl } from 'single-spa'
 // import { useStore } from 'stores/store'
 // import { useRoute, useRouter } from 'vue-router'
-// import { i18n } from 'boot/i18n'
+import { i18n } from 'boot/i18n'
 
 // const props = defineProps({
 //   foo: {
@@ -17,7 +17,7 @@ import { ref } from 'vue'
 // const store = useStore()
 // const route = useRoute()
 // const router = useRouter()
-// const tc = i18n.global.tc
+const { tc } = i18n.global
 
 const activeItem = ref('ftp') // keep selection when reloading
 const changeTab = (name: string) => {
@@ -30,7 +30,7 @@ const goPage = (url: string) => {
 
 <template>
   <div class="Instructions">
-    <div class="text-h6 q-px-none">使用说明</div>
+    <div class="text-h6 q-px-none">{{tc('使用说明')}}</div>
     <q-tabs
       v-model="activeItem"
       inline-label

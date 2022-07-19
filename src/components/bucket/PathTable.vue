@@ -17,7 +17,7 @@ const props = defineProps({
 // const emit = defineEmits(['change', 'delete'])
 // code starts...
 const store = useStore()
-// const { tc } = i18n.global
+const { tc } = i18n.global
 
 const currentBucket = computed(() => props.pathObj?.bucket_name)
 const currentPath = computed(() => props.pathObj?.dir_path)
@@ -45,7 +45,7 @@ const formatSize1024 = useFormatSize(1024)
 const columns = computed(() => [
   {
     name: 'name',
-    label: i18n.global.locale === 'zh' ? '文件名' : 'File Name',
+    label: (() => tc('文件名'))(),
     field: 'name',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -64,7 +64,7 @@ const columns = computed(() => [
   },
   {
     name: 'time',
-    label: i18n.global.locale === 'zh' ? '上传时间' : 'Upload Time',
+    label: (() => tc('上传时间'))(),
     field: 'time',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -74,7 +74,7 @@ const columns = computed(() => [
   },
   {
     name: 'size',
-    label: i18n.global.locale === 'zh' ? '文件大小' : 'File Size',
+    label: (() => tc('文件大小'))(),
     field: 'size',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -84,7 +84,7 @@ const columns = computed(() => [
   },
   {
     name: 'access',
-    label: i18n.global.locale === 'zh' ? '访问权限' : 'Accessibility',
+    label: (() => tc('访问权限'))(),
     field: 'access',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -93,7 +93,7 @@ const columns = computed(() => [
   },
   {
     name: 'operation',
-    label: i18n.global.locale === 'zh' ? '操作' : 'Operations',
+    label: (() => tc('操作'))(),
     field: 'operation',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -218,20 +218,20 @@ watch(
 <template>
   <div class="PathTable">
     <div class="row q-gutter-md">
-      <q-btn class="col-auto" unelevated color="primary" label="创建文件夹"
+      <q-btn class="col-auto" unelevated color="primary" :label="tc('创建文件夹')"
              @click="store.triggerCreateFolderDialog({ dirName: props.pathObj.localId })"/>
-      <q-btn class="col-auto" unelevated color="primary" label="上传文件"
+      <q-btn class="col-auto" unelevated color="primary" :label="tc('上传文件')"
              @click="store.triggerUploadDialog({ bucket_name: props.pathObj.localId })"/>
-      <q-btn class="col-auto" unelevated color="primary" label="删除文件" @click="deleteFile"
+      <q-btn class="col-auto" unelevated color="primary" :label="tc('删除文件')" @click="deleteFile"
              :disable="selected.length > 0 ? false : true"/>
-      <q-btn class="col-auto" unelevated color="primary" label="公开分享" @click="shareFile"
+      <q-btn class="col-auto" unelevated color="primary" :label="tc('公开分享')" @click="shareFile"
              :disable="selected.length > 0 ? false : true"/>
     </div>
 
     <div class="row items-center q-gutter-sm q-py-sm text-grey">
 
       <div class="col-auto">
-        <q-btn flat color="primary" padding="none" @click="navigateToUrl(upperPath)">返回上一级</q-btn>
+        <q-btn flat color="primary" padding="none" @click="navigateToUrl(upperPath)">{{ tc('返回上一级') }}</q-btn>
       </div>
 
       <div class="col-auto">
@@ -251,7 +251,7 @@ watch(
         <q-breadcrumbs-el @click="navigateToUrl('/my/storage/bucket')">
           <div class="row items-center no-wrap cursor-pointer">
             <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>
-            <div class="col-auto">全部存储桶</div>
+            <div class="col-auto">{{ tc('全部存储桶') }}</div>
           </div>
         </q-breadcrumbs-el>
 
@@ -348,22 +348,22 @@ watch(
               </q-td>
 
               <q-td key="operation" :props="props">
-                <q-btn-dropdown unelevated color="primary" label="操作" v-if="props.row.fod === false">
+                <q-btn-dropdown unelevated color="primary" :label="tc('操作')" v-if="props.row.fod === false">
                   <q-list>
                     <q-item clickable v-close-popup @click="onItemClick(props.row.name, props.row.fod)">
                       <q-item-section>
-                        <q-item-label>删除</q-item-label>
+                        <q-item-label>{{ tc('删除') }}</q-item-label>
                       </q-item-section>
                     </q-item>
                     <q-item clickable v-close-popup @click="shareItemClick(props.row.name, props.row.access_code, props.row.fod)">
                       <q-item-section>
-                        <q-item-label>公开分享</q-item-label>
+                        <q-item-label>{{ tc('公开分享') }}</q-item-label>
                       </q-item-section>
                     </q-item>
                   </q-list>
                 </q-btn-dropdown>
                 <q-btn v-if="props.row.fod === true" class="q-pt-sm" unelevated dense color="primary" @click="toggleExpansion(props)"
-                       :label="props.expand ? '折叠详情' : '展开详情'" :icon="props.expand ? 'expand_less' : 'expand_more'">
+                       :label="props.expand ? tc('折叠详情') : tc('展开详情')" :icon="props.expand ? 'expand_less' : 'expand_more'">
                 </q-btn>
               </q-td>
 
@@ -387,28 +387,28 @@ watch(
                 <div class="row">
                   <div>
                     <div>
-                      创建时间: {{ new Date(fileDetail[props.row.name]?.ult).toLocaleString(i18n.global.locale) }}
+                      {{ tc('创建时间') }}: {{ new Date(fileDetail[props.row.name]?.ult).toLocaleString(i18n.global.locale) }}
                     </div>
                     <div>
-                      文件大小: {{ fileDetail[props.row.name]?.si }}
+                      {{ tc('文件大小') }}: {{ fileDetail[props.row.name]?.si }}
                     </div>
                     <div>
-                      下载次数: {{ fileDetail[props.row.name]?.dlc }}
+                      {{ tc('下载次数') }}: {{ fileDetail[props.row.name]?.dlc }}
                     </div>
                   </div>
                   <div class="q-ml-xl">
-                    <div>最后修改: {{ new Date(fileDetail[props.row.name]?.upt).toLocaleString(i18n.global.locale) }}</div>
-                    <div>访问权限: {{ fileDetail[props.row.name]?.access_permission }}</div>
+                    <div>{{ tc('最后修改') }}: {{ new Date(fileDetail[props.row.name]?.upt).toLocaleString(i18n.global.locale) }}</div>
+                    <div>{{ tc('访问权限') }}: {{ fileDetail[props.row.name]?.access_permission }}</div>
                     <div>MD5: {{ fileDetail[props.row.name]?.md5 }}</div>
                   </div>
                 </div>
                 <q-separator/>
                 <div class="q-mt-xs">
-                  <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">下载</q-btn>
+                  <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">{{ tc('下载') }}</q-btn>
 <!--                  <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name].name)">下载</q-btn>-->
-                  <q-btn class="q-ml-sm" color="primary" unelevated @click="onItemClick(fileDetail[props.row.name].name, fileDetail[props.row.name].fod)">删除</q-btn>
-                  <q-btn class="q-ml-sm" color="primary" unelevated @click="changeName(fileDetail[props.row.name].name)">重命名</q-btn>
-                  <q-btn class="q-ml-sm" color="primary" unelevated @click="shareItemClick(fileDetail[props.row.name].name, fileDetail[props.row.name].access_code, fileDetail[props.row.name].fod)">公开分享</q-btn>
+                  <q-btn class="q-ml-sm" color="primary" unelevated @click="onItemClick(fileDetail[props.row.name].name, fileDetail[props.row.name].fod)">{{ tc('删除') }}</q-btn>
+                  <q-btn class="q-ml-sm" color="primary" unelevated @click="changeName(fileDetail[props.row.name].name)">{{ tc('重命名') }}</q-btn>
+                  <q-btn class="q-ml-sm" color="primary" unelevated @click="shareItemClick(fileDetail[props.row.name].name, fileDetail[props.row.name].access_code, fileDetail[props.row.name].fod)">{{ tc('公开分享') }}</q-btn>
                 </div>
               </q-td>
             </q-tr>

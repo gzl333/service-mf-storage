@@ -14,7 +14,7 @@ const props = defineProps({
 defineEmits([...useDialogPluginComponent.emits])
 
 const store = useStore()
-const tc = i18n.global.tc
+const { tc } = i18n.global
 // code starts...
 
 const {
@@ -99,7 +99,7 @@ const onOKClick = async () => {
 
           <div class="col row items-center">
             <div class="col-2 text-grey-7">
-              存储桶名称
+              {{ tc('存储桶名称') }}
             </div>
             <div class="col">
               {{ bucketName }}
@@ -116,7 +116,7 @@ const onOKClick = async () => {
 
         <div class="row items-center">
           <div class="col text-grey-7">
-            请仔细阅读以下事项，并在确认后勾选：
+            {{ tc('请仔细阅读以下事项，并在确认后勾选：') }}
           </div>
         </div>
 
@@ -131,8 +131,8 @@ const onOKClick = async () => {
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="negative" label="删除" unelevated :disable="!check1" @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="negative" :label="tc('删除')" unelevated :disable="!check1" @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>

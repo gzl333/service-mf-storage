@@ -4,7 +4,7 @@ import { useDialogPluginComponent } from 'quasar'
 // import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 import { useStore } from 'stores/store'
 import storage from 'src/api/index'
-// import { i18n } from 'boot/i18n'
+import { i18n } from 'boot/i18n'
 
 const props = defineProps({
   bucket_name: {
@@ -17,8 +17,8 @@ const props = defineProps({
   }
 })
 const store = useStore()
-// const tc = i18n.global.tc
-defineEmits([...useDialogPluginComponent.emits])
+const { tc } = i18n.global
+// defineEmits([...useDialogPluginComponent.emits])
 
 const {
   dialogRef,
@@ -56,9 +56,9 @@ onMounted(async () => {
     <q-card class="q-dialog-plugin dialog-primary">
       <q-separator/>
       <q-card-section>
-        <div class="text-h6 text-center">当前对象已经是共享状态。</div>
+        <div class="text-h6 text-center">{{tc('当前对象已经是共享状态')}}</div>
         <div class="myUrl text-subtitle1 q-mt-lg text-center">
-          <span>分享链接：</span>
+          <span>{{tc('分享链接')}}：</span>
           <span>
             {{ shareUrl }}
 <!--            <q-tooltip anchor="top middle">-->
@@ -66,15 +66,15 @@ onMounted(async () => {
 <!--            </q-tooltip>-->
           </span>
           </div>
-        <div v-if="shareCode !== undefined" class="text-subtitle1 text-center q-mt-lg">分享密码：{{ shareCode }}</div>
+        <div v-if="shareCode !== undefined" class="text-subtitle1 text-center q-mt-lg">{{tc('分享密码')}}：{{ shareCode }}</div>
         <div class="row justify-center q-mt-lg">
-          <q-btn class="q-ma-sm" color="primary" label="修改共享状态" unelevated @click="share"/>
-          <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
+          <q-btn class="q-ma-sm" color="primary" :label="tc('修改共享状态')" unelevated @click="share"/>
+          <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
         </div>
       </q-card-section>
       <q-separator/>
       <div class="text-center q-pa-md">
-        提示：创建新的带密码的分享，旧的分享密码会失效
+        {{ tc('提示：创建新的带密码的分享，旧的分享密码会失效') }}
       </div>
     </q-card>
   </q-dialog>

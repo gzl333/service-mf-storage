@@ -19,7 +19,7 @@ const props = defineProps({
 defineEmits([...useDialogPluginComponent.emits])
 
 const store = useStore()
-const tc = i18n.global.tc
+const { tc } = i18n.global
 // code starts...
 
 onBeforeMount(async () => {
@@ -80,7 +80,7 @@ const onOKClick = async () => {
     <q-card class="q-dialog-plugin dialog-primary">
 
       <q-card-section class="row items-center justify-center q-pb-md">
-        <div class="text-primary">{{ '删除token' }}</div>
+        <div class="text-primary">{{ tc('删除token') }}</div>
         <q-space/>
         <q-btn icon="close" flat dense size="sm" v-close-popup/>
       </q-card-section>
@@ -91,7 +91,7 @@ const onOKClick = async () => {
 
         <div class="row items-center">
           <div class="col-2 text-grey-7">
-            所属存储桶：
+            {{ tc('所属存储桶：') }}
           </div>
           <div class="col">
             {{ props.bucketName }}
@@ -115,7 +115,7 @@ const onOKClick = async () => {
 
         <div class="row items-center">
           <div class="col text-grey-7">
-            请仔细阅读以下事项，并在确认后勾选：
+            {{ tc('请仔细阅读以下事项，并在确认后勾选：') }}
           </div>
         </div>
 
@@ -130,8 +130,8 @@ const onOKClick = async () => {
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="negative" label="删除" unelevated :disable="!check" @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="negative" :label="tc('删除')" unelevated :disable="!check" @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
       </q-card-actions>
 
     </q-card>

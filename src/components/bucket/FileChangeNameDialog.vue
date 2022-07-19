@@ -16,7 +16,7 @@ const props = defineProps({
   }
 })
 const store = useStore()
-const tc = i18n.global.tc
+const { tc } = i18n.global
 defineEmits([...useDialogPluginComponent.emits])
 
 const {
@@ -109,7 +109,7 @@ const inputRef = ref<QInput>()
 
         <div class="row q-pb-lg  items-center">
           <div class="col-2 text-grey-7">
-            文件名称
+            {{ tc('文件名称') }}
           </div>
           <div class="col">
             <q-input ref="inputRef" autofocus outlined v-model="dirName" dense clearable clear-icon="close" style="padding: 5px 0;" @keydown.enter="onOKClick">
@@ -122,8 +122,8 @@ const inputRef = ref<QInput>()
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="primary" label="确认" unelevated @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('确认')" unelevated @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>

@@ -56,7 +56,7 @@ const toggleExpansion = (props: { expand: boolean, row: { name: string } }) => {
 const columns = computed(() => [
   {
     name: 'name',
-    label: i18n.global.locale === 'zh' ? '存储桶' : 'Bucket',
+    label: (() => tc('存储桶'))(),
     field: 'name',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -65,7 +65,7 @@ const columns = computed(() => [
   },
   {
     name: 'creation',
-    label: i18n.global.locale === 'zh' ? '创建时间' : 'Creation Time',
+    label: (() => tc('创建时间'))(),
     field: 'creation',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -74,7 +74,7 @@ const columns = computed(() => [
   },
   {
     name: 'access',
-    label: i18n.global.locale === 'zh' ? '访问权限' : 'Accessibility',
+    label: (() => tc('访问权限'))(),
     field: 'access',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -83,7 +83,7 @@ const columns = computed(() => [
   },
   {
     name: 'ftp',
-    label: i18n.global.locale === 'zh' ? 'FTP状态' : 'FTP Status',
+    label: (() => tc('FTP状态'))(),
     field: 'ftp',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -92,7 +92,7 @@ const columns = computed(() => [
   },
   {
     name: 'write',
-    label: i18n.global.locale === 'zh' ? '读写密码' : 'Writable Password',
+    label: (() => tc('读写密码'))(),
     field: 'write',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -101,7 +101,7 @@ const columns = computed(() => [
   },
   {
     name: 'read',
-    label: i18n.global.locale === 'zh' ? '只读密码' : 'Readonly Password',
+    label: (() => tc('只读密码'))(),
     field: 'read',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -110,7 +110,7 @@ const columns = computed(() => [
   },
   {
     name: 'note',
-    label: i18n.global.locale === 'zh' ? '备注' : 'Notes',
+    label: (() => tc('备注'))(),
     field: 'note',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -119,7 +119,7 @@ const columns = computed(() => [
   },
   {
     name: 'operation',
-    label: i18n.global.locale === 'zh' ? '操作' : 'Operations',
+    label: (() => tc('操作'))(),
     field: 'operation',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -133,7 +133,7 @@ const columns = computed(() => [
 <template>
   <div class="BucketTable">
     <div class="row q-gutter-x-md">
-      <q-btn class="col-auto" unelevated color="primary" label="新建存储桶"
+      <q-btn class="col-auto" unelevated color="primary" :label="tc('新建存储桶')"
              @click="store.triggerCreateBucketDialog"/>
       <q-btn class="col-auto" unelevated color="primary" :label="tc('删除存储桶')" :disable="selected.length === 0"
              @click="store.triggerDeleteBucketDialog({bucketNames: selected.map((bucket: BucketInterface) => bucket.name)})"/>
@@ -251,7 +251,7 @@ const columns = computed(() => [
                        color="primary"
                        @click="store.triggerEditBucketNoteDialog({ bucketName: props.row.name})">
                   <q-tooltip>
-                    修改
+                    {{ tc('修改') }}
                   </q-tooltip>
                 </q-btn>
 
@@ -261,8 +261,8 @@ const columns = computed(() => [
                 <div class="column q-gutter-y-xs" style="width: 100px;">
                   <q-btn unelevated dense color="primary" @click="toggleExpansion(props)"
                          :icon="props.expand ? 'expand_less' : 'expand_more'">
-                    <div v-if="props.expand">折叠详情</div>
-                    <div v-else>展开详情</div>
+                    <div v-if="props.expand">{{ tc('折叠详情') }}</div>
+                    <div v-else>{{ tc('展开详情') }}</div>
                   </q-btn>
                 </div>
               </q-td>
@@ -285,28 +285,28 @@ const columns = computed(() => [
 
                   <div class="col-auto row items-center q-gutter-md">
                     <div class="col-auto text-grey">
-                      存储桶统计信息
+                      {{ tc('存储桶统计信息') }}
                     </div>
                     <q-btn class="col-auto" flat dense no-caps padding="none" color="primary" icon="delete" size="sm"
                            @click="store.triggerDeleteBucketDialog({bucketNames: [props.row.name]})">
-                      删除存储桶
+                      {{ tc('删除存储桶') }}
                     </q-btn>
                   </div>
 
                   <div class="col-auto row items-center q-gutter-lg">
                     <div>{{props.row.name}}</div>
                     <div class="col-auto">
-                      对象数量: {{ store.tables.bucketStatTable.byLocalId[props.row.name]?.stats.count }} 个
+                      {{ tc('对象数量') }}: {{ store.tables.bucketStatTable.byLocalId[props.row.name]?.stats.count }} 个
                     </div>
 
                     <div class="col-auto">
-                      存储桶体积: {{
+                      {{ tc('存储桶体积') }}: {{
                         formatSize(store.tables.bucketStatTable.byLocalId[props.row.name]?.stats.space || 0)
                       }}
                     </div>
 
                     <div class="col-auto">
-                      统计时间: {{
+                      {{ tc('统计时间') }}: {{
                         new Date(store.tables.bucketStatTable.byLocalId[props.row.name]?.stats_time).toLocaleString(i18n.global.locale)
                       }}
                     </div>
@@ -320,17 +320,17 @@ const columns = computed(() => [
 
                   <div class="col-auto row items-center q-gutter-md">
                     <div class="col-auto text-grey">
-                      存储桶Token
+                      {{ tc('存储桶') }}Token
                     </div>
                     <q-btn class="col-auto" flat dense no-caps padding="none" color="primary" icon="add_circle"
                            size="sm"
                            @click="store.triggerAddBucketTokenDialog({bucketName: props.row.name})">
-                      创建token
+                      {{ tc('创建') }}token
                     </q-btn>
                   </div>
 
                   <div v-if="store.tables.bucketTokenTable.byLocalId[props.row.name]?.tokens.length === 0">
-                    暂无可用token
+                    {{ tc('暂无可用') }}token
                   </div>
 
                   <div v-else>
@@ -338,7 +338,7 @@ const columns = computed(() => [
                       v-for="(token, index) in store.tables.bucketTokenTable.byLocalId[props.row.name]?.tokens"
                       :key="index" class="col-auto row items-center q-gutter-lg">
                       <div class="col-auto">
-                        序号: {{ index + 1 }}
+                        {{ tc('序号') }}: {{ index + 1 }}
                       </div>
 
                       <div class="col-auto">
@@ -346,18 +346,18 @@ const columns = computed(() => [
                       </div>
 
                       <div class="col-auto">
-                        权限: {{ token.permission === 'readwrite' ? '读写' : '只读' }}
+                        {{ tc('权限') }}: {{ token.permission === 'readwrite' ? '读写' : '只读' }}
                       </div>
 
                       <div class="col-auto">
-                        创建时间: {{ new Date(token.created).toLocaleString(i18n.global.locale) }}
+                        {{ tc('创建时间') }}: {{ new Date(token.created).toLocaleString(i18n.global.locale) }}
                       </div>
 
                       <div class="col-auto">
                         <q-btn class="col-auto" flat dense no-caps padding="none" color="primary" icon="remove_circle"
                                size="sm"
                                @click="store.triggerDeleteBucketTokenDialog({bucketName: props.row.name, token:token.key})">
-                          删除token
+                          {{ tc('删除') }}token
                         </q-btn>
                       </div>
                     </div>
