@@ -284,7 +284,6 @@ const factoryFn = async (files: File, index: number) => {
   }
 }
 const upload = async () => {
-  console.log(fileArr.value)
   isCancel.value = false
   if (fileArr.value.length !== 0) {
     for (let index = 0; index < fileArr.value.length; index++) {
@@ -373,7 +372,7 @@ const upload = async () => {
         </div>
       </template>
       <template v-slot:list="scope">
-        <q-card flat bordered :class="isHover ? 'leave q-py-md' : 'enter q-py-md'" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave">
+        <q-card flat class="q-py-md" :style="isHover ? 'border: #1976D2 1px dashed': 'border: darkgrey 1px dashed'" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave">
           <div class="text-center">
             <q-icon name="las la-cloud-upload-alt" size="4em"/>
             <div class="q-mt-xs">{{ tc('拖拽文件或者点击右上角选择文件') }}</div>
@@ -416,10 +415,10 @@ const upload = async () => {
 </template>
 
 <style lang="scss" scoped>
-.enter {
+.borderLeave {
   border: darkgrey 1px dashed;
 }
-.leave {
+.borderEnter {
   border: $primary 1px dashed;
 }
 </style>
