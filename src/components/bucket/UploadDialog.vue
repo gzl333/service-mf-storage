@@ -4,6 +4,7 @@ import { useStore } from 'stores/store'
 import { useRoute } from 'vue-router'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import { axiosStorage } from 'boot/axios'
+import axios from 'axios'
 import { FloatSub } from 'src/hooks/handleFloat'
 import storage from 'src/api'
 import { i18n } from 'boot/i18n'
@@ -15,6 +16,8 @@ const props = defineProps({
     required: true
   }
 })
+const CancelToken = axios.CancelToken
+const source = CancelToken.source()
 const $route = useRoute()
 const store = useStore()
 const { tc } = i18n.global
@@ -34,10 +37,19 @@ const uploadTime: Ref = ref()
 const isUploading = ref(false)
 const isClose = ref(false)
 const isCancel = ref(false)
+const isHover = ref(false)
 // 上一次计算时间
 let lastTime = 0
 // 上一次计算的文件大小
 let lastSize = 0
+const cancelUpload = () => {
+  source.cancel('取消请求')
+  // source = axios.CancelToken.source()
+}
+const close = async () => {
+  isClose.value = true
+  onDialogCancel()
+}
 const addFile = (files: string | File[]) => {
   for (const file of files) {
     fileArr.value.push(file)
@@ -49,41 +61,30 @@ const clearFile = (index: string) => {
 const clearAll = () => {
   fileArr.value = []
 }
-const onCancelClick = async () => {
-// cancelUpload()
-  isClose.value = true
-  onDialogCancel()
-}
-const isHover = ref(false)
 const onMouseEnter = () => {
   isHover.value = true
 }
 const onMouseLeave = () => {
   isHover.value = false
 }
-// const close = () => {
-// cancelUpload()
-// isClose.value = true
-// onDialogCancel()
-// }
 // 计算MD5
-// const getMD5 = async (file: File, index: number) => {
-// 使用sparkMD5的ArrayBuffer类，读取二进制文件
+// const getMD5 = async (file: File, index?: number) => {
+// // 使用sparkMD5的ArrayBuffer类，读取二进制文件
 //   const spark = new SparkMD5.ArrayBuffer()
 //   const fileReader = new FileReader()
-//   fileReader.readAsArrayBuffer(file)
-// 异步操作，读完后的结果
-// fileReader.onload = async (e: any) => {
-// 把文件开始传入spark
-// await spark.append(e.target.result)
-// spark计算出MD5后的结果
-// const md5 = spark.end()
-// await console.log(md5)
-// await console.log(e.target.result)
-// await putObjPath({ path: { objpath: file.name, bucket_name: props.bucket_name }, body: { file: e.target.result }, index, md5 })
-// }
-// fileReader读取二进制文件
-// await fileReader.readAsArrayBuffer(file)
+//   fileReader.readAsBinaryString(file)
+//   // 异步操作，读完后的结果
+//   fileReader.onload = async (e: any) => {
+//     // 把文件开始传入spark
+//     await spark.append(e.target.result)
+//     // spark计算出MD5后的结果
+//     const md5 = spark.end()
+//     // await console.log(md5)
+//     // await console.log(e.target.result)
+//     await putObjPath1({ path: { objpath: file.name, bucket_name: props.bucket_name }, body: e.target.result, md5 })
+//   }
+//   // fileReader读取二进制文件
+//   // await fileReader.readAsArrayBuffer(file)
 // }
 const handleTime = (time: number) => {
   if (time > 0) {
@@ -159,39 +160,47 @@ const calcSpeedTime = (event: ProgressEvent, size?: number) => {
     uploadTime.value = handleTime(Number(leftTime.toFixed(1)))
   }
 }
-// const putObjPath = async (payload: { path: { objpath: string, bucket_name: string }, body: { file: File }, index: number, md5: string }) => {
+// const putObjPath1 = async (payload: { path: { objpath: string, bucket_name: string }, body: File | string, index?: number, md5: string }) => {
 //   console.log(payload)
-//   const formData = new FormData()
-//   formData.append('file', payload.body.file)
+//   // const formData = new FormData()
+//   // formData.append('file', payload.body.file)
 //   return axiosStorage({
 //     url: `/api/v2/obj/${payload.path.bucket_name}/${payload.path.objpath}`,
 //     method: 'put',
 //     headers: {
 //       'Content-MD5': payload.md5
 //     },
-//     data: formData,
+//     data: payload.body,
 //     onUploadProgress: function (progressEvent) {
 //       if (progressEvent.lengthComputable) {
 //         // 计算进度
-//         progressArr.value[payload.index] = (progressEvent.loaded / progressEvent.total * 100).toFixed(1)
-//         calcSpeedTime(progressEvent)
+//         // progressArr.value[payload.index] = (progressEvent.loaded / progressEvent.total * 100).toFixed(1)
+//         // calcSpeedTime(progressEvent)
 //       }
 //     }
 //   })
 // }
 // 上传完整文件不切片
+
+// 完整上传
 const putObjPath = async (payload: { path: { objpath: string, bucket_name: string }, body: { file: File }, index: number }) => {
   const formData = new FormData()
   formData.append('file', payload.body.file)
   return axiosStorage({
     url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
     method: 'put',
+    cancelToken: source.token,
     data: formData,
-    onUploadProgress: function (progressEvent) {
+    onUploadProgress: async function (progressEvent) {
       if (progressEvent.lengthComputable) {
         // 计算进度
         progressArr.value[payload.index] = (progressEvent.loaded / progressEvent.total * 100).toFixed(1)
+        // 计算速度和时间
         calcSpeedTime(progressEvent)
+        if (isClose.value) {
+          cancelUpload()
+          void await store.addPathTable({ bucket, path })
+        }
       }
     }
   })
@@ -238,6 +247,7 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
               // 计算进度
               progressArr.value[payload.index] = (start / fileSize * 100).toFixed(1)
               const surplusSize = fileSize - start
+              // 计算速度和时间
               calcSpeedTime(progressEvent, surplusSize)
             }
           }
@@ -252,6 +262,7 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
               // 计算进度
               progressArr.value[payload.index] = (start / fileSize * 100).toFixed(1)
               const surplusSize = fileSize - start
+              // 计算速度和时间
               calcSpeedTime(progressEvent, surplusSize)
             }
           }
@@ -261,6 +272,7 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
       break
     }
   }
+  // 取消需要删除碎片文件
   if (start < fileSize) {
     isCancel.value = true
     await storage.storage.api.deleteObjPath({ path: { bucket_name: props.bucket_name, objpath: fileName } })
@@ -407,7 +419,7 @@ const upload = async () => {
         </q-list>
         <div class="row justify-between q-mt-sm">
           <q-btn class="q-ml-xs" color="primary" :label="tc('上传')" unelevated @click="upload" :disable="isUploading"/>
-          <q-btn class="q-mr-xs" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
+          <q-btn class="q-mr-xs" color="primary" :label="tc('取消')" unelevated @click="close"/>
         </div>
       </template>
     </q-uploader>
