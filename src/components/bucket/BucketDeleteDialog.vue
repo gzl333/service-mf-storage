@@ -34,7 +34,7 @@ const onOKClick = async () => {
       classes: 'notification-positive shadow-15',
       icon: 'las la-redo-alt',
       textColor: 'positive',
-      message: '正在删除存储桶...',
+      message: `${tc('正在删除存储桶')}...`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -57,7 +57,7 @@ const onOKClick = async () => {
         classes: 'notification-positive shadow-15',
         icon: 'check_circle',
         textColor: 'positive',
-        message: '成功删除存储桶',
+        message: `${tc('成功删除存储桶')}`,
         position: 'bottom',
         closeBtn: true,
         timeout: 5000,
@@ -90,7 +90,8 @@ const onOKClick = async () => {
 
         <div class="row q-pb-md  items-center">
           <div class="col-auto text-grey-7">
-            即将删除以下{{ props.bucketNames.length }}个存储桶：
+<!--            即将删除以下{{ props.bucketNames.length }}个存储桶：-->
+            {{ tc('以下存储桶将被删除：') }}
           </div>
         </div>
 
@@ -98,8 +99,8 @@ const onOKClick = async () => {
              class="row q-mb-xs q-pa-md items-center bg-grey-2">
 
           <div class="col row items-center">
-            <div class="col-2 text-grey-7">
-              {{ tc('存储桶名称') }}
+            <div class="col-auto text-grey-7">
+              {{ tc('存储桶名称') }}：
             </div>
             <div class="col">
               {{ bucketName }}
@@ -131,8 +132,8 @@ const onOKClick = async () => {
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="negative" :label="tc('删除')" unelevated :disable="!check1" @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="negative" :label="tc('删除')" no-caps unelevated :disable="!check1" @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>

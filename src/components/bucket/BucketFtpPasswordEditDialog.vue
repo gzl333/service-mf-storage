@@ -40,7 +40,7 @@ const onOKClick = async () => {
       classes: 'notification-negative shadow-15',
       icon: 'las la-times-circle',
       textColor: 'negative',
-      message: '密码长度应为6-30个字符',
+      message: `${tc('密码长度应为6-30个字符')}`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -51,7 +51,7 @@ const onOKClick = async () => {
       classes: 'notification-positive shadow-15',
       icon: 'las la-redo-alt',
       textColor: 'positive',
-      message: '正在修改FTP密码...',
+      message: `${tc('正在修改FTP密码')}...`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -68,7 +68,7 @@ const onOKClick = async () => {
         classes: 'notification-positive shadow-15',
         icon: 'check_circle',
         textColor: 'positive',
-        message: '成功修改FTP密码',
+        message: `${tc('成功修改FTP密码')}`,
         position: 'bottom',
         closeBtn: true,
         timeout: 5000,
@@ -89,7 +89,8 @@ const onOKClick = async () => {
     <q-card class="q-dialog-plugin dialog-primary">
 
       <q-card-section class="row items-center justify-center q-pb-md">
-        <div class="text-primary">{{ '修改' + props.bucketName + '的FTP密码' }}</div>
+<!--        <div class="text-primary">{{ '修改' + props.bucketName + '的FTP密码' }}</div>-->
+        <div class="text-primary">{{ tc('修改存储桶FTP密码') }}</div>
         <q-space/>
         <q-btn icon="close" flat dense size="sm" v-close-popup/>
       </q-card-section>
@@ -114,8 +115,8 @@ const onOKClick = async () => {
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="primary" :label="tc('修改')" unelevated @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('修改')" no-caps unelevated @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>

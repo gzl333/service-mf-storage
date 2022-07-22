@@ -32,11 +32,11 @@ const onCancelClick = onDialogCancel
 const selectModel = ref(null)
 const isPass = ref(false)
 const options = [
-  { label: '私有', value: -1, share: 0 },
-  { label: '1天', value: 1, share: 1 },
-  { label: '7天', value: 7, share: 1 },
-  { label: '30天', value: 30, share: 1 },
-  { label: '永久公开', value: 0, share: 1 }
+  { label: tc('私有'), value: -1, share: 0 },
+  { label: tc('1天'), value: 1, share: 1 },
+  { label: tc('7天'), value: 7, share: 1 },
+  { label: tc('30天'), value: 30, share: 1 },
+  { label: tc('永久公开'), value: 0, share: 1 }
 ]
 const shareQuery: Ref = ref({
   share: '',
@@ -57,7 +57,7 @@ const share = async () => {
     classes: 'notification-positive shadow-15',
     icon: 'las la-redo-alt',
     textColor: 'positive',
-    message: '正在分享中',
+    message: `${tc('正在分享中')}`,
     position: 'bottom',
     closeBtn: true,
     timeout: 5000,
@@ -104,7 +104,7 @@ const share = async () => {
       classes: 'notification-positive shadow-15',
       icon: 'check_circle',
       textColor: 'positive',
-      message: '分享成功',
+      message: `${tc('分享成功')}`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -116,7 +116,7 @@ const share = async () => {
       classes: 'notification-negative shadow-15',
       icon: 'check_circle',
       textColor: 'negative',
-      message: '请选择分享权限',
+      message: `${tc('请选择分享权限')}`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -131,7 +131,7 @@ const share = async () => {
     <q-card class="q-dialog-plugin dialog-primary">
       <q-card-section class="row items-center justify-center q-pb-md">
         <div class="text-primary">
-          {{ tc('分享') }}
+          {{ tc('公开分享') }}
         </div>
         <q-space/>
         <q-btn icon="close" flat dense size="sm" v-close-popup/>
@@ -145,8 +145,8 @@ const share = async () => {
           <q-checkbox v-model="isPass" @update:model-value="isHavePass" :label="tc('有分享密码保护')"/>
         </div>
         <div class="row justify-center q-mt-lg">
-          <q-btn class="q-ma-sm" color="primary" :label="tc('分享')" unelevated @click="share"/>
-          <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
+          <q-btn class="q-ma-sm" color="primary" :label="tc('分享')" unelevated no-caps @click="share"/>
+          <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated no-caps @click="onCancelClick"/>
         </div>
       </q-card-section>
       <q-separator/>

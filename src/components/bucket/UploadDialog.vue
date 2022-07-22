@@ -95,9 +95,9 @@ const handleTime = (time: number) => {
       const num = FloatSub(floatHour, intHour)
       const min = num * 60
       if (intHour < 24) {
-        return intHour + '小时' + min + '分钟'
+        return intHour + tc('小时') + min + tc('分钟')
       } else {
-        return '超过一天'
+        return tc('超过一天')
       }
       //  超过一分钟
     } else if (time / 60 > 1) {
@@ -105,17 +105,17 @@ const handleTime = (time: number) => {
       const floatMin = parseFloat((time / 60).toFixed(1))
       const num = FloatSub(floatMin, intMin)
       const sec = num * 60
-      return intMin + '分钟' + sec + '秒'
+      return intMin + tc('分钟') + sec + tc('秒')
     } else {
       const sec = parseInt(time.toString())
       if (sec > 0) {
-        return sec + '秒'
+        return sec + tc('秒')
       } else {
-        return 0 + '秒'
+        return 0 + tc('秒')
       }
     }
   } else {
-    return '计算中'
+    return tc('计算中')
   }
 }
 const calcSpeedTime = (event: ProgressEvent, size?: number) => {
@@ -310,7 +310,7 @@ const upload = async () => {
         classes: 'notification-positive shadow-15',
         icon: 'check_circle',
         textColor: 'positive',
-        message: '上传成功',
+        message: tc('上传成功'),
         position: 'bottom',
         closeBtn: true,
         timeout: 5000,
@@ -321,7 +321,7 @@ const upload = async () => {
         classes: 'notification-negative shadow-15',
         icon: 'las la-times-circle',
         textColor: 'negative',
-        message: '已取消上传',
+        message: tc('已取消上传'),
         position: 'bottom',
         closeBtn: true,
         timeout: 5000,
@@ -337,7 +337,7 @@ const upload = async () => {
       classes: 'notification-negative shadow-15',
       icon: 'las la-times-circle',
       textColor: 'negative',
-      message: '请选择文件',
+      message: `${tc('请选择文件')}`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -345,6 +345,24 @@ const upload = async () => {
     })
   }
 }
+// const selectFiles = (scope: object) => {
+//   console.log(typeof scope)
+//   console.log(fileArr.value.length)
+//   if (fileArr.value.length < 2) {
+//     scope.pickFiles()
+//   } else {
+//     Notify.create({
+//       classes: 'notification-negative shadow-15',
+//       icon: 'las la-times-circle',
+//       textColor: 'warning',
+//       message: '已到达最大选择数量',
+//       position: 'bottom',
+//       closeBtn: true,
+//       timeout: 5000,
+//       multiLine: false
+//     })
+//   }
+// }
 </script>
 
 <template>
@@ -354,11 +372,11 @@ const upload = async () => {
       @added="addFile"
       :label="tc('上传文件')"
       multiple
+      :max-files="10"
       :headers="[{'Content-Type': 'multipart/form-data'}]"
-      style="width: 500px"
+      style="width: 600px"
     >
       <template v-slot:header="scope">
-<!--        <q-uploader-add-trigger v-if="isUploading === false"/>-->
         <div class="row no-wrap items-center q-pa-sm q-gutter-xs">
           <q-btn v-if="scope.queuedFiles.length > 0 && isUploading === false" icon="clear_all" @click="scope.removeQueuedFiles(); clearAll()" round dense flat>
             <q-tooltip>{{ tc('清空文件') }}</q-tooltip>
@@ -366,13 +384,13 @@ const upload = async () => {
           <div class="col">
             <div class="q-uploader__title">{{ tc('上传文件') }}</div>
             <div class="q-uploader__subtitle row">
-              <div :class="isUploading === true ? 'col-4' : 'col-5'">{{ tc('文件总大小') }}：{{ scope.uploadSizeLabel }}</div>
-              <div class="col-4 text-center" v-show="isUploading">{{ tc('上传速度') }}：{{ uploadSpeed }}</div>
-              <div class="col-4 text-center" v-show="isUploading">{{ tc('剩余时间') }}：{{ uploadTime }}</div>
+              <div class="col-4">{{ tc('文件总大小') }}：{{ scope.uploadSizeLabel }}</div>
+              <div class="col-4" v-show="isUploading">{{ tc('上传速度') }}：{{ uploadSpeed }}</div>
+              <div class="col-4" v-show="isUploading">{{ tc('剩余时间') }}：{{ uploadTime }}</div>
             </div>
           </div>
-          <div v-if="isUploading === false" >
-            <span>选择文件</span>
+          <div v-if="isUploading === false" class="invisible">
+            <span>{{ tc('选择文件') }}</span>
             <q-btn type="a" icon="add_box" @click="scope.pickFiles" round dense flat>
               <q-uploader-add-trigger/>
               <q-tooltip>{{ tc('选择文件') }}</q-tooltip>
@@ -384,10 +402,10 @@ const upload = async () => {
         </div>
       </template>
       <template v-slot:list="scope">
-        <q-card flat class="q-py-md" :style="isHover ? 'border: #1976D2 1px dashed': 'border: darkgrey 1px dashed'" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave">
+        <q-card flat class="q-py-md cursor-pointer" :style="isHover ? 'border: #1976D2 1px dashed': 'border: darkgrey 1px dashed'" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave" @click="scope.pickFiles()">
           <div class="text-center">
             <q-icon name="las la-cloud-upload-alt" size="4em"/>
-            <div class="q-mt-xs">{{ tc('拖拽文件或者点击右上角选择文件') }}</div>
+            <div class="q-mt-xs">{{ tc('拖拽文件或者点击选择文件') }}</div>
           </div>
         </q-card>
         <q-list separator>
@@ -418,8 +436,8 @@ const upload = async () => {
           </q-card>
         </q-list>
         <div class="row justify-between q-mt-sm">
-          <q-btn class="q-ml-xs" color="primary" :label="tc('上传')" unelevated @click="upload" :disable="isUploading"/>
-          <q-btn class="q-mr-xs" color="primary" :label="tc('取消')" unelevated @click="close"/>
+          <q-btn class="q-ml-xs" color="primary" :label="tc('上传')" unelevated no-caps @click="upload" :disable="isUploading"/>
+          <q-btn class="q-mr-xs" color="primary" :label="tc('取消')" unelevated no-caps @click="close"/>
         </div>
       </template>
     </q-uploader>

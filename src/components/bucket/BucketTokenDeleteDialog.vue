@@ -59,7 +59,7 @@ const onOKClick = async () => {
         classes: 'notification-positive shadow-15',
         icon: 'check_circle',
         textColor: 'positive',
-        message: '成功删除token',
+        message: `${tc('成功删除token')}`,
         position: 'bottom',
         closeBtn: true,
         timeout: 5000,
@@ -91,7 +91,7 @@ const onOKClick = async () => {
 
         <div class="row items-center">
           <div class="col-2 text-grey-7">
-            {{ tc('所属存储桶：') }}
+            {{ tc('所属存储桶') }}：
           </div>
           <div class="col">
             {{ props.bucketName }}
@@ -115,7 +115,7 @@ const onOKClick = async () => {
 
         <div class="row items-center">
           <div class="col text-grey-7">
-            {{ tc('请仔细阅读以下事项，并在确认后勾选：') }}
+            {{ tc('请仔细阅读以下事项，并在确认后勾选') }}：
           </div>
         </div>
 
@@ -130,8 +130,8 @@ const onOKClick = async () => {
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="negative" :label="tc('删除')" unelevated :disable="!check" @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="negative" :label="tc('删除')" unelevated no-caps :disable="!check" @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated no-caps @click="onCancelClick"/>
       </q-card-actions>
 
     </q-card>

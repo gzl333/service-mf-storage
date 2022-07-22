@@ -28,7 +28,7 @@ const onOKClick = async () => {
       classes: 'notification-negative shadow-15',
       icon: 'las la-times-circle',
       textColor: 'negative',
-      message: '文件夹名称长度应为3-63个字符',
+      message: tc('文件夹名称长度应为3-63个字符'),
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -40,7 +40,7 @@ const onOKClick = async () => {
       classes: 'notification-positive shadow-15',
       icon: 'las la-redo-alt',
       textColor: 'positive',
-      message: '正在创建文件夹',
+      message: `${tc('正在创建文件夹')}`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -53,7 +53,7 @@ const onOKClick = async () => {
         classes: 'notification-positive shadow-15',
         icon: 'check_circle',
         textColor: 'positive',
-        message: '创建文件夹成功',
+        message: `${tc('创建文件夹成功')}`,
         position: 'bottom',
         closeBtn: true,
         timeout: 5000,
@@ -112,8 +112,8 @@ const inputRef = ref<QInput>()
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="primary" :label="tc('创建')" unelevated @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('创建')" no-caps unelevated @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>

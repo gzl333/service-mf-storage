@@ -34,7 +34,7 @@ const onOKClick = async () => {
     classes: 'notification-positive shadow-15',
     icon: 'las la-redo-alt',
     textColor: 'positive',
-    message: '正在删除中',
+    message: `${tc('正在删除中')}`,
     position: 'bottom',
     closeBtn: true,
     timeout: 5000,
@@ -70,7 +70,7 @@ const onOKClick = async () => {
       classes: 'notification-negative shadow-15',
       icon: 'check_circle',
       textColor: 'negative',
-      message: deleteFailArr.toString() + '是非空目录，不能删除',
+      message: `${deleteFailArr.toString()} ${tc('是非空目录，不能删除')}`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -81,7 +81,7 @@ const onOKClick = async () => {
       classes: 'notification-positive shadow-15',
       icon: 'check_circle',
       textColor: 'positive',
-      message: '删除成功',
+      message: `${tc('删除成功')}`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -101,8 +101,8 @@ const onCancelClick = onDialogCancel
       <div class="text-center"><h5>{{ tc('确认要删除吗') }}？</h5></div>
       <div class="text-center"><h6>{{ tc('此操作是不可逆的') }}！</h6></div>
       <q-card-actions align="center">
-        <q-btn class="q-ma-sm" color="primary" :label="tc('确认')" unelevated @click="onOKClick" :disable="isDisable"/>
-        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('确认')" no-caps unelevated @click="onOKClick" :disable="isDisable"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>

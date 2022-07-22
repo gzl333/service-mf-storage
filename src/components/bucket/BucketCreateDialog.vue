@@ -35,7 +35,7 @@ const onOKClick = async () => {
       classes: 'notification-negative shadow-15',
       icon: 'las la-times-circle',
       textColor: 'negative',
-      message: '桶名称长度应为3-63个字符',
+      message: `${tc('桶名称长度应为3-63个字符')}`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -47,7 +47,7 @@ const onOKClick = async () => {
       classes: 'notification-positive shadow-15',
       icon: 'las la-redo-alt',
       textColor: 'positive',
-      message: '正在创建存储桶：' + bucketName.value,
+      message: `${tc('正在创建存储桶')}  ${bucketName.value}`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -83,7 +83,7 @@ const onOKClick = async () => {
         classes: 'notification-positive shadow-15',
         icon: 'check_circle',
         textColor: 'positive',
-        message: '成功创建存储桶：' + bucketName.value,
+        message: `${tc('成功创建存储桶')}  ${bucketName.value}`,
         position: 'bottom',
         closeBtn: true,
         timeout: 5000,
@@ -100,7 +100,7 @@ const onOKClick = async () => {
             classes: 'notification-negative shadow-15',
             icon: 'mdi-alert',
             textColor: 'negative',
-            message: '请输入其它名称',
+            message: `${tc('请输入其它名称')}`,
             caption: '您已经拥有同名称的存储桶',
             position: 'bottom',
             closeBtn: true,
@@ -112,7 +112,7 @@ const onOKClick = async () => {
             classes: 'notification-negative shadow-15',
             icon: 'mdi-alert',
             textColor: 'negative',
-            message: '请输入其它名称',
+            message: `${tc('请输入其它名称')}`,
             caption: bucketName.value + '已经被其他用户占用',
             position: 'bottom',
             closeBtn: true,
@@ -125,7 +125,7 @@ const onOKClick = async () => {
           classes: 'notification-negative shadow-15',
           icon: 'mdi-alert',
           textColor: 'negative',
-          message: '创建存储桶失败',
+          message: `${tc('创建存储桶失败')}`,
           caption: '请重试',
           position: 'bottom',
           closeBtn: true,
@@ -183,8 +183,8 @@ const inputRef = ref<QInput>()
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="primary" :label="tc('创建')" unelevated @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('创建')" no-caps unelevated @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>

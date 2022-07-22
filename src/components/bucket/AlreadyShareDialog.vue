@@ -68,8 +68,8 @@ onMounted(async () => {
           </div>
         <div v-if="shareCode !== undefined" class="text-subtitle1 text-center q-mt-lg">{{tc('分享密码')}}：{{ shareCode }}</div>
         <div class="row justify-center q-mt-lg">
-          <q-btn class="q-ma-sm" color="primary" :label="tc('修改共享状态')" unelevated @click="share"/>
-          <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
+          <q-btn class="q-ma-sm" color="primary" :label="tc('修改共享状态')" no-caps unelevated @click="share"/>
+          <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>
         </div>
       </q-card-section>
       <q-separator/>

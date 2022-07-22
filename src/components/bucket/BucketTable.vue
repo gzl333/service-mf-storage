@@ -133,9 +133,9 @@ const columns = computed(() => [
 <template>
   <div class="BucketTable">
     <div class="row q-gutter-x-md">
-      <q-btn class="col-auto" unelevated color="primary" :label="tc('新建存储桶')"
+      <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('新建存储桶')"
              @click="store.triggerCreateBucketDialog"/>
-      <q-btn class="col-auto" unelevated color="primary" :label="tc('删除存储桶')" :disable="selected.length === 0"
+      <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('删除存储桶')" :disable="selected.length === 0"
              @click="store.triggerDeleteBucketDialog({bucketNames: selected.map((bucket: BucketInterface) => bucket.name)})"/>
     </div>
 
@@ -170,7 +170,7 @@ const columns = computed(() => [
           hide-pagination
           :pagination="{rowsPerPage: 0}"
           :loading="store.tables.bucketTable.status === 'loading'"
-          no-data-label="没有存储桶"
+          :no-data-label="tc('没有存储桶')"
           selection="multiple"
           v-model:selected="selected"
         >
@@ -219,7 +219,7 @@ const columns = computed(() => [
                   keep-color
                   @click="store.toggleBucketAccess({bucketName: props.row.name})"
                 />
-                {{ props.row.access_permission }}
+                {{ tc(props.row.access_permission) }}
               </q-td>
 
               <q-td key="ftp" :props="props">
@@ -229,7 +229,7 @@ const columns = computed(() => [
                   keep-color
                   @click="store.toggleBucketFtp({bucketName: props.row.name})"
                 />
-                {{ props.row.ftp_enable === false ? '关闭' : '开启' }}
+                {{ props.row.ftp_enable === false ? tc('关闭') : tc('开启') }}
               </q-td>
 
               <q-td key="write" :props="props">
@@ -258,8 +258,8 @@ const columns = computed(() => [
               </q-td>
 
               <q-td key="operation" :props="props">
-                <div class="column q-gutter-y-xs" style="width: 100px;">
-                  <q-btn unelevated dense color="primary" @click="toggleExpansion(props)"
+                <div class="column q-gutter-y-xs" style="width: 127px;">
+                  <q-btn unelevated dense color="primary" no-caps @click="toggleExpansion(props)"
                          :icon="props.expand ? 'expand_less' : 'expand_more'">
                     <div v-if="props.expand">{{ tc('折叠详情') }}</div>
                     <div v-else>{{ tc('展开详情') }}</div>
@@ -296,7 +296,7 @@ const columns = computed(() => [
                   <div class="col-auto row items-center q-gutter-lg">
                     <div>{{props.row.name}}</div>
                     <div class="col-auto">
-                      {{ tc('对象数量') }}: {{ store.tables.bucketStatTable.byLocalId[props.row.name]?.stats.count }} 个
+                      {{ tc('对象数量') }}: {{ store.tables.bucketStatTable.byLocalId[props.row.name]?.stats.count }}&nbsp;{{ tc('个') }}
                     </div>
 
                     <div class="col-auto">
@@ -325,12 +325,12 @@ const columns = computed(() => [
                     <q-btn class="col-auto" flat dense no-caps padding="none" color="primary" icon="add_circle"
                            size="sm"
                            @click="store.triggerAddBucketTokenDialog({bucketName: props.row.name})">
-                      {{ tc('创建') }}token
+                      {{ `${tc('创建')}  Token` }}
                     </q-btn>
                   </div>
 
                   <div v-if="store.tables.bucketTokenTable.byLocalId[props.row.name]?.tokens.length === 0">
-                    {{ tc('暂无可用') }}token
+                    {{ `${tc('暂无可用')}  Token` }}
                   </div>
 
                   <div v-else>
@@ -357,7 +357,7 @@ const columns = computed(() => [
                         <q-btn class="col-auto" flat dense no-caps padding="none" color="primary" icon="remove_circle"
                                size="sm"
                                @click="store.triggerDeleteBucketTokenDialog({bucketName: props.row.name, token:token.key})">
-                          {{ tc('删除') }}token
+                          {{ `${tc('删除')}  Token` }}
                         </q-btn>
                       </div>
                     </div>

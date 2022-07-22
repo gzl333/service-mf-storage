@@ -4,9 +4,10 @@ import { FileInterface, PathInterface } from 'src/stores/store'
 import { useStore } from 'stores/store'
 import { navigateToUrl } from 'single-spa'
 import { i18n } from 'boot/i18n'
-// import storage from 'src/api/index'
+import storage from 'src/api/index'
 import useClipText from '../../../src/hooks/useClipText'
 import useFormatSize from '../../../src/hooks/useFormatSize'
+import { Notify } from 'quasar'
 
 const props = defineProps({
   pathObj: {
@@ -167,33 +168,53 @@ const shareFile = async () => {
     }
   })
 }
-const download = async (fileName: string, download_url: string) => {
+const download = async (fileName: string) => {
   // 创建a标签
-  const a = document.createElement('a')
+  // const a = document.createElement('a')
   // 定义下载名称
-  a.download = fileName
+  // a.download = fileName
   // 隐藏标签
-  a.style.display = 'none'
+  // a.style.display = 'none'
   // 设置文件路径
-  a.href = download_url
+  // a.href = download_url
   // 将创建的标签插入dom
-  document.body.appendChild(a)
+  // document.body.appendChild(a)
   // 点击标签，执行下载
-  a.click()
+  // a.click()
   // 将标签从dom移除
-  document.body.removeChild(a)
-  // const fileName = props.pathObj.localId + '/' + name
-  // const res = await storage.storage.api.getObjPath({ path: { objpath: fileName } })
-  // const url = window.URL.createObjectURL(new Blob([res.data]))
-  // const link = document.createElement('a')
-  // link.style.display = 'none'
-  // link.href = url
-  // link.setAttribute('download', name)
-  // document.body.appendChild(link)
-  // link.click()
-  // document.body.removeChild(link)
+  // document.body.removeChild(a)
+  Notify.create({
+    classes: 'notification-positive shadow-15',
+    icon: 'las la-redo-alt',
+    textColor: 'positive',
+    message: `${tc('正在下载中，请稍等')}...`,
+    position: 'bottom',
+    closeBtn: true,
+    timeout: 5000,
+    multiLine: false
+  })
+  const objPath = props.pathObj.localId + '/' + fileName
+  const res = await storage.storage.api.getObjPath({ path: { objpath: objPath } })
+  const url = window.URL.createObjectURL(new Blob([res.data]))
+  const link = document.createElement('a')
+  link.style.display = 'none'
+  link.href = url
+  link.setAttribute('download', fileName)
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
   // 释放blob URL地址
-  // window.URL.revokeObjectURL(url)
+  window.URL.revokeObjectURL(url)
+  Notify.create({
+    classes: 'notification-positive shadow-15',
+    icon: 'las la-redo-alt',
+    textColor: 'positive',
+    message: tc('下载完成'),
+    position: 'bottom',
+    closeBtn: true,
+    timeout: 5000,
+    multiLine: false
+  })
 }
 const toggleExpansion = (props: { expand: boolean, row: FileInterface }) => {
   if (props.expand) {
@@ -218,20 +239,20 @@ watch(
 <template>
   <div class="PathTable">
     <div class="row q-gutter-md">
-      <q-btn class="col-auto" unelevated color="primary" :label="tc('创建文件夹')"
+      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('创建文件夹')"
              @click="store.triggerCreateFolderDialog({ dirName: props.pathObj.localId })"/>
-      <q-btn class="col-auto" unelevated color="primary" :label="tc('上传文件')"
+      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('上传文件')"
              @click="store.triggerUploadDialog({ bucket_name: props.pathObj.localId })"/>
-      <q-btn class="col-auto" unelevated color="primary" :label="tc('删除文件')" @click="deleteFile"
+      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('删除文件')" @click="deleteFile"
              :disable="selected.length > 0 ? false : true"/>
-      <q-btn class="col-auto" unelevated color="primary" :label="tc('公开分享')" @click="shareFile"
+      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="shareFile"
              :disable="selected.length > 0 ? false : true"/>
     </div>
 
     <div class="row items-center q-gutter-sm q-py-sm text-grey">
 
       <div class="col-auto">
-        <q-btn flat color="primary" padding="none" @click="navigateToUrl(upperPath)">{{ tc('返回上一级') }}</q-btn>
+        <q-btn flat color="primary" padding="none" no-caps @click="navigateToUrl(upperPath)">{{ tc('返回上一级') }}</q-btn>
       </div>
 
       <div class="col-auto">
@@ -295,7 +316,7 @@ watch(
           hide-pagination
           :pagination="{rowsPerPage: 0}"
           :loading="store.tables.pathTable.status === 'loading'"
-          no-data-label="没有文件"
+          :no-data-label="tc('没有文件')"
           selection="multiple"
           v-model:selected="selected"
         >
@@ -344,11 +365,11 @@ watch(
               </q-td>
 
               <q-td key="access" :props="props">
-                {{ props.row.access_permission }}
+                {{ tc(props.row.access_permission) }}
               </q-td>
 
               <q-td key="operation" :props="props">
-                <q-btn-dropdown unelevated color="primary" :label="tc('操作')" v-if="props.row.fod === false">
+                <q-btn-dropdown unelevated no-caps color="primary" :label="tc('操作')" v-if="props.row.fod === false">
                   <q-list>
                     <q-item clickable v-close-popup @click="onItemClick(props.row.name, props.row.fod)">
                       <q-item-section>
@@ -362,7 +383,7 @@ watch(
                     </q-item>
                   </q-list>
                 </q-btn-dropdown>
-                <q-btn v-if="props.row.fod === true" class="q-pt-sm" unelevated dense color="primary" @click="toggleExpansion(props)"
+                <q-btn v-if="props.row.fod === true" class="q-pt-sm" unelevated no-caps dense color="primary" @click="toggleExpansion(props)"
                        :label="props.expand ? tc('折叠详情') : tc('展开详情')" :icon="props.expand ? 'expand_less' : 'expand_more'">
                 </q-btn>
               </q-td>
@@ -404,11 +425,11 @@ watch(
                 </div>
                 <q-separator/>
                 <div class="q-mt-xs">
-                  <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">{{ tc('下载') }}</q-btn>
-<!--                  <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name].name)">下载</q-btn>-->
-                  <q-btn class="q-ml-sm" color="primary" unelevated @click="onItemClick(fileDetail[props.row.name].name, fileDetail[props.row.name].fod)">{{ tc('删除') }}</q-btn>
-                  <q-btn class="q-ml-sm" color="primary" unelevated @click="changeName(fileDetail[props.row.name].name)">{{ tc('重命名') }}</q-btn>
-                  <q-btn class="q-ml-sm" color="primary" unelevated @click="shareItemClick(fileDetail[props.row.name].name, fileDetail[props.row.name].access_code, fileDetail[props.row.name].fod)">{{ tc('公开分享') }}</q-btn>
+<!--                  <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">{{ tc('下载') }}</q-btn>-->
+                  <q-btn color="primary" unelevated no-caps @click="download(fileDetail[props.row.name].name)">{{ tc('下载') }}</q-btn>
+                  <q-btn class="q-ml-sm" color="primary" unelevated no-caps @click="onItemClick(fileDetail[props.row.name].name, fileDetail[props.row.name].fod)">{{ tc('删除') }}</q-btn>
+                  <q-btn class="q-ml-sm" color="primary" unelevated no-caps @click="changeName(fileDetail[props.row.name].name)">{{ tc('重命名') }}</q-btn>
+                  <q-btn class="q-ml-sm" color="primary" unelevated no-caps @click="shareItemClick(fileDetail[props.row.name].name, fileDetail[props.row.name].access_code, fileDetail[props.row.name].fod)">{{ tc('公开分享') }}</q-btn>
                 </div>
               </q-td>
             </q-tr>

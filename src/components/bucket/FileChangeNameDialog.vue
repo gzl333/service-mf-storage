@@ -31,7 +31,7 @@ const onOKClick = async () => {
       classes: 'notification-negative shadow-15',
       icon: 'las la-times-circle',
       textColor: 'negative',
-      message: '文件名称不能为空',
+      message: `${tc('文件名称不能为空')}`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -42,7 +42,7 @@ const onOKClick = async () => {
       classes: 'notification-negative shadow-15',
       icon: 'las la-times-circle',
       textColor: 'negative',
-      message: '文件名称未改变',
+      message: `${tc('文件名称未改变')}`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -54,7 +54,7 @@ const onOKClick = async () => {
       classes: 'notification-positive shadow-15',
       icon: 'las la-redo-alt',
       textColor: 'positive',
-      message: '正在修改名称中',
+      message: `${tc('正在修改名称中')}`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -73,7 +73,7 @@ const onOKClick = async () => {
         classes: 'notification-positive shadow-15',
         icon: 'check_circle',
         textColor: 'positive',
-        message: '重命名成功',
+        message: `${tc('重命名成功')}`,
         position: 'bottom',
         closeBtn: true,
         timeout: 5000,
@@ -122,8 +122,8 @@ const inputRef = ref<QInput>()
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="primary" :label="tc('确认')" unelevated @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('确认')" no-caps unelevated @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>

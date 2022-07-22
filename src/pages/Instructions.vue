@@ -38,16 +38,16 @@ const goPage = (url: string) => {
       indicator-color="primary"
       active-color="primary"
     >
-      <q-tab no-caps name="ftp" class="q-px-none q-py-md q-mr-md" icon="las la-comment" label="FTP访问说明"
+      <q-tab no-caps name="ftp" class="q-px-none q-py-md q-mr-md" icon="las la-comment" :label="tc('FTP访问说明')"
              @click="changeTab('ftp')" :ripple="false">
       </q-tab>
-      <q-tab no-caps name="primordial" class="q-px-none q-py-md q-mr-md" label="原生API使用说明"
+      <q-tab no-caps name="primordial" class="q-px-none q-py-md q-mr-md" :label="tc('原生API使用说明')"
              icon="las la-book-reader" @click="changeTab('primordial')" :ripple="false">
       </q-tab>
-      <q-tab no-caps name="s3" class="q-px-none q-py-md q-mr-md" icon="las la-comment-dots" label="S3兼容API使用说明"
+      <q-tab no-caps name="s3" class="q-px-none q-py-md q-mr-md" icon="las la-comment-dots" :label="tc('S3兼容API使用说明')"
              @click="changeTab('s3')" :ripple="false">
       </q-tab>
-      <q-tab no-caps name="rclone" class="q-px-none q-py-md q-mr-md" icon="las la-copy" label="Rclone使用说明"
+      <q-tab no-caps name="rclone" class="q-px-none q-py-md q-mr-md" icon="las la-copy" :label="tc('Rclone使用说明')"
              @click="changeTab('rclone')" :ripple="false">
       </q-tab>
     </q-tabs>

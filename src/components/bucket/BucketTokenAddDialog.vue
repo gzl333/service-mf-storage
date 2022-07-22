@@ -68,7 +68,7 @@ const onOKClick = async (permission: 'readwrite' | 'readonly') => {
       classes: 'notification-positive shadow-15',
       icon: 'check_circle',
       textColor: 'positive',
-      message: '成功创建存储桶token',
+      message: tc('成功创建存储桶token'),
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -88,7 +88,8 @@ const onOKClick = async (permission: 'readwrite' | 'readonly') => {
     <q-card class="q-dialog-plugin dialog-primary">
 
       <q-card-section class="row items-center justify-center q-pb-md">
-        <div class="text-primary">{{ '为' + props.bucketName + '创建token' }}</div>
+<!--        <div class="text-primary">{{ '为' + props.bucketName + '创建token' }}</div>-->
+        <div class="text-primary">{{ tc('为存储桶创建token') }}</div>
         <q-space/>
         <q-btn icon="close" flat dense size="sm" v-close-popup/>
       </q-card-section>
@@ -98,12 +99,12 @@ const onOKClick = async (permission: 'readwrite' | 'readonly') => {
       <q-card-section>
 
         <div class="row items-center">
-          <div class="col-2 text-grey-7">
-            token{{ tc('数量s') }}
+          <div class="col-3 text-grey-7">
+            {{ `token  ${tc('数量s')}: ${store.tables.bucketTokenTable.byLocalId[props.bucketName]?.tokens.length}` }}
           </div>
-          <div class="col">
-            {{ store.tables.bucketTokenTable.byLocalId[props.bucketName]?.tokens.length }}
-          </div>
+<!--          <div class="col">-->
+<!--            {{ store.tables.bucketTokenTable.byLocalId[props.bucketName]?.tokens.length }}-->
+<!--          </div>-->
         </div>
 
         <div class="row q-pt-lg items-center"
@@ -134,7 +135,7 @@ const onOKClick = async (permission: 'readwrite' | 'readonly') => {
             {{ tc('已达最大token数量') }}
           </div>
         </div>
-        <q-btn class="q-ma-sm" color="primary" label="取消" unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated no-caps @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
