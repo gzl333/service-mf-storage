@@ -245,7 +245,7 @@ const columns = computed(() => [
               </q-td>
 
               <q-td key="note" :props="props">
-                {{ clipText20(props.row.remarks) || '无备注' }}
+                {{ clipText20(props.row.remarks) || tc('无备注') }}
 
                 <q-btn :class="hoverRow === props.row.name ? '':'invisible'" icon="edit" size="sm" dense flat
                        color="primary"

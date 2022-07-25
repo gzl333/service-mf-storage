@@ -23,12 +23,12 @@ const {
 } = useDialogPluginComponent()
 
 const onOKClick = async () => {
-  if (dirName.value === null || dirName.value.length < 3 || dirName.value.length > 64) {
+  if (dirName.value === null || dirName.value === '') {
     Notify.create({
       classes: 'notification-negative shadow-15',
       icon: 'las la-times-circle',
       textColor: 'negative',
-      message: tc('文件夹名称长度应为3-63个字符'),
+      message: tc('文件夹名称不能为空'),
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
@@ -92,18 +92,8 @@ const inputRef = ref<QInput>()
             {{ tc('文件夹名称') }}
           </div>
           <div class="col">
-            <q-input ref="inputRef" autofocus outlined v-model="dirName" dense clearable clear-icon="close"
-                     maxlength="63" counter style="padding: 5px 0;" @keydown.enter="onOKClick">
+            <q-input ref="inputRef" autofocus outlined v-model="dirName" dense clearable clear-icon="close" style="padding: 5px 0;" @keydown.enter="onOKClick">
             </q-input>
-          </div>
-        </div>
-
-        <div class="row q-pb-lg items-start">
-          <div class="col-2 text-grey-7">
-            {{ tc('名称规则') }}
-          </div>
-          <div class="col">
-            {{ tc('长度介于3-63个字符之间') }}
           </div>
         </div>
 

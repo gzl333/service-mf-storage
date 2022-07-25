@@ -344,7 +344,8 @@ watch(
                   </div>
                 </q-btn>
 
-                <q-btn v-if="props.row.fod" flat no-caps color="black" padding="none" :ripple="false">
+                <q-btn v-if="props.row.fod" flat no-caps color="black" padding="none" :ripple="false"
+                       @click="toggleExpansion(props)">
                   <div class="row items-center no-wrap">
                     <q-icon class="col-auto" color="grey" name="insert_drive_file"/>
                     <div class="col-auto"> {{ clipText70(props.row.name) }}</div>
@@ -369,23 +370,12 @@ watch(
               </q-td>
 
               <q-td key="operation" :props="props">
-                <q-btn-dropdown unelevated no-caps color="primary" :label="tc('操作')" v-if="props.row.fod === false">
-                  <q-list>
-                    <q-item clickable v-close-popup @click="onItemClick(props.row.name, props.row.fod)">
-                      <q-item-section>
-                        <q-item-label>{{ tc('删除') }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-item clickable v-close-popup @click="shareItemClick(props.row.name, props.row.access_code, props.row.fod)">
-                      <q-item-section>
-                        <q-item-label>{{ tc('公开分享') }}</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-btn-dropdown>
-                <q-btn v-if="props.row.fod === true" class="q-pt-sm" unelevated no-caps dense color="primary" @click="toggleExpansion(props)"
-                       :label="props.expand ? tc('折叠详情') : tc('展开详情')" :icon="props.expand ? 'expand_less' : 'expand_more'">
-                </q-btn>
+                <q-btn color="primary" unelevated no-caps @click="onItemClick(props.row.name, props.row.fod)">{{ tc('删除') }}</q-btn>
+                <q-btn class="q-ml-xs" color="primary" unelevated no-caps @click="shareItemClick(props.row.name, props.row.access_code, props.row.fod)">{{ tc('公开分享') }}</q-btn>
+                <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps @click="changeName(props.row.name)">{{ tc('重命名') }}</q-btn>
+                <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps @click="download(props.row.name)">{{ tc('下载') }}</q-btn>
+<!--                <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">{{ tc('下载') }}</q-btn>-->
+                <q-btn v-if="props.row.fod === true" color="primary" flat dense no-caps :label="props.expand ? tc('折叠详情') : tc('展开详情')" @click="toggleExpansion(props)"></q-btn>
               </q-td>
 
             </q-tr>
@@ -408,7 +398,9 @@ watch(
                 <div class="row">
                   <div>
                     <div>
-                      {{ tc('创建时间') }}: {{ new Date(fileDetail[props.row.name]?.ult).toLocaleString(i18n.global.locale) }}
+                      {{ tc('创建时间') }}: {{
+                        new Date(fileDetail[props.row.name]?.ult).toLocaleString(i18n.global.locale)
+                      }}
                     </div>
                     <div>
                       {{ tc('文件大小') }}: {{ fileDetail[props.row.name]?.si }}
@@ -418,18 +410,13 @@ watch(
                     </div>
                   </div>
                   <div class="q-ml-xl">
-                    <div>{{ tc('最后修改') }}: {{ new Date(fileDetail[props.row.name]?.upt).toLocaleString(i18n.global.locale) }}</div>
-                    <div>{{ tc('访问权限') }}: {{ fileDetail[props.row.name]?.access_permission }}</div>
+                    <div>{{ tc('最后修改') }}:
+                      {{ new Date(fileDetail[props.row.name]?.upt).toLocaleString(i18n.global.locale) }}
+                    </div>
+                    <!--                    <div>{{ fileDetail[props.row.name]?.access_permission }}</div>-->
+                    <div>{{ tc('访问权限') }}: {{ tc(props.row.access_permission) }}</div>
                     <div>MD5: {{ fileDetail[props.row.name]?.md5 }}</div>
                   </div>
-                </div>
-                <q-separator/>
-                <div class="q-mt-xs">
-<!--                  <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">{{ tc('下载') }}</q-btn>-->
-                  <q-btn color="primary" unelevated no-caps @click="download(fileDetail[props.row.name].name)">{{ tc('下载') }}</q-btn>
-                  <q-btn class="q-ml-sm" color="primary" unelevated no-caps @click="onItemClick(fileDetail[props.row.name].name, fileDetail[props.row.name].fod)">{{ tc('删除') }}</q-btn>
-                  <q-btn class="q-ml-sm" color="primary" unelevated no-caps @click="changeName(fileDetail[props.row.name].name)">{{ tc('重命名') }}</q-btn>
-                  <q-btn class="q-ml-sm" color="primary" unelevated no-caps @click="shareItemClick(fileDetail[props.row.name].name, fileDetail[props.row.name].access_code, fileDetail[props.row.name].fod)">{{ tc('公开分享') }}</q-btn>
                 </div>
               </q-td>
             </q-tr>

@@ -37,6 +37,17 @@ const onOKClick = async () => {
       timeout: 5000,
       multiLine: false
     })
+  } else if (dirName.value.length > 255) {
+    Notify.create({
+      classes: 'notification-negative shadow-15',
+      icon: 'las la-times-circle',
+      textColor: 'negative',
+      message: `${tc('文件名称长度不能大于255个字符')}`,
+      position: 'bottom',
+      closeBtn: true,
+      timeout: 5000,
+      multiLine: false
+    })
   } else if (dirName.value === props.objpath) {
     Notify.create({
       classes: 'notification-negative shadow-15',
