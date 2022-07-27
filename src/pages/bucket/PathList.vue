@@ -8,15 +8,15 @@ import { computed } from 'vue'
 // import { ref } from "vue"
 // todo fileList 页面是一个万能页面，自动处理所有数据，根据url来判断怎么处理。数据流向： url参数 -> 本页面 -> fileTable
 
-// const props = defineProps({
-//   foo: {
-//     type: String,
-//     required: false,
-//     default: ''
-//   }
-// })
+const props = defineProps({
+  serviceId: {
+    type: String,
+    required: false,
+    default: ''
+  }
+})
 // const emit = defineEmits(['change', 'delete'])
-
+console.log(props.serviceId)
 // code starts...
 const store = useStore()
 const route = useRoute()

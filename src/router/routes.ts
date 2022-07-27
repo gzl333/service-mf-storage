@@ -9,21 +9,24 @@ const routes: RouteRecordRaw[] = [
     redirect: '/my/storage/bucket',
     children: [
       {
-        path: 'bucket',
+        // path: 'bucket',
+        path: 'bucket/:serviceId?',
         component: () => import('pages/bucket/BucketList.vue'),
         meta: {
           title: '存储桶-' + siteTitle,
           title_en: 'Bucket-' + siteTitle_en
-        }
+        },
+        props: true // 组件直接接收url中的params，无需用$route对象承接
       },
       {
-        path: 'bucket/file',
+        // path: 'bucket/file',
+        path: 'bucket/file/:serviceId?',
         component: () => import('pages/bucket/PathList.vue'),
         meta: {
           title: '存储桶-' + siteTitle,
           title_en: 'Bucket-' + siteTitle_en
         },
-        props: true // 接收url中的参数
+        props: true
       },
       {
         path: 'instructions',
@@ -52,6 +55,15 @@ const routes: RouteRecordRaw[] = [
         props: true
       }
     ]
+  },
+  {
+    path: '/storage/share/:serviceId?',
+    component: () => import('pages/bucket/SharePathList.vue'),
+    meta: {
+      title: '分享文件-' + siteTitle,
+      title_en: 'Shared Files-' + siteTitle_en
+    },
+    props: true
   },
   // Always leave this as last one,
   // but you can also remove it
