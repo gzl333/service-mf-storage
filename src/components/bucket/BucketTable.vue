@@ -4,10 +4,13 @@ import { useStore } from 'stores/store'
 import { navigateToUrl } from 'single-spa'
 // import { useRoute, useRouter } from 'vue-router'
 import { i18n } from 'boot/i18n'
-import { BucketInterface } from 'src/stores/store'
-import useClipText from '../../../src/hooks/useClipText'
-import useCopyToClipboard from '../../../src/hooks/useCopyToClipboard'
-import useFormatSize from '../../../src/hooks/useFormatSize'
+
+import type { BucketInterface } from 'stores/store'
+
+import useClipText from 'src/hooks/useClipText'
+import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
+import useFormatSize from 'src/hooks/useFormatSize'
+
 import PasswordInput from 'components/bucket/PasswordInput.vue'
 
 const props = defineProps({
@@ -189,14 +192,16 @@ const columns = computed(() => [
               </q-td>
 
               <q-td key="name" :props="props">
-                <q-btn flat padding="none" no-caps @click="navigateToUrl(`/my/storage/bucket/file?bucket=${props.row.name}`)">
+                <q-btn flat padding="none" no-caps
+                       @click="navigateToUrl(`/my/storage/bucket/file?bucket=${props.row.name}`)">
 
                   <div class="row items-center no-wrap">
                     <q-icon class="col-auto" size="sm" color="yellow-8" name="mdi-database"/>
                     <div class="col-auto"> {{ clipText80(props.row.name) }}</div>
                   </div>
                 </q-btn>
-                <q-btn v-if="hoverRow === props.row.name" class="col-shrink q-px-xs q-ma-none" flat dense icon="content_copy" size="xs" color="primary"
+                <q-btn v-if="hoverRow === props.row.name" class="col-shrink q-px-xs q-ma-none" flat dense
+                       icon="content_copy" size="xs" color="primary"
                        @click="clickToCopy(props.row.name)">
                   <q-tooltip>
                     {{ tc('复制到剪切板') }}
@@ -294,9 +299,11 @@ const columns = computed(() => [
                   </div>
 
                   <div class="col-auto row items-center q-gutter-lg">
-                    <div>{{props.row.name}}</div>
+                    <div>{{ props.row.name }}</div>
                     <div class="col-auto">
-                      {{ tc('对象数量') }}: {{ store.tables.bucketStatTable.byLocalId[props.row.name]?.stats.count }}&nbsp;{{ tc('个') }}
+                      {{ tc('对象数量') }}: {{ store.tables.bucketStatTable.byLocalId[props.row.name]?.stats.count }}&nbsp;{{
+                        tc('个')
+                      }}
                     </div>
 
                     <div class="col-auto">

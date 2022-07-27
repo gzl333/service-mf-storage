@@ -19,6 +19,9 @@ const store = useStore()
 // const router = useRouter()
 const { tc } = i18n.global
 
+// the root layout of @cnic/storage, load @cnic/storage's store here
+console.log('@cnic/storage store:', store.$state)
+
 const activeItem = computed(() => store.items.currentPath[0])
 
 const releaseTime = process.env.releaseTime

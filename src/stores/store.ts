@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import storage from 'src/api/index'
 import { Dialog } from 'quasar'
+
 import BucketCreateDialog from 'components/bucket/BucketCreateDialog.vue'
 import BucketDeleteDialog from 'components/bucket/BucketDeleteDialog.vue'
 import BucketFtpPasswordEditDialog from 'components/bucket/BucketFtpPasswordEditDialog.vue'
@@ -13,6 +14,7 @@ import UploadDialog from 'components/bucket/UploadDialog.vue'
 import FileChangeNameDialog from 'components/bucket/FileChangeNameDialog.vue'
 import PublicShareDialog from 'components/bucket/PublicShareDialog.vue'
 import AlreadyShareDialog from 'components/bucket/AlreadyShareDialog.vue'
+
 // 桶对象类型
 export interface BucketInterface {
   id: number
@@ -139,6 +141,7 @@ export interface BucketTokenSetTableInterface extends totalTable, localIdTable<B
 }
 export interface PathTableInterface extends totalTable, localIdTable<PathInterface> {
 }
+
 export const useStore = defineStore('storage', {
   state: () => ({
     items: {
