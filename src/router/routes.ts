@@ -44,9 +44,15 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: '/storage/share/:serviceId?',
-    component: () => import('pages/bucket/SharePathList.vue'),
-    props: true
+    path: '/storage',
+    component: () => import('layouts/StorageShareLayout.vue'),
+    children: [
+      {
+        path: 'share/:serviceId?',
+        component: () => import('pages/bucket/SharePathList.vue'),
+        props: true
+      }
+    ]
   },
   // Always leave this as last one,
   // but you can also remove it
