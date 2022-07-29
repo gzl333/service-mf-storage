@@ -168,7 +168,7 @@ export default {
   发布时间: 'Release Time',
   // pages
   // SharePathList
-  请输入验证密码: 'Please enter the verification password',
+  输入密码: 'Enter the verification password',
   密码: 'Password',
   验证密码不正确: 'The verification password is incorrect',
   您没有访问权限: 'You do not have access rights',

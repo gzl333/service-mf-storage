@@ -139,7 +139,7 @@ onMounted(async () => {
       <q-form>
         <q-card class="shadow-24" style="width: 400px;">
           <q-card-section class="row justify-center items-center">
-            <div class="col text-subtitle1">{{ tc('请输入验证密码') }}</div>
+            <div class="col text-subtitle1">{{ tc('输入密码') }}</div>
           </q-card-section>
           <q-card-section class="column items-center justify-center q-gutter-y-sm">
             <q-input class="col-auto" style="width: 365px;" v-model="verifyPassword" outlined dense :placeholder="tc('密码')">
@@ -152,7 +152,7 @@ onMounted(async () => {
             </q-input>
           </q-card-section>
           <q-card-section class="column items-center justify-center q-gutter-y-sm">
-            <q-btn class="q-px-xl" :label="tc('确认')" color="primary" unelevated :ripple="false" @click="localLogin"/>
+            <q-btn class="q-px-xl" :label="tc('确认')" color="primary" unelevated no-caps :ripple="false" @click="localLogin"/>
           </q-card-section>
         </q-card>
       </q-form>
