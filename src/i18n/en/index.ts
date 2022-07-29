@@ -137,6 +137,10 @@ export default {
   '7天': '2 days',
   '30天': '30 days',
   永久公开: 'Permanent Public',
+  // ShareTable
+  全部文件: 'All Files',
+  批量下载: 'Batch Download',
+  请先选择文件: 'Please select a file firsts',
   // UploadDialog
   小时: 'hours',
   分钟: 'minutes',
@@ -163,6 +167,12 @@ export default {
   使用说明: 'Instructions',
   发布时间: 'Release Time',
   // pages
+  // SharePathList
+  请输入验证密码: 'Please enter the verification password',
+  密码: 'Password',
+  验证密码不正确: 'The verification password is incorrect',
+  您没有访问权限: 'You do not have access rights',
+  分享根目录不存在: 'Share root directory does not exist',
   // Instructions
   FTP访问说明: 'FTP Access Instructions',
   原生API使用说明: 'Native API Instructions',

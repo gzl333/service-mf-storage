@@ -22,24 +22,6 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'instructions',
         component: () => import('pages/Instructions.vue')
-      },
-      {
-        path: 'share/s/:dirPath+',
-        component: () => import('pages/bucket/ShareList.vue'),
-        meta: {
-          requireLogin: false,
-          isShare: ''
-        },
-        props: true
-      },
-      {
-        path: 'share/s/confirm',
-        component: () => import('pages/bucket/ShareConfirm.vue'),
-        meta: {
-          requireLogin: false,
-          isShare: ''
-        },
-        props: true
       }
     ]
   },

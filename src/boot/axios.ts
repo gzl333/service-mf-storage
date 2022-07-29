@@ -34,8 +34,7 @@ const axiosStorage = axios.create({
 axios.interceptors.request.use(config => {
   // get jwt token from @cnic/main's store
   const store = useStoreMain()
-  config.headers.common.Authorization = `AAI-JWT ${store.items.tokenAccess as string}`
-
+  config.headers.common.Authorization = store.items.tokenAccess ? `AAI-JWT ${store.items.tokenAccess as string}` : ''
   return config
 }, (error: AxiosError) => {
   console.log('axios-REQ-Rejected')
@@ -57,7 +56,8 @@ axios.interceptors.response.use(config => {
 axiosStorage.interceptors.request.use(config => {
   // get jwt token from @cnic/main's store
   const store = useStoreMain()
-  config.headers.common.Authorization = `AAI-JWT ${store.items.tokenAccess as string}`
+  // config.headers.common.Authorization = `AAI-JWT ${store.items.tokenAccess as string}`
+  config.headers.common.Authorization = store.items.tokenAccess ? `AAI-JWT ${store.items.tokenAccess as string}` : ''
 
   return config
 }, (error: AxiosError) => {
@@ -88,4 +88,4 @@ export default boot((/* { app } */) => {
   //       so you can easily perform requests against your app's API
 })
 
-export { axiosStorage }
+export { axiosStorage, axios }

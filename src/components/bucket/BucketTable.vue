@@ -24,7 +24,6 @@ const props = defineProps({
 // code starts...
 const store = useStore()
 const { tc } = i18n.global
-
 // table row hover
 const hoverRow = ref('')
 const onMouseEnterRow = (rowName: string) => {
@@ -52,7 +51,7 @@ const toggleExpansion = (props: { expand: boolean, row: { name: string } }) => {
     // 更新桶统计信息
     void store.addBucketStatTable({ bucket: props.row.name })
     // 更新桶token信息
-    // void store.addBucketTokenTable({ bucket: props.row.name })
+    void store.addBucketTokenTable({ bucket: props.row.name })
   }
 }
 
@@ -353,7 +352,7 @@ const columns = computed(() => [
                       </div>
 
                       <div class="col-auto">
-                        {{ tc('权限') }}: {{ token.permission === 'readwrite' ? '读写' : '只读' }}
+                        {{ tc('权限') }}: {{ token.permission === 'readwrite' ? tc('读写') : tc('只读') }}
                       </div>
 
                       <div class="col-auto">
