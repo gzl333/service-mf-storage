@@ -39,16 +39,16 @@ axios.interceptors.request.use(config => {
 }, (error: AxiosError) => {
   console.log('axios-REQ-Rejected')
   // errorNotifier(error)
-  // return error
-  throw error // throw error就无法把错误传递给发送请求处
+  return Promise.reject(error)
+  // throw error // throw error就无法把错误传递给发送请求处
 })
 axios.interceptors.response.use(config => {
   return config
 }, (error: AxiosError) => {
   console.log('axios-RESP-Rejected')
   // 响应里的error信息在error.response.data里面，被包成了axios error对象
-  // return error
-  throw error // throw error就无法把错误传递给发送请求处
+  return Promise.reject(error)
+  // throw error // throw error就无法把错误传递给发送请求处
 })
 /* 原生axios的拦截器 */
 
@@ -63,8 +63,8 @@ axiosStorage.interceptors.request.use(config => {
 }, (error: AxiosError) => {
   console.log('axiosStorage-REQ-Rejected')
   // errorNotifier(error)
-  // return error
-  throw error // throw error就无法把错误传递给发送请求处
+  return Promise.reject(error)
+  // throw error // throw error就无法把错误传递给发送请求处
 })
 axiosStorage.interceptors.response.use(config => {
   return config
@@ -72,8 +72,8 @@ axiosStorage.interceptors.response.use(config => {
   console.log('axiosStorage-RESP-Rejected')
   // errorNotifier(error)
   // 响应里的error信息在error.response.data里面，被包成了axios error对象
-  // return error
-  throw error // throw error就无法把错误传递给发送请求处
+  return Promise.reject(error)
+  // throw error // throw error就无法把错误传递给发送请求处
 })
 /* axiosStorage的拦截器 */
 export default boot((/* { app } */) => {

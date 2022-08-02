@@ -47,6 +47,7 @@ const onOKClick = async () => {
       classes: 'notification-positive shadow-15',
       icon: 'las la-redo-alt',
       textColor: 'positive',
+      spinner: true,
       message: `${tc('正在创建存储桶')}  ${bucketName.value}`,
       position: 'bottom',
       closeBtn: true,
@@ -56,7 +57,20 @@ const onOKClick = async () => {
     // submit creation
     try {
       const respPostBuckets = await storage.storage.api.postBuckets({ body: { name: bucketName.value } })
-      // console.log(respPostBuckets.data)
+      if (respPostBuckets.data.code === 201) {
+        await store.storeBucket({ table: store.tables.bucketTable, item: { [respPostBuckets.data.bucket.name]: Object.assign(respPostBuckets.data.bucket, { localId: respPostBuckets.data.bucket.name }) } })
+        Notify.create({
+          classes: 'notification-positive shadow-15',
+          icon: 'check_circle',
+          textColor: 'positive',
+          message: `${tc('成功创建存储桶')}  ${bucketName.value}`,
+          position: 'bottom',
+          closeBtn: true,
+          timeout: 5000,
+          multiLine: false
+        })
+        onDialogOK()
+      }
       // const data = {
       //   code: 201,
       //   code_text: '创建成功',
@@ -78,18 +92,6 @@ const onOKClick = async () => {
       //     remarks: ''
       //   }
       // }
-      await store.storeBucket({ table: store.tables.bucketTable, item: { [respPostBuckets.data.bucket.name]: Object.assign(respPostBuckets.data.bucket, { localId: respPostBuckets.data.bucket.name }) } })
-      Notify.create({
-        classes: 'notification-positive shadow-15',
-        icon: 'check_circle',
-        textColor: 'positive',
-        message: `${tc('成功创建存储桶')}  ${bucketName.value}`,
-        position: 'bottom',
-        closeBtn: true,
-        timeout: 5000,
-        multiLine: false
-      })
-      onDialogOK()
     } catch (error: unknown) {
       // fail to create
       inputRef.value!.$props.loading = false
@@ -101,7 +103,7 @@ const onOKClick = async () => {
             icon: 'mdi-alert',
             textColor: 'negative',
             message: `${tc('请输入其它名称')}`,
-            caption: '您已经拥有同名称的存储桶',
+            caption: tc('您已经拥有同名称的存储桶'),
             position: 'bottom',
             closeBtn: true,
             timeout: 5000,
@@ -113,7 +115,19 @@ const onOKClick = async () => {
             icon: 'mdi-alert',
             textColor: 'negative',
             message: `${tc('请输入其它名称')}`,
-            caption: bucketName.value + '已经被其他用户占用',
+            caption: `${bucketName.value} ${tc('已经被其他用户占用')}`,
+            position: 'bottom',
+            closeBtn: true,
+            timeout: 5000,
+            multiLine: false
+          })
+        } else {
+          Notify.create({
+            classes: 'notification-negative shadow-15',
+            icon: 'mdi-alert',
+            textColor: 'negative',
+            message: error.response?.data?.code_text,
+            // caption: bucketName.value + '已经被其他用户占用',
             position: 'bottom',
             closeBtn: true,
             timeout: 5000,

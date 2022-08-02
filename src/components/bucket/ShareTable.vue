@@ -132,14 +132,14 @@ const download = (download_url: string) => {
         <q-breadcrumbs-el @click="goAllFile">
           <div class="row items-center no-wrap cursor-pointer">
             <q-icon class="col-auto" name="las la-file-alt" color="yellow-8" size="xs"/>
-            <div :class="arrayPaths.length === 0 ? 'col-auto text-weight-bold' : ''">{{ tc('全部文件') }}</div>
+            <div :class="arrayPaths?.length === 0 ? 'col-auto text-weight-bold' : ''">{{ tc('全部文件') }}</div>
           </div>
         </q-breadcrumbs-el>
         <q-breadcrumbs-el v-for="(item, index) in arrayPaths" :key="index" @click="goBack(item.subpath, index)">
           <div
-            :class="index + 1 !== arrayPaths.length ? 'row items-center no-wrap cursor-pointer' : 'row items-center no-wrap'">
+            :class="index + 1 !== arrayPaths?.length ? 'row items-center no-wrap cursor-pointer' : 'row items-center no-wrap'">
             <q-icon class="col-auto" name="las la-file-alt" color="yellow-8" size="xs"/>
-            <div :class="index + 1 === arrayPaths.length ? 'text-weight-bold' : ''">{{ item }}</div>
+            <div :class="index + 1 === arrayPaths?.length ? 'text-weight-bold' : ''">{{ item }}</div>
           </div>
         </q-breadcrumbs-el>
       </q-breadcrumbs>
@@ -189,7 +189,8 @@ const download = (download_url: string) => {
             </div>
           </q-td>
           <q-td key="operation" :props="props">
-            <q-btn v-if="props.row.fod" class="q-ml-xs" color="primary" unelevated no-caps @click="download(props.row.download_url)">{{ tc('下载') }}
+            <q-btn v-if="props.row.fod" class="q-ml-xs" color="primary" unelevated no-caps
+                   @click="download(props.row.download_url)">{{ tc('下载') }}
             </q-btn>
           </q-td>
         </q-tr>

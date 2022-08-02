@@ -4,6 +4,7 @@ import { useStore } from 'stores/store'
 import { Notify, QInput, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
 import { i18n } from 'boot/i18n'
+import axios from 'axios'
 
 const props = defineProps({
   bucket_name: {
@@ -40,6 +41,7 @@ const onOKClick = async () => {
       classes: 'notification-positive shadow-15',
       icon: 'las la-redo-alt',
       textColor: 'positive',
+      spinner: true,
       message: `${tc('正在创建文件夹')}`,
       position: 'bottom',
       closeBtn: true,
@@ -63,6 +65,33 @@ const onOKClick = async () => {
     } catch (error: unknown) {
       inputRef.value!.$props.loading = false
       inputRef.value!.focus()
+      if (axios.isAxiosError(error)) {
+        if (error.response?.data.code === 'KeyAlreadyExists') {
+          Notify.create({
+            classes: 'notification-negative shadow-15',
+            icon: 'mdi-alert',
+            textColor: 'negative',
+            message: error.response?.data?.code_text,
+            caption: tc('您已经拥有同名称的文件夹'),
+            position: 'bottom',
+            closeBtn: true,
+            timeout: 5000,
+            multiLine: false
+          })
+        }
+      } else {
+        Notify.create({
+          classes: 'notification-negative shadow-15',
+          icon: 'mdi-alert',
+          textColor: 'negative',
+          message: `${tc('创建文件夹失败')}`,
+          caption: '请重试',
+          position: 'bottom',
+          closeBtn: true,
+          timeout: 5000,
+          multiLine: false
+        })
+      }
     }
   }
 }

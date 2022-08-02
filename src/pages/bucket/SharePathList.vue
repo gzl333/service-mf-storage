@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
+// import { useStore } from 'stores/store'
 import { useRoute/* , useRouter */ } from 'vue-router'
 import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
@@ -30,6 +31,8 @@ const shareBase = route.query.base as string // string or undefined
 const subPath = route.query.sub as string
 const password = route.query.p as string
 const isPassword = ref(false)
+const isTable = ref(false)
+const is1 = ref(true)
 const isRight = ref(false)
 const tableRow = ref([])
 const verifyPassword = ref('')
@@ -43,7 +46,7 @@ const localLogin = async () => {
       })
       if (dataDre.data.code === 200) {
         isPassword.value = false
-        isRight.value = true
+        isTable.value = true
         navigateToUrl('/storage/share/?base=' + route.query.base + '&p=' + verifyPassword.value)
       }
     } else {
@@ -51,7 +54,7 @@ const localLogin = async () => {
         classes: 'notification-negative shadow-15',
         icon: 'las la-times-circle',
         textColor: 'negative',
-        message: tc('请输入验证密码'),
+        message: tc('请输入密码'),
         position: 'bottom',
         closeBtn: true,
         timeout: 5000,
@@ -65,7 +68,7 @@ const localLogin = async () => {
           classes: 'notification-negative shadow-15',
           icon: 'las la-times-circle',
           textColor: 'negative',
-          message: tc('验证密码不正确'),
+          message: tc('密码不正确'),
           position: 'bottom',
           closeBtn: true,
           timeout: 5000,
@@ -80,16 +83,18 @@ onMounted(async () => {
     if (password) {
       const dataDre = await storage.storage.api.getShareBase({ path: { share_base: shareBase }, query: { subpath: subPath, p: password } })
       if (dataDre.data.code === 200) {
-        tableRow.value = dataDre.data
         isPassword.value = false
-        isRight.value = true
+        is1.value = false
+        isTable.value = true
+        tableRow.value = dataDre.data
       }
     } else {
       const dataDre = await storage.storage.api.getShareBase({ path: { share_base: shareBase }, query: { subpath: subPath } })
       if (dataDre.data.code === 200) {
-        tableRow.value = dataDre.data
         isPassword.value = false
-        isRight.value = true
+        is1.value = false
+        isTable.value = true
+        tableRow.value = dataDre.data
       }
     }
   } catch (error) {
@@ -97,9 +102,12 @@ onMounted(async () => {
       if (error.response?.data.code === 401) {
         isPassword.value = true
         isRight.value = false
+        isTable.value = false
+        is1.value = false
       } else if (error.response?.data.code === 403) {
         isPassword.value = false
-        isRight.value = false
+        isRight.value = true
+        isTable.value = false
         Notify.create({
           classes: 'notification-negative shadow-15',
           icon: 'las la-times-circle',
@@ -112,7 +120,8 @@ onMounted(async () => {
         })
       } else if (error.response?.data.code === 404) {
         isPassword.value = false
-        isRight.value = false
+        isRight.value = true
+        isTable.value = false
         Notify.create({
           classes: 'notification-negative shadow-15',
           icon: 'las la-times-circle',
@@ -135,6 +144,8 @@ onMounted(async () => {
     <!--    <div>shareBase: {{ shareBase }}</div>-->
     <!--    <div>subPath: {{ subPath }}</div>-->
     <!--    <div>password: {{ password }}</div>-->
+    <div v-if="is1"></div>
+    <div v-else>
     <div class="row justify-center q-mt-xl" v-if="isPassword">
       <q-form>
         <q-card class="shadow-24" style="width: 400px;">
@@ -157,8 +168,10 @@ onMounted(async () => {
         </q-card>
       </q-form>
     </div>
-    <div class="q-pa-md" v-if="isRight">
+    <div v-else-if="isRight"></div>
+    <div class="q-pa-md" v-else>
       <share-table :pathObj="pathObj"/>
+    </div>
     </div>
   </div>
 </template>

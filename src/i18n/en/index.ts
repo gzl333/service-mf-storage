@@ -28,6 +28,8 @@ export default {
   正在创建存储桶: 'Creating bucket',
   创建存储桶失败: 'Failed to create bucket',
   成功创建存储桶: 'Successfully created bucket',
+  您已经拥有同名称的存储桶: 'You already have a bucket with the same name',
+  已经被其他用户占用: 'has been occupied by other users',
   // BucketDeleteDialog
   删除存储桶: 'Delete Bucket',
   '以下存储桶将被删除：': 'The following buckets will be deleted：',
@@ -104,6 +106,8 @@ export default {
   创建文件夹成功: 'Folder created successfully',
   新建文件夹: 'Create Folder',
   文件夹名称: 'Folder Name',
+  您已经拥有同名称的文件夹: 'You already have a folder with the same name',
+  创建文件夹失败: 'Failed to create folder',
   // FolderDeleteDialog
   正在删除中: 'Deleting',
   '是非空目录，不能删除': 'is a non empty directory and cannot be deleted',
@@ -168,9 +172,10 @@ export default {
   发布时间: 'Release Time',
   // pages
   // SharePathList
-  输入密码: 'Enter the verification password',
+  输入密码: 'Enter Password',
   密码: 'Password',
-  验证密码不正确: 'The verification password is incorrect',
+  密码不正确: 'Incorrect password',
+  请输入密码: 'Please input a password',
   您没有访问权限: 'You do not have access rights',
   分享根目录不存在: 'Share root directory does not exist',
   // Instructions
