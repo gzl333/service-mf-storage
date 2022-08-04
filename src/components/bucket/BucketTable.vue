@@ -98,7 +98,7 @@ const columns = computed(() => [
     field: 'write',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
-    style: 'padding: 15px 0px; width: 250px;',
+    style: 'padding: 15px 0px; max-width: 200px;',
     classes: ''
   },
   {
@@ -107,7 +107,7 @@ const columns = computed(() => [
     field: 'read',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
-    style: 'padding: 15px 0px; width: 250px;',
+    style: 'padding: 15px 0px; max-width: 200px;',
     classes: ''
   },
   {

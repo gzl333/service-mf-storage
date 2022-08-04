@@ -74,16 +74,6 @@ const isHavePass = (value: boolean) => {
 
 const share = async () => {
   if (selectModel.value !== null) {
-    Notify.create({
-      classes: 'notification-positive shadow-15',
-      icon: 'las la-redo-alt',
-      textColor: 'positive',
-      message: `${tc('正在分享中')}`,
-      position: 'bottom',
-      closeBtn: true,
-      timeout: 5000,
-      multiLine: false
-    })
     if (props.pathObj.dirArrs && props.pathObj.dirArrs.length > 0) {
       if (isPass.value === false) {
         for (const item of props.pathObj.dirArrs) {
@@ -155,23 +145,24 @@ const share = async () => {
         share: shareQuery.value.share
       }
     })
-    Notify.create({
-      classes: 'notification-positive shadow-15',
-      icon: 'check_circle',
-      textColor: 'positive',
-      message: `${tc('分享成功')}`,
-      position: 'bottom',
-      closeBtn: true,
-      timeout: 5000,
-      multiLine: false
-    })
     onDialogOK()
-    if (shareQuery.value.share !== 0) {
+    if (props.pathObj.dirArrs && !props.pathObj.fileArrs && props.pathObj.dirArrs.length === 1 && shareQuery.value.share !== 0) {
       void store.triggerAlreadyShareDialog({
         localId: props.bucket_name,
         dirNames: { dirArrs: props.pathObj.dirArrs }
       })
+    } else if (!props.pathObj.dirArrs && props.pathObj.fileArrs && props.pathObj.fileArrs.length === 1 && shareQuery.value.share !== 0) {
+      void store.triggerAlreadyShareDialog({
+        localId: props.bucket_name,
+        dirNames: { fileArrs: props.pathObj.fileArrs }
+      })
     }
+    // if (shareQuery.value.share !== 0) {
+    //   void store.triggerAlreadyShareDialog({
+    //     localId: props.bucket_name,
+    //     dirNames: { dirArrs: props.pathObj.dirArrs }
+    //   })
+    // }
   } else {
     Notify.create({
       classes: 'notification-negative shadow-15',

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { onBeforeMount, ref } from 'vue'
 import { useDialogPluginComponent } from 'quasar'
 import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 import { useStore } from 'stores/store'
@@ -43,24 +43,18 @@ const share = async () => {
   onCancelClick()
 }
 const copyUrl = (url: string) => {
-  if (shareCode.value === undefined) {
+  if (shareCode.value === '') {
     clickToCopy(url)
   } else {
     clickToCopy(url + '&p=' + shareCode.value)
   }
 }
-onMounted(async () => {
+onBeforeMount(async () => {
   let dirName = ''
-  let domainName = ''
   if (props.pathObj.dirArrs) {
     dirName = props.pathObj.dirArrs[0]
   } else {
     dirName = props.pathObj.fileArrs[0]
-  }
-  if (process.env.DEV) {
-    domainName = 'servicedev.cstcloud.cn'
-  } else {
-    domainName = 'service.cstcloud.cn'
   }
   const respShareDir = await storage.storage.api.getPath({
     path: {
@@ -68,11 +62,12 @@ onMounted(async () => {
       path: dirName
     }
   })
-  shareCode.value = respShareDir.data.share_code
+  shareCode.value = respShareDir.data.share_code || ''
   if (respShareDir.data.is_obj === false) {
-    shareUrl.value = 'https://' + domainName + '/storage/share/?base=' + props.bucket_name + '/' + props.pathObj.dirArrs[0]
+    shareUrl.value = window.location.protocol + '//' + window.location.hostname + '/storage/share/?base=' + props.bucket_name + '/' + props.pathObj.dirArrs[0]
   } else {
-    shareUrl.value = 'https://' + domainName + '/storage/share/down/obs/' + props.bucket_name + '/' + props.pathObj.fileArrs[0]
+    // shareUrl.value = 'https://' + domainName + '/storage/share/down/obs/' + props.bucket_name + '/' + props.pathObj.fileArrs[0]
+    shareUrl.value = respShareDir.data.share_uri
   }
 })
 </script>
@@ -82,7 +77,7 @@ onMounted(async () => {
     <q-card class="q-dialog-plugin dialog-primary">
       <q-separator/>
       <div class="row justify-end">
-        <q-btn icon="close" flat round dense v-close-popup/>
+        <q-btn icon="close" flat dense size="md" v-close-popup/>
       </div>
       <q-card-section>
         <div class="text-h6 text-center">{{ tc('当前对象已经是共享状态') }}</div>
@@ -90,13 +85,11 @@ onMounted(async () => {
           <span>{{ tc('分享链接') }}：</span>
           <span>{{ shareUrl }}</span>
         </div>
-        <div v-if="shareCode !== undefined" class="text-subtitle1 text-center q-mt-lg">{{ tc('分享密码') }}：{{ shareCode }}
+        <div v-if="shareCode !== ''" class="text-subtitle1 text-center q-mt-lg">{{ tc('分享密码') }}：{{ shareCode }}
         </div>
         <div class="row justify-center q-mt-lg">
-          <q-btn class="q-ma-sm" color="primary" :label="tc('复制分享链接')" no-caps unelevated
-                 @click="copyUrl(shareUrl)"/>
+          <q-btn class="q-ma-sm" color="primary" :label="tc('复制分享链接')" no-caps unelevated @click="copyUrl(shareUrl)"/>
           <q-btn class="q-ma-sm" color="primary" :label="tc('修改共享状态')" no-caps unelevated @click="share"/>
-          <!--          <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>-->
         </div>
       </q-card-section>
       <q-separator/>

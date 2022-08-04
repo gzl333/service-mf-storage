@@ -30,7 +30,7 @@ onBeforeMount(async () => {
     }
   })
   downloadUrl.value = respShareDir.data.share_uri
-  window.location.href = downloadUrl.value
+  window.location.assign(downloadUrl.value)
 })
 </script>
 
