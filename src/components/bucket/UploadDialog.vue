@@ -42,18 +42,9 @@ const isHover = ref(false)
 let lastTime = 0
 // 上一次计算的文件大小
 let lastSize = 0
-const cancelUpload = () => {
-  source.cancel('取消请求')
-  // source = axios.CancelToken.source()
-}
 const close = async () => {
   isClose.value = true
   onDialogCancel()
-}
-const addFile = (files: string | File[]) => {
-  for (const file of files) {
-    fileArr.value.push(file)
-  }
 }
 const clearFile = (index: string) => {
   fileArr.value.splice(index, 1)
@@ -66,6 +57,52 @@ const onMouseEnter = () => {
 }
 const onMouseLeave = () => {
   isHover.value = false
+}
+const cancelUpload = () => {
+  source.cancel('取消请求')
+  Notify.create({
+    classes: 'notification-negative shadow-15',
+    icon: 'las la-times-circle',
+    textColor: 'negative',
+    message: tc('已取消上传'),
+    position: 'bottom',
+    closeBtn: true,
+    timeout: 5000,
+    multiLine: false
+  })
+  // source = axios.CancelToken.source()
+}
+const addFile = (files: string | File[]) => {
+  if (isUploading.value === false) {
+    for (const file of files) {
+      if (fileArr.value.length < 10) {
+        fileArr.value.push(file)
+      } else {
+        Notify.create({
+          classes: 'notification-negative shadow-15',
+          icon: 'las la-times-circle',
+          textColor: 'negative',
+          message: tc('已到达最大选择数量'),
+          position: 'bottom',
+          closeBtn: true,
+          timeout: 5000,
+          multiLine: false
+        })
+        break
+      }
+    }
+  } else {
+    Notify.create({
+      classes: 'notification-negative shadow-15',
+      icon: 'las la-times-circle',
+      textColor: 'negative',
+      message: tc('上传中不可添加文件'),
+      position: 'bottom',
+      closeBtn: true,
+      timeout: 5000,
+      multiLine: false
+    })
+  }
 }
 // 计算MD5
 // const getMD5 = async (file: File, index?: number) => {
@@ -180,9 +217,8 @@ const calcSpeedTime = (event: ProgressEvent, size?: number) => {
 //     }
 //   })
 // }
-// 上传完整文件不切片
 
-// 完整上传
+// 上传完整文件不切片
 const putObjPath = async (payload: { path: { objpath: string, bucket_name: string }, body: { file: File }, index: number }) => {
   const formData = new FormData()
   formData.append('file', payload.body.file)
@@ -198,6 +234,7 @@ const putObjPath = async (payload: { path: { objpath: string, bucket_name: strin
         // 计算速度和时间
         calcSpeedTime(progressEvent)
         if (isClose.value) {
+          // 取消正在发的请求
           cancelUpload()
           void await store.addPathTable({ bucket, path })
         }
@@ -345,24 +382,18 @@ const upload = async () => {
     })
   }
 }
-// const selectFiles = (scope: object) => {
-//   console.log(typeof scope)
-//   console.log(fileArr.value.length)
-//   if (fileArr.value.length < 2) {
-//     scope.pickFiles()
-//   } else {
-//     Notify.create({
-//       classes: 'notification-negative shadow-15',
-//       icon: 'las la-times-circle',
-//       textColor: 'warning',
-//       message: '已到达最大选择数量',
-//       position: 'bottom',
-//       closeBtn: true,
-//       timeout: 5000,
-//       multiLine: false
-//     })
-//   }
-// }
+const noAdd = () => {
+  Notify.create({
+    classes: 'notification-negative shadow-15',
+    icon: 'las la-times-circle',
+    textColor: 'negative',
+    message: tc('上传中不可添加文件'),
+    position: 'bottom',
+    closeBtn: true,
+    timeout: 5000,
+    multiLine: false
+  })
+}
 </script>
 
 <template>
@@ -372,7 +403,6 @@ const upload = async () => {
       @added="addFile"
       :label="tc('上传文件')"
       multiple
-      :max-files="10"
       :headers="[{'Content-Type': 'multipart/form-data'}]"
       style="width: 600px"
     >
@@ -390,10 +420,8 @@ const upload = async () => {
             </div>
           </div>
           <div v-if="isUploading === false" class="invisible">
-            <span>{{ tc('选择文件') }}</span>
             <q-btn type="a" icon="add_box" @click="scope.pickFiles" round dense flat>
               <q-uploader-add-trigger/>
-              <q-tooltip>{{ tc('选择文件') }}</q-tooltip>
             </q-btn>
           </div>
           <!--          <q-btn icon="clear" @click="close()" round dense flat>-->
@@ -402,14 +430,14 @@ const upload = async () => {
         </div>
       </template>
       <template v-slot:list="scope">
-        <q-card flat class="q-py-md cursor-pointer" :style="isHover ? 'border: #1976D2 1px dashed': 'border: darkgrey 1px dashed'" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave" @click="scope.pickFiles()">
+        <q-card flat class="q-py-md cursor-pointer" :style="isHover ? 'border: #1976D2 1px dashed': 'border: darkgrey 1px dashed'" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave" @click="isUploading ? noAdd() : scope.pickFiles()">
           <div class="text-center">
             <q-icon name="las la-cloud-upload-alt" size="4em"/>
             <div class="q-mt-xs">{{ tc('拖拽文件或者点击选择文件') }}</div>
           </div>
         </q-card>
         <q-list separator>
-          <q-card v-for="(file, index) in scope.files" :key="file.__key" flat bordered class="my-card bg-grey-2 q-mt-sm">
+          <q-card v-for="(file, index) in fileArr" :key="file.__key" flat bordered class="my-card bg-grey-2 q-mt-sm">
             <q-card-section class="q-py-xs q-px-md">
               <div class="row items-center no-wrap">
                 <div class="col">

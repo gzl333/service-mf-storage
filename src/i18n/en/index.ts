@@ -16,6 +16,7 @@ export default {
   分享密码: 'Share Password',
   修改共享状态: 'Change Sharing Status',
   取消: 'Cancel',
+  复制分享链接: 'Copy Sharing Link',
   '提示：创建新的带密码的分享，旧的分享密码会失效': 'Tip: create a new share with password, and the old share password will become invalid',
   // BucketCreateDialog
   新建存储桶: 'Create Bucket',
@@ -138,7 +139,7 @@ export default {
   公开分享: 'Share',
   请选择: 'Please select',
   '1天': '1 day',
-  '7天': '2 days',
+  '7天': '7 days',
   '30天': '30 days',
   永久公开: 'Permanent Public',
   // ShareTable
@@ -163,6 +164,8 @@ export default {
   拖拽文件或者点击选择文件: 'Drag a file or click to select a file',
   删除文件: 'Delete File',
   上传: 'Upload',
+  已到达最大选择数量: 'The maximum number of selections has been reached',
+  上传中不可添加文件: 'Files cannot be added during uploading',
   // useFormatSize
   内容已经复制到剪切板: 'Content has been copied to the clipboard',
   已经复制到剪切板: 'has been copied to the clipboard',

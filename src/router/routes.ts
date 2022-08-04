@@ -33,6 +33,11 @@ const routes: RouteRecordRaw[] = [
         path: 'share/:serviceId?',
         component: () => import('pages/bucket/SharePathList.vue'),
         props: true
+      },
+      {
+        path: 'share/down/:serviceId?/:bucket+',
+        component: () => import('pages/bucket/ShareDown.vue'),
+        props: true
       }
     ]
   },
