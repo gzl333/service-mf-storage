@@ -81,9 +81,8 @@ onBeforeMount(async () => {
       </div>
       <q-card-section>
         <div class="text-h6 text-center">{{ tc('当前对象已经是共享状态') }}</div>
-        <div class="myUrl text-subtitle1 q-mt-lg text-center">
-          <span>{{ tc('分享链接') }}：</span>
-          <span>{{ shareUrl }}</span>
+        <div class="text-subtitle1 q-mt-lg text-center" style="word-wrap: break-word; word-break: break-all; overflow: hidden;">
+          <span>{{ tc('分享链接') }}：{{ shareUrl }}</span>
         </div>
         <div v-if="shareCode !== ''" class="text-subtitle1 text-center q-mt-lg">{{ tc('分享密码') }}：{{ shareCode }}
         </div>
@@ -101,7 +100,7 @@ onBeforeMount(async () => {
 </template>
 
 <style lang="scss" scoped>
-.myUrl {
+.my-url {
   word-wrap: break-word;
   word-break: break-all;
   overflow: hidden;
