@@ -153,6 +153,7 @@ const download = (download_url: string) => {
       :columns="columns"
       row-key="name"
       hide-pagination
+      :pagination="{rowsPerPage: 0}"
       :no-data-label="tc('没有文件')"
       selection="multiple"
       v-model:selected="selected"
