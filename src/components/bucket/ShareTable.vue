@@ -35,9 +35,8 @@ const columns = computed(() =>
     { name: 'operation', align: 'center', label: (() => tc('操作'))(), field: 'operation' }
   ]
 )
-
 const goNext = async (na: string) => {
-  const path = na.slice(4)
+  const path = na.slice(na.indexOf('/') + 1)
   if (password) {
     navigateToUrl('/storage/share/?base=' + route.query.base + '&sub=' + path + '&p=' + password)
   } else {
