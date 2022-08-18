@@ -34,6 +34,7 @@ const isPassword = ref(false)
 const isRight = ref(false)
 const tableRow = ref([])
 const verifyPassword = ref('')
+const message = ref('')
 const pathObj = computed(() => tableRow.value)
 const localLogin = async () => {
   try {
@@ -107,29 +108,11 @@ onBeforeMount(async () => {
       } else if (error.response?.data.code === 403) {
         isPassword.value = false
         isRight.value = true
-        Notify.create({
-          classes: 'notification-negative shadow-15',
-          icon: 'las la-times-circle',
-          textColor: 'negative',
-          message: tc('您没有访问权限'),
-          position: 'bottom',
-          closeBtn: true,
-          timeout: 5000,
-          multiLine: false
-        })
+        message.value = '您没有访问权限'
       } else if (error.response?.data.code === 404) {
         isPassword.value = false
         isRight.value = true
-        Notify.create({
-          classes: 'notification-negative shadow-15',
-          icon: 'las la-times-circle',
-          textColor: 'negative',
-          message: tc('分享根目录不存在'),
-          position: 'bottom',
-          closeBtn: true,
-          timeout: 5000,
-          multiLine: false
-        })
+        message.value = '分享根目录不存在'
       }
     }
   }
@@ -167,7 +150,13 @@ onBeforeMount(async () => {
         </q-card>
       </q-form>
     </div>
-    <div v-else-if="isRight"></div>
+    <div v-else-if="isRight" class="row">
+      <q-card flat bordered class="my-card col-2 text-center text-subtitle1">
+        <q-card-section>
+          {{ tc(message) }}
+        </q-card-section>
+      </q-card>
+    </div>
     <div class="q-pa-md" v-else>
       <share-table :pathObj="pathObj"/>
     </div>

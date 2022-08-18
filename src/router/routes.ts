@@ -28,6 +28,14 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/storage',
     component: () => import('layouts/StorageShareLayout.vue'),
+    beforeEnter: (to, form, next) => {
+      const right = (JSON.stringify(to.query) === '{}')
+      if (!right) {
+        next()
+      } else {
+        next({ path: '/' })
+      }
+    },
     children: [
       {
         path: 'share/:serviceId?',

@@ -236,7 +236,10 @@ const putObjPath = async (payload: { path: { objpath: string, bucket_name: strin
         if (isClose.value) {
           // 取消正在发的请求
           cancelUpload()
-          void await store.addPathTable({ bucket, path })
+          void await store.addPathTable({
+            bucket,
+            path
+          })
         }
       }
     }
@@ -312,8 +315,16 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
   // 取消需要删除碎片文件
   if (start < fileSize) {
     isCancel.value = true
-    await storage.storage.api.deleteObjPath({ path: { bucket_name: props.bucket_name, objpath: fileName } })
-    void await store.addPathTable({ bucket, path })
+    await storage.storage.api.deleteObjPath({
+      path: {
+        bucket_name: props.bucket_name,
+        objpath: fileName
+      }
+    })
+    void await store.addPathTable({
+      bucket,
+      path
+    })
     fileArr.value = []
     isUploading.value = false
   }
@@ -323,13 +334,23 @@ const factoryFn = async (files: File, index: number) => {
   // await getMD5(files, index)
   if (files.size / 1024 / 1024 > 500) {
     await postObjPath({
-      path: { objpath: files.name, bucket_name: props.bucket_name },
+      path: {
+        objpath: files.name,
+        bucket_name: props.bucket_name
+      },
       query: { reset: true },
       body: { file: files },
       index
     })
   } else {
-    await putObjPath({ path: { objpath: files.name, bucket_name: props.bucket_name }, body: { file: files }, index })
+    await putObjPath({
+      path: {
+        objpath: files.name,
+        bucket_name: props.bucket_name
+      },
+      body: { file: files },
+      index
+    })
   }
 }
 const upload = async () => {
@@ -366,7 +387,10 @@ const upload = async () => {
       })
     }
     onDialogOK()
-    void await store.addPathTable({ bucket, path })
+    void await store.addPathTable({
+      bucket,
+      path
+    })
     fileArr.value = []
     isUploading.value = false
   } else {
@@ -408,7 +432,8 @@ const noAdd = () => {
     >
       <template v-slot:header="scope">
         <div class="row no-wrap items-center q-pa-sm q-gutter-xs">
-          <q-btn v-if="scope.queuedFiles.length > 0 && isUploading === false" icon="clear_all" @click="scope.removeQueuedFiles(); clearAll()" round dense flat>
+          <q-btn v-if="scope.queuedFiles.length > 0 && isUploading === false" icon="clear_all"
+                 @click="scope.removeQueuedFiles(); clearAll()" round dense flat>
             <q-tooltip>{{ tc('清空文件') }}</q-tooltip>
           </q-btn>
           <div class="col">
@@ -430,7 +455,10 @@ const noAdd = () => {
         </div>
       </template>
       <template v-slot:list="scope">
-        <q-card flat class="q-py-md cursor-pointer" :style="isHover ? 'border: #1976D2 1px dashed': 'border: darkgrey 1px dashed'" @mouseenter="onMouseEnter" @mouseleave="onMouseLeave" @click="isUploading ? noAdd() : scope.pickFiles()">
+        <q-card flat class="q-py-md cursor-pointer"
+                :style="isHover ? 'border: #1976D2 1px dashed': 'border: darkgrey 1px dashed'"
+                @mouseenter="onMouseEnter" @mouseleave="onMouseLeave"
+                @click="isUploading ? noAdd() : scope.pickFiles()">
           <div class="text-center">
             <q-icon name="las la-cloud-upload-alt" size="4em"/>
             <div class="q-mt-xs">{{ tc('拖拽文件或者点击选择文件') }}</div>
@@ -445,11 +473,14 @@ const noAdd = () => {
                   <div>{{ file.__sizeLabel }}</div>
                 </div>
                 <div class="col-auto">
-                  <q-btn v-if="!isUploading" class="gt-xs" size="12px" flat dense round icon="clear" @click="scope.removeFile(file); clearFile(index)">
+                  <q-btn v-if="!isUploading" class="gt-xs" size="12px" flat dense round icon="clear"
+                         @click="scope.removeFile(file); clearFile(index)">
                     <q-tooltip>{{ tc('删除文件') }}</q-tooltip>
                   </q-btn>
-                  <q-spinner v-show="parseInt(progressArr[index]) > 0 && parseInt(progressArr[index]) !== 100" class="q-uploader__spinner"/>
-                  <q-icon v-show="parseInt(progressArr[index]) === 100" name="las la-check-circle" color="positive" size="lg"/>
+                  <q-spinner v-show="parseInt(progressArr[index]) > 0 && parseInt(progressArr[index]) !== 100"
+                             class="q-uploader__spinner"/>
+                  <q-icon v-show="parseInt(progressArr[index]) === 100" name="las la-check-circle" color="positive"
+                          size="lg"/>
                 </div>
               </div>
             </q-card-section>
@@ -464,7 +495,8 @@ const noAdd = () => {
           </q-card>
         </q-list>
         <div class="row justify-between q-mt-sm">
-          <q-btn class="q-ml-xs" color="primary" :label="tc('上传')" unelevated no-caps @click="upload" :disable="isUploading"/>
+          <q-btn class="q-ml-xs" color="primary" :label="tc('上传')" unelevated no-caps @click="upload"
+                 :disable="isUploading"/>
           <q-btn class="q-mr-xs" color="primary" :label="tc('取消')" unelevated no-caps @click="close"/>
         </div>
       </template>
@@ -476,6 +508,7 @@ const noAdd = () => {
 .borderLeave {
   border: darkgrey 1px dashed;
 }
+
 .borderEnter {
   border: $primary 1px dashed;
 }
