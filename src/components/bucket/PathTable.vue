@@ -107,13 +107,22 @@ const onItemClick = (name: string, fod: boolean) => {
   const dataArr = []
   dataArr.push(name)
   if (fod === false) {
-    void store.triggerDeleteFolderDialog({ localId: props.pathObj.localId, dirNames: { dirArrs: dataArr } })
+    void store.triggerDeleteFolderDialog({
+      localId: props.pathObj.localId,
+      dirNames: { dirArrs: dataArr }
+    })
   } else {
-    void store.triggerDeleteFolderDialog({ localId: props.pathObj.localId, dirNames: { fileArrs: dataArr } })
+    void store.triggerDeleteFolderDialog({
+      localId: props.pathObj.localId,
+      dirNames: { fileArrs: dataArr }
+    })
   }
 }
 const changeName = (name: string) => {
-  void store.triggerChangeFolderDialog({ localId: props.pathObj.localId, dirName: name })
+  void store.triggerChangeFolderDialog({
+    localId: props.pathObj.localId,
+    dirName: name
+  })
 }
 const deleteFile = async () => {
   const dirArr: string[] = []
@@ -138,15 +147,27 @@ const shareItemClick = async (name: string, access_code: number, fod: boolean) =
   dataArr.push(name)
   if (access_code === 0) {
     if (fod === false) {
-      void store.triggerPublicShareDialog({ localId: props.pathObj.localId, dirNames: { dirArrs: dataArr } })
+      void store.triggerPublicShareDialog({
+        localId: props.pathObj.localId,
+        dirNames: { dirArrs: dataArr }
+      })
     } else {
-      void store.triggerPublicShareDialog({ localId: props.pathObj.localId, dirNames: { fileArrs: dataArr } })
+      void store.triggerPublicShareDialog({
+        localId: props.pathObj.localId,
+        dirNames: { fileArrs: dataArr }
+      })
     }
   } else {
     if (fod === false) {
-      void store.triggerAlreadyShareDialog({ localId: props.pathObj.localId, dirNames: { dirArrs: dataArr } })
+      void store.triggerAlreadyShareDialog({
+        localId: props.pathObj.localId,
+        dirNames: { dirArrs: dataArr }
+      })
     } else {
-      void store.triggerAlreadyShareDialog({ localId: props.pathObj.localId, dirNames: { fileArrs: dataArr } })
+      void store.triggerAlreadyShareDialog({
+        localId: props.pathObj.localId,
+        dirNames: { fileArrs: dataArr }
+      })
     }
   }
 }
@@ -252,7 +273,10 @@ watch(
     <div class="row items-center q-gutter-sm q-py-sm text-grey">
 
       <div class="col-auto">
-        <q-btn flat color="primary" padding="none" no-caps @click="navigateToUrl(upperPath)">{{ tc('返回上一级') }}</q-btn>
+        <q-btn flat color="primary" padding="none" no-caps @click="navigateToUrl(upperPath)">{{
+            tc('返回上一级')
+          }}
+        </q-btn>
       </div>
 
       <div class="col-auto">
@@ -284,11 +308,16 @@ watch(
         </q-breadcrumbs-el>
 
         <q-breadcrumbs-el v-for="(path, index) in arrayPaths?.slice(0, -1)" :key="path"
-                          @click="navigateToUrl('/my/storage/bucket/file?bucket=' + currentBucket + '&path=' + currentPath?.split(arrayPaths[index + 1])[0].slice(0,-1))">
+                          @click="navigateToUrl('/my/storage/bucket/file?bucket=' + currentBucket + '&path=' + arrayPaths.slice(0, (index - arrayPaths.length + 1)).reduce((accumulator, item) => accumulator + '/' + item))">
           <div class="row items-center no-wrap cursor-pointer">
             <q-icon class="col-auto" size="xs" color="yellow-8" name="folder"/>
             <div class="col-auto"> {{ clipText7(path) }}</div>
           </div>
+<!--          <q-tooltip>-->
+<!--            {{-->
+<!--              arrayPaths.slice(0, (index - arrayPaths.length + 1)).reduce((accumulator, item) => accumulator + '/' + item)-->
+<!--            }}-->
+<!--          </q-tooltip>-->
         </q-breadcrumbs-el>
 
         <q-breadcrumbs-el v-if="arrayPaths?.length > 0">
@@ -370,12 +399,23 @@ watch(
               </q-td>
 
               <q-td key="operation" :props="props">
-                <q-btn color="primary" unelevated no-caps @click="onItemClick(props.row.name, props.row.fod)">{{ tc('删除') }}</q-btn>
-                <q-btn class="q-ml-xs" color="primary" unelevated no-caps @click="shareItemClick(props.row.name, props.row.access_code, props.row.fod)">{{ tc('公开分享') }}</q-btn>
-                <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps @click="changeName(props.row.name)">{{ tc('重命名') }}</q-btn>
-                <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps @click="download(props.row.name)">{{ tc('下载') }}</q-btn>
-<!--                <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">{{ tc('下载') }}</q-btn>-->
-                <q-btn v-if="props.row.fod === true" color="primary" flat dense no-caps :label="props.expand ? tc('折叠详情') : tc('展开详情')" @click="toggleExpansion(props)"></q-btn>
+                <q-btn color="primary" unelevated no-caps @click="onItemClick(props.row.name, props.row.fod)">
+                  {{ tc('删除') }}
+                </q-btn>
+                <q-btn class="q-ml-xs" color="primary" unelevated no-caps
+                       @click="shareItemClick(props.row.name, props.row.access_code, props.row.fod)">{{
+                    tc('公开分享')
+                  }}
+                </q-btn>
+                <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps
+                       @click="changeName(props.row.name)">{{ tc('重命名') }}
+                </q-btn>
+                <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps
+                       @click="download(props.row.name)">{{ tc('下载') }}
+                </q-btn>
+                <!--                <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">{{ tc('下载') }}</q-btn>-->
+                <q-btn v-if="props.row.fod === true" color="primary" flat dense no-caps
+                       :label="props.expand ? tc('折叠详情') : tc('展开详情')" @click="toggleExpansion(props)"></q-btn>
               </q-td>
 
             </q-tr>
