@@ -47,9 +47,9 @@ const goNext = async (na: string) => {
 const goBack = async (path: string, index: number) => {
   if (index + 1 !== arrayPaths.value.length) {
     if (password) {
-      navigateToUrl('/storage/share/?base=' + currentBucket.value + '&sub=' + currentPath.value?.split(arrayPaths.value[index + 1])[0].slice(0, -1) + '&p=' + password)
+      navigateToUrl('/storage/share/?base=' + currentBucket.value + '&sub=' + arrayPaths.value.slice(0, (index - arrayPaths.value.length + 1)).reduce((accumulator:string, item:string) => accumulator + '/' + item) + '&p=' + password)
     } else {
-      navigateToUrl('/storage/share/?base=' + currentBucket.value + '&sub=' + currentPath.value?.split(arrayPaths.value[index + 1])[0].slice(0, -1))
+      navigateToUrl('/storage/share/?base=' + currentBucket.value + '&sub=' + arrayPaths.value.slice(0, (index - arrayPaths.value.length + 1)).reduce((accumulator:string, item:string) => accumulator + '/' + item))
     }
   }
 }
