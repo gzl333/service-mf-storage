@@ -371,7 +371,7 @@ export default {
       }
     }) {
       const config = {
-        params: payload?.query
+        params: payload.query
       }
       return axiosStorage.get('/api/v1/search/object/', config)
     }

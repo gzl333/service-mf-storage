@@ -43,15 +43,6 @@ const columns = computed(() => [
     style: 'max-width: 1200px;padding: 15px 0px',
     classes: 'ellipsis',
     sortable: true
-    // sort: (a: FileInterface, b: FileInterface) => {
-    //   if ((!a.fod && !b.fod) || (a.fod && b.fod)) {
-    //     return parseInt(a.name, 10) - parseInt(b.name, 10)
-    //   } else if (!a.fod && b.fod) {
-    //     return 1
-    //   } else if (a.fod && !b.fod) {
-    //     return -1
-    //   }
-    // }
   },
   {
     name: 'time',
@@ -83,11 +74,10 @@ const columns = computed(() => [
     classes: ''
   }
 ])
-const selectService = (val: string) => {
+const selectBucket = (val: string) => {
   searchQuery.value.bucket = val
 }
 const search = async () => {
-  console.log(searchQuery.value)
   if (searchQuery.value.bucket === '') {
     Notify.create({
       classes: 'notification-negative shadow-15',
@@ -130,7 +120,7 @@ const search = async () => {
         <!--          <div class="col-auto">{{ tc('存储桶') }}:</div>-->
         <!--          <div class="col-9">-->
         <q-select outlined dense v-model="searchQuery.bucket" :options="filterOptions" :label="tc('请选择存储桶')"
-                  @update:model-value="selectService"/>
+                  @update:model-value="selectBucket"/>
         <!--          </div>-->
         <!--        </div>-->
       </div>
@@ -168,10 +158,6 @@ const search = async () => {
         <template v-slot:header-selection="scope">
           <q-checkbox style="" v-model="scope.selected" dense size="xs"/>
         </template>
-
-        <!--      <template v-slot:body-selection="scope">-->
-        <!--        <q-toggle v-model="scope.selected" />-->
-        <!--      </template>-->
 
         <template v-slot:body="props">
           <q-tr :props="props" :class="props.expand ? 'bg-blue-1':''">
