@@ -268,20 +268,16 @@ watch(
              :disable="selected.length > 0 ? false : true"/>
       <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="shareFile"
              :disable="selected.length > 0 ? false : true"/>
+      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')" @click="navigateToUrl('/my/storage/bucket/search')"/>
     </div>
 
     <div class="row items-center q-gutter-sm q-py-sm text-grey">
 
       <div class="col-auto">
-        <q-btn flat color="primary" padding="none" no-caps @click="navigateToUrl(upperPath)">{{
-            tc('返回上一级')
-          }}
-        </q-btn>
+        <q-btn flat color="primary" padding="none" no-caps @click="navigateToUrl(upperPath)">{{tc('返回上一级') }}</q-btn>
       </div>
 
-      <div class="col-auto">
-        |
-      </div>
+      <div class="col-auto">|</div>
 
       <q-breadcrumbs class="col-auto text-black">
 

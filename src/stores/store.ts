@@ -172,7 +172,13 @@ export const useStore = defineStore('storage', {
       } as PathTableInterface
     }
   }),
-  getters: {},
+  getters: {
+    getBuckets (state): string[] {
+      let bucketOptions = []
+      bucketOptions = state.tables.bucketTable.allLocalIds
+      return bucketOptions
+    }
+  },
   actions: {
     async loadBucketTable () {
       // 1. 先清空table内容

@@ -20,6 +20,10 @@ const routes: RouteRecordRaw[] = [
         props: true
       },
       {
+        path: 'bucket/search',
+        component: () => import('pages/bucket/SearchList.vue')
+      },
+      {
         path: 'instructions',
         component: () => import('pages/Instructions.vue')
       }

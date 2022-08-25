@@ -361,6 +361,19 @@ export default {
       }
     }) {
       return axiosStorage.get('/api/v1/stats/bucket/' + payload.path.bucket_name + '/')
+    },
+    getSearchObject (payload: {
+      query: {
+        limit?: number
+        offset?: number
+        bucket: string
+        search: string
+      }
+    }) {
+      const config = {
+        params: payload?.query
+      }
+      return axiosStorage.get('/api/v1/search/object/', config)
     }
   }
 }

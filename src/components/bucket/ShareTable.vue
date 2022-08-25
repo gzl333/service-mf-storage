@@ -21,7 +21,7 @@ const route = useRoute()
 // const shareBase = route.query.base as string // string or undefined
 const password = route.query.p as string
 const currentBucket = computed(() => props.pathObj?.share_base)
-const currentPath = computed(() => props.pathObj?.subpath)
+// const currentPath = computed(() => props.pathObj?.subpath)
 const arrayPaths = computed(() => props.pathObj?.subpath?.split('/')[0] === '' ? [] : props.pathObj?.subpath?.split('/'))
 const selected: Ref = ref([])
 const clipText70 = useClipText(70)
@@ -130,14 +130,14 @@ const download = (download_url: string) => {
       <q-breadcrumbs class="col-auto text-black breadcrumbs">
         <q-breadcrumbs-el @click="goAllFile">
           <div class="row items-center no-wrap cursor-pointer">
-            <q-icon class="col-auto" name="las la-file-alt" color="yellow-8" size="xs"/>
+            <q-icon class="col-auto" size="xs" color="yellow-8" name="folder"/>
             <div :class="arrayPaths?.length === 0 ? 'col-auto text-weight-bold' : ''">{{ tc('全部文件') }}</div>
           </div>
         </q-breadcrumbs-el>
         <q-breadcrumbs-el v-for="(item, index) in arrayPaths" :key="index" @click="goBack(item.subpath, index)">
           <div
             :class="index + 1 !== arrayPaths?.length ? 'row items-center no-wrap cursor-pointer' : 'row items-center no-wrap'">
-            <q-icon class="col-auto" name="las la-file-alt" color="yellow-8" size="xs"/>
+            <q-icon class="col-auto" size="xs" color="yellow-8" name="folder"/>
             <div :class="index + 1 === arrayPaths?.length ? 'text-weight-bold' : ''">{{ item }}</div>
           </div>
         </q-breadcrumbs-el>
