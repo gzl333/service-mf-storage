@@ -28,6 +28,7 @@ const store = useStore()
 const router = useRouter()
 const { tc } = i18n.global
 const tableRow = ref([])
+const isLoading = ref(false)
 const searchQuery = ref({
   bucket: '',
   keyword: ''
@@ -101,6 +102,7 @@ const search = async () => {
       multiLine: false
     })
   } else {
+    isLoading.value = true
     const respSearchObject = await storage.storage.api.getSearchObject({
       query: {
         bucket: searchQuery.value.bucket,
@@ -108,6 +110,7 @@ const search = async () => {
       }
     })
     tableRow.value = respSearchObject.data.files
+    isLoading.value = false
   }
 }
 </script>
@@ -150,6 +153,7 @@ const search = async () => {
         :columns="columns"
         row-key="name"
         hide-pagination
+        :loading="isLoading"
         :pagination="{rowsPerPage: 0}"
         :no-data-label="tc('没有文件')"
         selection="multiple"
