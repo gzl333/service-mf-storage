@@ -5,6 +5,7 @@ import { Notify, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
 // import { useRoute } from 'vue-router'
 import { i18n } from 'boot/i18n'
+import emitter from 'boot/mitt'
 
 const props = defineProps({
   bucket_name: {
@@ -14,6 +15,10 @@ const props = defineProps({
   pathObj: {
     type: Object,
     required: true
+  },
+  isSearch: {
+    type: Boolean,
+    required: false
   }
 })
 const store = useStore()
@@ -134,17 +139,20 @@ const share = async () => {
         }
       }
     }
-    // void await store.addPathTable({ bucket, path })
-    void store.changeShareStatus({
-      item: {
-        bucket_name: props.bucket_name,
-        dirpath: {
-          dirArrs: props.pathObj.dirArrs,
-          fileArrs: props.pathObj.fileArrs
-        },
-        share: shareQuery.value.share
-      }
-    })
+    if (!props.isSearch) {
+      void store.changeShareStatus({
+        item: {
+          bucket_name: props.bucket_name,
+          dirpath: {
+            dirArrs: props.pathObj.dirArrs,
+            fileArrs: props.pathObj.fileArrs
+          },
+          share: shareQuery.value.share
+        }
+      })
+    } else {
+      emitter.emit('done', true)
+    }
     onDialogOK()
     if (props.pathObj.dirArrs && !props.pathObj.fileArrs && props.pathObj.dirArrs.length === 1 && shareQuery.value.share !== 0) {
       void store.triggerAlreadyShareDialog({

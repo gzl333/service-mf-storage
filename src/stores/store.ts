@@ -89,6 +89,12 @@ export interface PathInterface {
   // 自己定义的localId，来自bucket_name 和 dir_path的拼接: ’bucketName‘ or ’bucketName/path1/path2/path3...‘
   localId: string
 }
+// 文件对象类型
+export interface FileObjInterface {
+  bucket: string
+  dir_path: string
+  files: FileInterface[]
+}
 // localId
 export interface localIdTable<T> {
   allLocalIds: string[]
@@ -173,10 +179,21 @@ export const useStore = defineStore('storage', {
     }
   }),
   getters: {
-    getBuckets (state): string[] {
-      let bucketOptions = []
-      bucketOptions = state.tables.bucketTable.allLocalIds
+    getBuckets (state): Record<string, string>[] {
+      const bucketOptions = []
+      let obj: Record<string, string> = {}
+      for (const objElement of state.tables.bucketTable.allLocalIds) {
+        obj = {}
+        obj.id = objElement
+        obj.desc = objElement
+        bucketOptions.push(obj)
+      }
       return bucketOptions
+    },
+    getFirstsBucket (state): string {
+      let bucketName = ''
+      bucketName = state.tables.bucketTable.allLocalIds[0]
+      return bucketName
     }
   },
   actions: {
@@ -379,32 +396,24 @@ export const useStore = defineStore('storage', {
       })
     },
     // 删除文件夹
-    triggerDeleteFolderDialog (payload: { localId: string, dirNames: { dirArrs?: string[], fileArrs?: string[] }}) {
+    triggerDeleteFolderDialog (payload: { localId: string, dirNames: { dirArrs?: string[], fileArrs?: string[] }, isSearch?: boolean}) {
       Dialog.create({
         component: FolderDeleteDialog,
         componentProps: {
           bucket_name: payload.localId,
-          dirpath: payload.dirNames
-        }
-      })
-    },
-    // 文件重命名
-    triggerChangeFolderDialog (payload: { localId: string, dirName: string }) {
-      Dialog.create({
-        component: FileChangeNameDialog,
-        componentProps: {
-          bucket_name: payload.localId,
-          objpath: payload.dirName
+          dirpath: payload.dirNames,
+          isSearch: payload.isSearch
         }
       })
     },
     // 公开分享
-    triggerPublicShareDialog (payload: { localId: string, dirNames: { dirArrs?: string[], fileArrs?: string[] } }) {
+    triggerPublicShareDialog (payload: { localId: string, dirNames: { dirArrs?: string[], fileArrs?: string[] }, isSearch?: boolean }) {
       Dialog.create({
         component: PublicShareDialog,
         componentProps: {
           bucket_name: payload.localId,
-          pathObj: payload.dirNames
+          pathObj: payload.dirNames,
+          isSearch: payload.isSearch
         }
       })
     },
@@ -415,6 +424,17 @@ export const useStore = defineStore('storage', {
         componentProps: {
           bucket_name: payload.localId,
           pathObj: payload.dirNames
+        }
+      })
+    },
+    // 文件重命名
+    triggerChangeFolderDialog (payload: { localId: string, dirName: string, isSearch?: boolean }) {
+      Dialog.create({
+        component: FileChangeNameDialog,
+        componentProps: {
+          bucket_name: payload.localId,
+          objpath: payload.dirName,
+          isSearch: payload.isSearch
         }
       })
     },

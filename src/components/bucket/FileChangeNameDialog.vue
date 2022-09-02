@@ -4,6 +4,7 @@ import { useStore } from 'stores/store'
 import { Notify, QInput, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
 import { i18n } from 'boot/i18n'
+import emitter from 'boot/mitt'
 
 const props = defineProps({
   bucket_name: {
@@ -13,6 +14,10 @@ const props = defineProps({
   objpath: {
     type: String,
     required: true
+  },
+  isSearch: {
+    type: Boolean,
+    required: false
   }
 })
 const store = useStore()
@@ -73,13 +78,17 @@ const onOKClick = async () => {
     })
     try {
       const respGetDir = await storage.storage.api.postObjPath({ path: { objpath: props.objpath, bucket_name: props.bucket_name }, query: { rename: dirName.value } })
-      await store.changeObjName({
-        item: {
-          bucket_name: props.bucket_name,
-          dirName: props.objpath,
-          newName: respGetDir.data.obj.name
-        }
-      })
+      if (!props.isSearch) {
+        await store.changeObjName({
+          item: {
+            bucket_name: props.bucket_name,
+            dirName: props.objpath,
+            newName: respGetDir.data.obj.name
+          }
+        })
+      } else {
+        emitter.emit('done', true)
+      }
       Notify.create({
         classes: 'notification-positive shadow-15',
         icon: 'check_circle',

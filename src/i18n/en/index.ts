@@ -182,12 +182,15 @@ export default {
   请输入密码: 'Please input a password',
   您没有访问权限: 'You do not have access rights',
   分享根目录不存在: 'Share root directory does not exist',
-  // SearchList
+  // SearchTable
   对象关键字: 'Object Keyword',
   请选择存储桶: 'Please select bucket',
   请输入对象关键字: 'Please enter the object keyword',
   搜索: 'Search',
   返回文件列表: 'Return To File List',
+  批量删除: 'BatchDelete',
+  批量分享: 'BatchShare',
+  暂无文件对象: 'No File Object',
   // Instructions
   FTP访问说明: 'FTP Access Instructions',
   原生API使用说明: 'Native API Instructions',

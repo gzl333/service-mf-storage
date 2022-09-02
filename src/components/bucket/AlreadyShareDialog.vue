@@ -31,13 +31,15 @@ const share = async () => {
   if (props.pathObj.dirArrs && props.pathObj.dirArrs.length > 0) {
     await store.triggerPublicShareDialog({
       localId: props.bucket_name,
-      dirNames: { dirArrs: props.pathObj.dirArrs }
+      dirNames: { dirArrs: props.pathObj.dirArrs },
+      isSearch: true
     })
   }
   if (props.pathObj.fileArrs && props.pathObj.fileArrs.length > 0) {
     await store.triggerPublicShareDialog({
       localId: props.bucket_name,
-      dirNames: { fileArrs: props.pathObj.fileArrs }
+      dirNames: { fileArrs: props.pathObj.fileArrs },
+      isSearch: true
     })
   }
   onCancelClick()
