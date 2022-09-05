@@ -90,7 +90,7 @@ onBeforeUnmount(() => {
       <q-btn icon="arrow_back_ios" color="primary" flat unelevated dense @click="router.back()"/>
       <span class="text-primary text-h6 text-weight-bold">{{ tc('返回上一级') }}</span>
     </div>
-    <div class="row items-center q-mt-xl">
+    <div class="row items-center q-mt-md">
       <div class="col-2">
         <q-select outlined dense :label="tc('请选择存储桶')" v-model="defaultBucket" option-value="id"
                   option-label="desc" option-disable="inactive" mit-value map-options
@@ -109,7 +109,7 @@ onBeforeUnmount(() => {
         <q-btn unelevated no-caps class="q-ml-md" color="primary" :label="tc('搜索')" @click="search"/>
       </div>
     </div>
-    <div class="q-mt-xl">
+    <div class="q-mt-sm">
       <SearchTable :pathObj="pathObj"/>
     </div>
   </div>
