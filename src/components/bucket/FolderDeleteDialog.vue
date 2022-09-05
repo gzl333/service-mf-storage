@@ -4,7 +4,7 @@ import { useStore } from 'stores/store'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
 import { i18n } from 'boot/i18n'
-
+import emitter from 'boot/mitt'
 const props = defineProps({
   bucket_name: {
     type: String,
@@ -13,6 +13,10 @@ const props = defineProps({
   dirpath: {
     type: Object,
     required: true
+  },
+  isSearch: {
+    type: Boolean,
+    required: false
   }
 })
 const store = useStore()
@@ -59,12 +63,6 @@ const onOKClick = async () => {
       })
     }
   }
-  store.deleteFile({
-    item: {
-      bucket_name: props.bucket_name,
-      dirpath: { dirArrs: deleteDirArr, fileArrs: deleteFileArr }
-    }
-  })
   if (deleteFailArr.length !== 0) {
     Notify.create({
       classes: 'notification-negative shadow-15',
@@ -77,6 +75,16 @@ const onOKClick = async () => {
       multiLine: false
     })
   } else {
+    if (!props.isSearch) {
+      store.deleteFile({
+        item: {
+          bucket_name: props.bucket_name,
+          dirpath: { dirArrs: deleteDirArr, fileArrs: deleteFileArr }
+        }
+      })
+    } else {
+      emitter.emit('done', true)
+    }
     Notify.create({
       classes: 'notification-positive shadow-15',
       icon: 'check_circle',

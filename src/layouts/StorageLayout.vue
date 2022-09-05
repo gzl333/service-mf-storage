@@ -26,6 +26,7 @@ const activeItem = computed(() => store.items.currentPath[0])
 
 const releaseTime = process.env.releaseTime
 
+void store.loadBucketTable()
 </script>
 
 <template>

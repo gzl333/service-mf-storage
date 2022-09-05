@@ -22,7 +22,7 @@ const store = useStore()
 
 console.log(props.serviceId)
 
-void store.loadBucketTable()
+// void store.loadBucketTable()
 const buckets = computed<BucketInterface[]>(() => Object.values(store.tables.bucketTable.byLocalId).sort((a: BucketInterface, b: BucketInterface) => a.name.localeCompare(b.name, 'en')))
 
 </script>

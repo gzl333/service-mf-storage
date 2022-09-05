@@ -128,6 +128,7 @@ export default {
   最后修改: 'Last Modification',
   下载: 'Download',
   重命名: 'Rename',
+  检索对象: 'Search Object',
   '正在下载中，请稍等': 'Downloading, please wait',
   下载完成: 'Download complete',
   // PublicShareDialog
@@ -181,6 +182,15 @@ export default {
   请输入密码: 'Please input a password',
   您没有访问权限: 'You do not have access rights',
   分享根目录不存在: 'Share root directory does not exist',
+  // SearchTable
+  对象关键字: 'Object Keyword',
+  请选择存储桶: 'Please select bucket',
+  请输入对象关键字: 'Please enter the object keyword',
+  搜索: 'Search',
+  返回文件列表: 'Return To File List',
+  批量删除: 'BatchDelete',
+  批量分享: 'BatchShare',
+  暂无文件对象: 'No File Object',
   // Instructions
   FTP访问说明: 'FTP Access Instructions',
   原生API使用说明: 'Native API Instructions',
