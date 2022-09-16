@@ -117,10 +117,10 @@ const batchDeleteFile = async () => {
     isSearch: true
   })
 }
-const shareSingleFile = async (name: string, access_code: number) => {
+const shareSingleFile = async (name: string, accessCode: number) => {
   const dataArr = []
   dataArr.push(name)
-  if (access_code === 0) {
+  if (accessCode === 0) {
     void store.triggerPublicShareDialog({
       localId: props.pathObj.bucket,
       dirNames: { fileArrs: dataArr },

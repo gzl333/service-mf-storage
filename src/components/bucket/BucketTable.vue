@@ -14,6 +14,10 @@ import useFormatSize from 'src/hooks/useFormatSize'
 import PasswordInput from 'components/bucket/PasswordInput.vue'
 
 const props = defineProps({
+  serviceId: {
+    type: String,
+    required: true
+  },
   buckets: {
     type: Array as PropType<BucketInterface[]>,
     required: true
@@ -24,6 +28,9 @@ const props = defineProps({
 // code starts...
 const store = useStore()
 const { tc } = i18n.global
+
+const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
+
 // table row hover
 const hoverRow = ref('')
 const onMouseEnterRow = (rowName: string) => {
@@ -134,12 +141,17 @@ const columns = computed(() => [
 
 <template>
   <div class="BucketTable">
+
+    <div>{{ currentService?.name }}</div>
+
     <div class="row q-gutter-x-md">
       <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('新建存储桶')"
              @click="store.triggerCreateBucketDialog"/>
-      <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('删除存储桶')" :disable="selected.length === 0"
+      <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('删除存储桶')"
+             :disable="selected.length === 0"
              @click="store.triggerDeleteBucketDialog({bucketNames: selected.map((bucket: BucketInterface) => bucket.name)})"/>
-      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')" @click="navigateToUrl('/my/storage/bucket/search')"/>
+      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')"
+             @click="navigateToUrl('/my/storage/bucket/search')"/>
     </div>
 
     <div class="row items-center q-gutter-sm q-py-sm text-grey">
@@ -151,7 +163,7 @@ const columns = computed(() => [
             color="grey"
           />
         </template>
-        <q-breadcrumbs-el @click="navigateToUrl('/my/storage/bucket')">
+        <q-breadcrumbs-el @click="navigateToUrl('/my/storage/bucket/' + currentService?.id)">
           <div class="row items-center no-wrap cursor-pointer">
             <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>
             <div class="col-auto text-bold">{{ tc('全部存储桶') }}</div>

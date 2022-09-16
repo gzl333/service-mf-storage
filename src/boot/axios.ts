@@ -19,6 +19,23 @@ declare module '@vue/runtime-core' {
 // for each client)
 // const api = axios.create({ baseURL: 'https://api.example.com' })
 
+// 只配置序列化器，没有api base url，需要调用时指定具体api
+const axiosSingle = axios.create({
+  paramsSerializer: function (params) {
+    return qs.stringify(params, { arrayFormat: 'repeat' })
+  }
+})
+
+// axios instance with base url configured
+const axiosVms = axios.create({
+  baseURL: 'https://vms.cstcloud.cn/api',
+  // 序列化器，没有这个无法在query里发送数组参数。body里的数组不需要序列化器。
+  // https://github.com/axios/axios/issues/604#issuecomment-321460450
+  paramsSerializer: function (params) {
+    return qs.stringify(params, { arrayFormat: 'repeat' })
+  }
+})
+
 // axios instance with base url configured
 export const baseURLStorage = window.location.protocol + '//obs.cstcloud.cn' // todo 改成该服务的后端api地址
 const axiosStorage = axios.create({
@@ -26,56 +43,73 @@ const axiosStorage = axios.create({
   // 序列化器，没有这个无法在query里发送数组参数。body里的数组不需要序列化器。
   // https://github.com/axios/axios/issues/604#issuecomment-321460450
   paramsSerializer: function (params) {
-    return qs.stringify(params, { arrayFormat: 'comma' })
+    return qs.stringify(params, { arrayFormat: 'repeat' })
   }
 })
 
 /* 原生axios的拦截器 */
 axios.interceptors.request.use(config => {
-  // get jwt token from @cnic/main's store
-  const store = useStoreMain()
-  config.headers.common.Authorization = store.items.tokenAccess ? `AAI-JWT ${store.items.tokenAccess as string}` : ''
   return config
 }, (error: AxiosError) => {
-  console.log('axios-REQ-Rejected')
-  // errorNotifier(error)
   return Promise.reject(error)
-  // throw error // throw error就无法把错误传递给发送请求处
 })
 axios.interceptors.response.use(config => {
   return config
 }, (error: AxiosError) => {
-  console.log('axios-RESP-Rejected')
-  // 响应里的error信息在error.response.data里面，被包成了axios error对象
   return Promise.reject(error)
-  // throw error // throw error就无法把错误传递给发送请求处
 })
 /* 原生axios的拦截器 */
+
+/* axiosVms的拦截器 */
+axiosVms.interceptors.request.use(config => {
+  // get jwt token from @cnic/main's store
+  const store = useStoreMain()
+  Object.assign(config, { headers: { Authorization: `Bearer ${store.items.tokenAccess as string}` } })
+  return config
+}, (error: AxiosError) => {
+  return Promise.reject(error)
+})
+axiosVms.interceptors.response.use(config => {
+  return config
+}, (error: AxiosError) => {
+  return Promise.reject(error)
+})
+/* axiosVms的拦截器 */
+
+/* axiosSingle的拦截器 */
+axiosSingle.interceptors.request.use(config => {
+  // get jwt token from @cnic/main's store
+  const store = useStoreMain()
+  // config.headers.common.Authorization = store.items.tokenAccess ? `AAI-JWT ${store.items.tokenAccess as string}` : ''
+  Object.assign(config, { headers: { Authorization: store.items.tokenAccess ? `AAI-JWT ${store.items.tokenAccess as string}` : '' } })
+  return config
+}, (error: AxiosError) => {
+  return Promise.reject(error)
+})
+axiosSingle.interceptors.response.use(config => {
+  return config
+}, (error: AxiosError) => {
+  return Promise.reject(error)
+})
+/* axiosSingle的拦截器 */
 
 /* axiosStorage的拦截器 */
 axiosStorage.interceptors.request.use(config => {
   // get jwt token from @cnic/main's store
   const store = useStoreMain()
-  // config.headers.common.Authorization = `AAI-JWT ${store.items.tokenAccess as string}`
-  config.headers.common.Authorization = store.items.tokenAccess ? `AAI-JWT ${store.items.tokenAccess as string}` : ''
-
+  // config.headers.common.Authorization = store.items.tokenAccess ? `AAI-JWT ${store.items.tokenAccess as string}` : ''
+  Object.assign(config, { headers: { Authorization: store.items.tokenAccess ? `AAI-JWT ${store.items.tokenAccess as string}` : '' } })
   return config
 }, (error: AxiosError) => {
-  console.log('axiosStorage-REQ-Rejected')
-  // errorNotifier(error)
   return Promise.reject(error)
-  // throw error // throw error就无法把错误传递给发送请求处
 })
 axiosStorage.interceptors.response.use(config => {
   return config
 }, (error: AxiosError) => {
-  console.log('axiosStorage-RESP-Rejected')
-  // errorNotifier(error)
-  // 响应里的error信息在error.response.data里面，被包成了axios error对象
   return Promise.reject(error)
-  // throw error // throw error就无法把错误传递给发送请求处
 })
 /* axiosStorage的拦截器 */
+
 export default boot((/* { app } */) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
 
@@ -88,4 +122,4 @@ export default boot((/* { app } */) => {
   //       so you can easily perform requests against your app's API
 })
 
-export { axiosStorage, axios }
+export { axios, axiosVms, axiosSingle, axiosStorage }

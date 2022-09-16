@@ -1,3 +1,4 @@
+// import { computed, watch } from 'vue'
 import { route } from 'quasar/wrappers'
 import {
   createMemoryHistory,
@@ -23,7 +24,10 @@ export default route(function (/* { store, ssrContext } */) {
     : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
 
   const Router = createRouter({
-    scrollBehavior: () => ({ left: 0, top: 0 }),
+    scrollBehavior: () => ({
+      left: 0,
+      top: 0
+    }),
     routes,
 
     // Leave this as is and make changes in quasar.conf.js instead!
@@ -40,6 +44,19 @@ export default route(function (/* { store, ssrContext } */) {
 
     // 根据当前path更新store.items.currentPath
     store.items.currentPath = to.path.split('/').slice(3)
+
+    // // 第一次进入storage时的默认跳转
+    // if (to.fullPath === '/my/storage') {
+    //   const firstService = computed(() => store.tables.serviceTable.allIds[0])
+    //   if (firstService.value !== undefined) {
+    //     next('/my/storage/bucket/' + firstService.value)
+    //   }
+    //   watch(firstService, () => {
+    //     if (firstService.value !== undefined) {
+    //       next('/my/storage/bucket/' + firstService.value)
+    //     }
+    //   })
+    // }
 
     next()
   })

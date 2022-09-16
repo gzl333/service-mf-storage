@@ -80,7 +80,7 @@ const batchDownload = () => {
     })
   }
 }
-const download = (download_url: string) => {
+const download = (downloadUrl: string) => {
   // 通过api接口下载
   // let resData
   // if (route.query.p) {
@@ -109,7 +109,7 @@ const download = (download_url: string) => {
   // 防止影响页面
   iframe.style.height = '0'
   // 设置文件路径
-  iframe.src = download_url
+  iframe.src = downloadUrl
   // 将创建的标签插入dom
   document.body.appendChild(iframe)
   // 点击标签，执行下载

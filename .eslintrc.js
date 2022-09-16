@@ -85,7 +85,7 @@ module.exports = {
     // The core 'import/named' rules
     // does not work with type definitions
     'import/named': 'off',
-    'camelcase': 'off',
+    // 'camelcase': 'off', // who added this???
 
     'prefer-promise-reject-errors': 'off',
 

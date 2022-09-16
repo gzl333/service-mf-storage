@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia'
-import storage from 'src/api/index'
+import { normalize, schema } from 'normalizr'
 import { Dialog } from 'quasar'
+
+import api from 'src/api/index'
+import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
 
 import BucketCreateDialog from 'components/bucket/BucketCreateDialog.vue'
 import BucketDeleteDialog from 'components/bucket/BucketDeleteDialog.vue'
@@ -14,6 +17,30 @@ import UploadDialog from 'components/bucket/UploadDialog.vue'
 import FileChangeNameDialog from 'components/bucket/FileChangeNameDialog.vue'
 import PublicShareDialog from 'components/bucket/PublicShareDialog.vue'
 import AlreadyShareDialog from 'components/bucket/AlreadyShareDialog.vue'
+
+const exceptionNotifier = useExceptionNotifier()
+
+// service对象类象
+export interface ServiceInterface {
+  id: string
+  name: string
+  name_en: string
+  service_type: string
+  endpoint_url: string
+  add_time: string
+  status: 'enable' | 'disable' | 'deleted'
+  remarks: string
+  provide_ftp: boolean
+  ftp_domains: string[]
+  longitude: number
+  latitude: number
+  pay_app_service_id: string
+  data_center: {
+    id: string
+    name: string
+    name_en: string
+  }
+}
 
 // 桶对象类型
 export interface BucketInterface {
@@ -34,6 +61,7 @@ export interface BucketInterface {
   // 自己定义的localId:  应取name字段
   localId: string
 }
+
 // 桶统计信息对象类型
 export interface BucketStatInterface {
   bucket_name: string
@@ -46,6 +74,7 @@ export interface BucketStatInterface {
   // 自己定义的localId: 取name字段
   localId: string
 }
+
 // 桶token对象类型
 export interface BucketTokenInterface {
   key: string
@@ -56,6 +85,7 @@ export interface BucketTokenInterface {
   permission: string
   created: string
 }
+
 // 桶token集合对象类型
 export interface BucketTokenSetInterface {
   tokens: BucketTokenInterface[]
@@ -65,6 +95,7 @@ export interface BucketTokenSetInterface {
   // 自己添加字段，方便识别
   bucket_name: string
 }
+
 // 单个文件对象类型
 export interface FileInterface {
   na: string
@@ -80,6 +111,7 @@ export interface FileInterface {
   access_code: number
   md5: string
 }
+
 // 路径对象类型
 export interface PathInterface {
   bucket_name: string
@@ -89,19 +121,12 @@ export interface PathInterface {
   // 自己定义的localId，来自bucket_name 和 dir_path的拼接: ’bucketName‘ or ’bucketName/path1/path2/path3...‘
   localId: string
 }
+
 // 文件对象类型
 export interface FileObjInterface {
   bucket: string
   dir_path: string
   files: FileInterface[]
-}
-// localId
-export interface localIdTable<T> {
-  allLocalIds: string[]
-  byLocalId: Record<string, T>
-}
-export interface totalTable {
-  status: 'empty' | 'loading' | 'total' | 'part'
 }
 
 // 删除文件需要的参数类型
@@ -122,6 +147,7 @@ export interface shareInterface {
   }
   share: number
 }
+
 // 添加文件需要的参数类型
 export interface addFileInterface {
   bucket_name: string
@@ -139,14 +165,49 @@ export interface tokenInterface {
   permission: string
 }
 
+/* table的类型 */
+
+// 整体加载表
+export interface totalTable {
+  status: 'init' | 'loading' | 'total' | 'error'
+}
+
+// 累计加载表
+export interface partTable {
+  status: 'init' | 'loading' | 'part' | 'error'
+}
+
+// id
+export interface idTable<T> {
+  allIds: string[]
+  byId: Record<string, T>
+}
+
+// localId
+export interface localIdTable<T> {
+  allLocalIds: string[]
+  byLocalId: Record<string, T>
+}
+
+/* table的类型 */
+
+/* 表的具体类型 */
+export interface ServiceTableInterface extends totalTable, idTable<ServiceInterface> {
+}
+
 export interface BucketTableInterface extends totalTable, localIdTable<BucketInterface> {
 }
-export interface BucketStatTableInterface extends totalTable, localIdTable<BucketStatInterface> {
+
+export interface BucketStatTableInterface extends partTable, localIdTable<BucketStatInterface> {
 }
-export interface BucketTokenSetTableInterface extends totalTable, localIdTable<BucketTokenSetInterface> {
+
+export interface BucketTokenSetTableInterface extends partTable, localIdTable<BucketTokenSetInterface> {
 }
-export interface PathTableInterface extends totalTable, localIdTable<PathInterface> {
+
+export interface PathTableInterface extends partTable, localIdTable<PathInterface> {
 }
+
+/* 表的具体类型 */
 
 export const useStore = defineStore('storage', {
   state: () => ({
@@ -156,23 +217,28 @@ export const useStore = defineStore('storage', {
       currentPath: [] as string[]
     },
     tables: {
+      serviceTable: {
+        status: 'init',
+        allIds: [],
+        byId: {}
+      } as ServiceTableInterface,
       bucketTable: {
-        status: 'empty',
+        status: 'init',
         allLocalIds: [],
         byLocalId: {}
       } as BucketTableInterface,
       bucketStatTable: {
-        status: 'empty',
+        status: 'init',
         allLocalIds: [],
         byLocalId: {}
       } as BucketStatTableInterface,
       bucketTokenTable: {
-        status: 'empty',
+        status: 'init',
         allLocalIds: [],
         byLocalId: {}
       } as BucketTokenSetTableInterface,
       pathTable: {
-        status: 'empty',
+        status: 'init',
         allLocalIds: [],
         byLocalId: {}
       } as PathTableInterface
@@ -197,17 +263,42 @@ export const useStore = defineStore('storage', {
     }
   },
   actions: {
+    // loadAllItems () {},
+    async loadAllTables () {
+      if (this.tables.serviceTable.status === 'init') {
+        void await this.loadServiceTable()
+      }
+    },
+    async loadServiceTable () {
+      this.tables.serviceTable.status = 'loading'
+      try {
+        const respGetService = await api.vms.storage.getStorageService({ query: { status: ['enable'] } })
+        respGetService.data.results.forEach((item: ServiceInterface) => {
+          // normalize
+          const service = new schema.Entity('service')
+          const normalizedData = normalize(item, service)
+          // 存入state
+          Object.assign(this.tables.serviceTable.byId, normalizedData.entities.service)
+          this.tables.serviceTable.allIds.push(Object.keys(normalizedData.entities.service as Record<string, unknown>)[0])
+          this.tables.serviceTable.allIds = [...new Set(this.tables.serviceTable.allIds)]
+        })
+        this.tables.serviceTable.status = 'total'
+      } catch (exception) {
+        exceptionNotifier(exception)
+        this.tables.serviceTable.status = 'error'
+      }
+    },
     async loadBucketTable () {
       // 1. 先清空table内容
       this.tables.bucketTable = {
         byLocalId: {},
         allLocalIds: [],
-        status: 'empty'
+        status: 'init'
       }
       // 2. status改为loading
       this.tables.bucketTable.status = 'loading'
       // 3. 发送网络请求，格式化数据，保存对象
-      const respGetBuckets = await storage.storage.api.getBuckets()
+      const respGetBuckets = await api.storage.api.getBuckets()
       for (const bucket of respGetBuckets.data.buckets) {
         Object.assign(this.tables.bucketTable.byLocalId, { [bucket.name]: Object.assign(bucket, { localId: bucket.name }) })
         this.tables.bucketTable.allLocalIds.unshift(Object.keys({ [bucket.name]: Object.assign(bucket, { localId: bucket.name }) })[0])
@@ -221,7 +312,7 @@ export const useStore = defineStore('storage', {
       // 1. status改为loading
       this.tables.bucketStatTable.status = 'loading'
       // 2. 发送网络请求，格式化数据，保存对象
-      const respGetStatsBucket = await storage.storage.api.getStatsBucket({ path: { bucket_name: payload.bucket } })
+      const respGetStatsBucket = await api.storage.api.getStatsBucket({ path: { bucket_name: payload.bucket } })
       const item = {
         [payload.bucket]: Object.assign({}, {
           localId: respGetStatsBucket.data.bucket_name,
@@ -234,14 +325,14 @@ export const useStore = defineStore('storage', {
       this.tables.bucketStatTable.allLocalIds.unshift(Object.keys(item)[0])
       this.tables.bucketStatTable.allLocalIds = [...new Set(this.tables.bucketStatTable.allLocalIds)]
       // 3. status改为part
-      this.tables.bucketTable.status = 'part'
+      this.tables.bucketStatTable.status = 'part'
     },
     // bucketTokenTable: 累积加载，localId
     async addBucketTokenTable (payload: { bucket: string }) {
       // 1. status改为loading
       this.tables.bucketTokenTable.status = 'loading'
       // 2. 发送网络请求，格式化数据，保存对象
-      const respGetBucketTokenList = await storage.storage.api.getBucketsIdOrNameTokenList({
+      const respGetBucketTokenList = await api.storage.api.getBucketsIdOrNameTokenList({
         query: { 'by-name': true },
         path: { id_or_name: payload.bucket }
       })
@@ -270,7 +361,7 @@ export const useStore = defineStore('storage', {
       // const currentPath = payload.bucket + (payload.path ? ('/' + payload.path) : '')
       // if (!context.state.tables.pathTable.allLocalIds.includes(currentPath)) {
       if (!payload.path) { // 桶的根目录
-        const respGetDirBucket = await storage.storage.api.getDirBucketName({ path: { bucket_name: payload.bucket } })
+        const respGetDirBucket = await api.storage.api.getDirBucketName({ path: { bucket_name: payload.bucket } })
         const item = {
           [payload.bucket]: Object.assign({}, {
             localId: respGetDirBucket.data.bucket_name,
@@ -283,7 +374,7 @@ export const useStore = defineStore('storage', {
         this.tables.pathTable.allLocalIds.unshift(Object.keys(item)[0])
         this.tables.pathTable.allLocalIds = [...new Set(this.tables.pathTable.allLocalIds)]
       } else { // 次级目录
-        const respGetDirPath = await storage.storage.api.getDirBucketNameDirPath({
+        const respGetDirPath = await api.storage.api.getDirBucketNameDirPath({
           path: {
             bucket_name: payload.bucket,
             dirpath: payload.path
@@ -396,7 +487,7 @@ export const useStore = defineStore('storage', {
       })
     },
     // 删除文件夹
-    triggerDeleteFolderDialog (payload: { localId: string, dirNames: { dirArrs?: string[], fileArrs?: string[] }, isSearch?: boolean}) {
+    triggerDeleteFolderDialog (payload: { localId: string, dirNames: { dirArrs?: string[], fileArrs?: string[] }, isSearch?: boolean }) {
       Dialog.create({
         component: FolderDeleteDialog,
         componentProps: {
@@ -490,7 +581,7 @@ export const useStore = defineStore('storage', {
       })
     },
     async toggleBucketAccess (payload: { bucketName: string }) {
-      const respPatchAccess = await storage.storage.api.patchBucketsIdOrName({
+      const respPatchAccess = await api.storage.api.patchBucketsIdOrName({
         path: { id_or_name: payload.bucketName },
         query: {
           'by-name': true,
@@ -502,7 +593,7 @@ export const useStore = defineStore('storage', {
       }
     },
     async toggleBucketFtp (payload: { bucketName: string }) {
-      const respPatchFtp = await storage.storage.api.patchFtpBucketName({
+      const respPatchFtp = await api.storage.api.patchFtpBucketName({
         path: { bucket_name: payload.bucketName },
         query: {
           enable: this.tables.bucketTable.byLocalId[payload.bucketName]?.ftp_enable !== true

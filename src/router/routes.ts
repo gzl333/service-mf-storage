@@ -7,14 +7,11 @@ const routes: RouteRecordRaw[] = [
     redirect: '/my/storage/bucket',
     children: [
       {
-        // path: 'bucket',
         path: 'bucket/:serviceId?',
         component: () => import('pages/bucket/BucketList.vue'),
-
         props: true // 组件直接接收url中的params，无需用$route对象承接
       },
       {
-        // path: 'bucket/file',
         path: 'bucket/file/:serviceId?',
         component: () => import('pages/bucket/PathList.vue'),
         props: true

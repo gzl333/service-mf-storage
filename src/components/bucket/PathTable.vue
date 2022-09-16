@@ -144,10 +144,10 @@ const deleteFile = async () => {
     }
   })
 }
-const shareItemClick = async (name: string, access_code: number, fod: boolean) => {
+const shareItemClick = async (name: string, accessCode: number, fod: boolean) => {
   const dataArr = []
   dataArr.push(name)
-  if (access_code === 0) {
+  if (accessCode === 0) {
     if (fod === false) {
       void store.triggerPublicShareDialog({
         localId: props.pathObj.localId,

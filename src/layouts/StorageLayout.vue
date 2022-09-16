@@ -21,12 +21,15 @@ const { tc } = i18n.global
 
 // the root layout of @cnic/storage, load @cnic/storage's store here
 console.log('@cnic/storage store:', store.$state)
+void store.loadAllTables()
 
-const activeItem = computed(() => store.items.currentPath[0])
+// 哪个item为active完全读取自url，而非本地设置、读取值
+// 以bucket+serviceId为标识
+const activeItemLabel = computed(() => store.items.currentPath[0] + store.items.currentPath[1])
 
 const releaseTime = process.env.releaseTime
 
-void store.loadBucketTable()
+const services = computed(() => Object.values(store.tables.serviceTable.byId))
 </script>
 
 <template>
@@ -46,21 +49,26 @@ void store.loadBucketTable()
             </q-item>
 
             <q-item
+              v-for="service in services"
+              :id="service.id"
+              :key="service.id"
               clickable
-              :active="activeItem === 'bucket'"
-              @click="activeItem = 'bucket'; navigateToUrl('/my/storage/bucket')"
+              :active="activeItemLabel === `bucket${service.id}`"
+              @click="navigateToUrl(`/my/storage/bucket/${service.id}`)"
               active-class="active-item"
             >
               <q-item-section class="column items-center">
                 <q-icon name="lab la-bitbucket" size="lg"/>
-                <div class="active-text text-center">{{ tc('存储桶') }}</div>
+                <div class="active-text text-center">
+                  {{ i18n.global.locale === 'zh' ? service.name : service.name_en }}
+                </div>
               </q-item-section>
             </q-item>
 
             <q-item
               clickable
-              :active="activeItem === 'instructions'"
-              @click="activeItem = 'instructions'; navigateToUrl('/my/storage/instructions')"
+              :active="activeItemLabel === 'instructionsundefined'"
+              @click="navigateToUrl('/my/storage/instructions')"
               active-class="active-item"
             >
               <q-item-section class="column items-center">
@@ -71,7 +79,7 @@ void store.loadBucketTable()
 
           </q-list>
 
-<!--          <div class="text-grey text-body2 text-center q-pt-xl">v0.0.1</div>-->
+          <!--          <div class="text-grey text-body2 text-center q-pt-xl">v0.0.1</div>-->
           <div class="row justify-center q-pt-lg">
             <q-icon class="text-center" name="info" color="grey-5" size="xs">
               <q-tooltip class="bg-grey-3">
@@ -82,7 +90,7 @@ void store.loadBucketTable()
               </q-tooltip>
             </q-icon>
           </div>
-<!--          <div class="text-grey text-body2 text-center">{{ new Date(releaseTime).toLocaleString() }}</div>-->
+          <!--          <div class="text-grey text-body2 text-center">{{ new Date(releaseTime).toLocaleString() }}</div>-->
         </q-scroll-area>
       </div>
     </q-drawer>
