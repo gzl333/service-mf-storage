@@ -288,7 +288,7 @@ export const useStore = defineStore('storage', {
         this.tables.serviceTable.status = 'error'
       }
     },
-    async loadBucketTable () {
+    async loadBucketTable (base: string) {
       // 1. 先清空table内容
       this.tables.bucketTable = {
         byLocalId: {},
@@ -298,7 +298,8 @@ export const useStore = defineStore('storage', {
       // 2. status改为loading
       this.tables.bucketTable.status = 'loading'
       // 3. 发送网络请求，格式化数据，保存对象
-      const respGetBuckets = await api.storage.api.getBuckets()
+      // todo normalize
+      const respGetBuckets = await api.storage.single.getBuckets({ base })
       for (const bucket of respGetBuckets.data.buckets) {
         Object.assign(this.tables.bucketTable.byLocalId, { [bucket.name]: Object.assign(bucket, { localId: bucket.name }) })
         this.tables.bucketTable.allLocalIds.unshift(Object.keys({ [bucket.name]: Object.assign(bucket, { localId: bucket.name }) })[0])

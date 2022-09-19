@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, PropType, ref, watch } from 'vue'
-import { useStore } from 'stores/store'
+import { ServiceInterface, useStore } from 'stores/store'
 import { navigateToUrl } from 'single-spa'
 // import { useRoute, useRouter } from 'vue-router'
 import { i18n } from 'boot/i18n'
@@ -14,8 +14,8 @@ import useFormatSize from 'src/hooks/useFormatSize'
 import PasswordInput from 'components/bucket/PasswordInput.vue'
 
 const props = defineProps({
-  serviceId: {
-    type: String,
+  service: {
+    type: Object as PropType<ServiceInterface>,
     required: true
   },
   buckets: {
@@ -29,7 +29,8 @@ const props = defineProps({
 const store = useStore()
 const { tc } = i18n.global
 
-const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
+// const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
+const currentService = computed(() => props.service)
 
 // table row hover
 const hoverRow = ref('')
@@ -142,8 +143,6 @@ const columns = computed(() => [
 <template>
   <div class="BucketTable">
 
-    <div>{{ currentService?.name }}</div>
-
     <div class="row q-gutter-x-md">
       <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('新建存储桶')"
              @click="store.triggerCreateBucketDialog"/>
@@ -155,6 +154,9 @@ const columns = computed(() => [
     </div>
 
     <div class="row items-center q-gutter-sm q-py-sm text-grey">
+
+      <div class="col-auto text-black">{{ currentService?.name }}</div>
+
       <q-breadcrumbs class="col-auto text-black cursor-pointer">
         <template v-slot:separator>
           <q-icon

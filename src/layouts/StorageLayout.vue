@@ -53,8 +53,8 @@ const services = computed(() => Object.values(store.tables.serviceTable.byId))
               :id="service.id"
               :key="service.id"
               clickable
-              :active="activeItemLabel === `bucket${service.id}`"
-              @click="navigateToUrl(`/my/storage/bucket/${service.id}`)"
+              :active="activeItemLabel === `service${service.id}`"
+              @click="navigateToUrl(`/my/storage/service/${service.id}`)"
               active-class="active-item"
             >
               <q-item-section class="column items-center">
