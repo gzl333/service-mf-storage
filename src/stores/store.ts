@@ -58,8 +58,9 @@ export interface BucketInterface {
   ftp_ro_password: string
   remarks: string
 
-  // 自己定义的localId:  应取name字段
-  localId: string
+  // 自己补充定义
+  local_id: string // 应取name字段
+  service_id: string
 }
 
 // 桶统计信息对象类型
@@ -195,7 +196,7 @@ export interface localIdTable<T> {
 export interface ServiceTableInterface extends totalTable, idTable<ServiceInterface> {
 }
 
-export interface BucketTableInterface extends totalTable, localIdTable<BucketInterface> {
+export interface BucketTableInterface extends partTable, localIdTable<BucketInterface> {
 }
 
 export interface BucketStatTableInterface extends partTable, localIdTable<BucketStatInterface> {
@@ -288,7 +289,7 @@ export const useStore = defineStore('storage', {
         this.tables.serviceTable.status = 'error'
       }
     },
-    async loadBucketTable (base: string) {
+    async loadBucketTable (base: string, serviceId: string) {
       // 1. 先清空table内容
       this.tables.bucketTable = {
         byLocalId: {},
@@ -297,16 +298,25 @@ export const useStore = defineStore('storage', {
       }
       // 2. status改为loading
       this.tables.bucketTable.status = 'loading'
-      // 3. 发送网络请求，格式化数据，保存对象
-      // todo normalize
-      const respGetBuckets = await api.storage.single.getBuckets({ base })
-      for (const bucket of respGetBuckets.data.buckets) {
-        Object.assign(this.tables.bucketTable.byLocalId, { [bucket.name]: Object.assign(bucket, { localId: bucket.name }) })
-        this.tables.bucketTable.allLocalIds.unshift(Object.keys({ [bucket.name]: Object.assign(bucket, { localId: bucket.name }) })[0])
-        this.tables.bucketTable.allLocalIds = [...new Set(this.tables.bucketTable.allLocalIds)]
+      try {
+        // 3. 发送网络请求，格式化数据，保存对象
+        const respGetBuckets = await api.storage.single.getBuckets({ base })
+        for (const bucket of respGetBuckets.data.buckets) {
+          Object.assign(this.tables.bucketTable.byLocalId, {
+            [bucket.name]: Object.assign(bucket, {
+              local_id: bucket.name,
+              service_id: serviceId
+            })
+          })
+          this.tables.bucketTable.allLocalIds.unshift(Object.keys({ [bucket.name]: Object.assign(bucket, { local_id: bucket.name }) })[0])
+          this.tables.bucketTable.allLocalIds = [...new Set(this.tables.bucketTable.allLocalIds)]
+        }
+        // 4. status改为total
+        this.tables.bucketTable.status = 'part'
+      } catch (exception) {
+        exceptionNotifier(exception)
+        this.tables.bucketTable.status = 'error'
       }
-      // 4. status改为total
-      this.tables.bucketTable.status = 'total'
     },
     // bucketStatTable: 累积加载，localId
     async addBucketStatTable (payload: { bucket: string }) {

@@ -43,20 +43,24 @@ const currentService = computed(() => store.tables.serviceTable.byId[props.servi
 
 // setup时调用一次
 if (currentService.value?.endpoint_url) {
-  void store.loadBucketTable(currentService.value.endpoint_url)
+  void store.loadBucketTable(currentService.value.endpoint_url, currentService.value.id)
 }
 
 // 刷新页面时，等待有效的service信息，再调用
 const unwatch = watch(currentService, () => {
   if (currentService.value?.endpoint_url) {
     // serviceTable已经加载，可以load bucketTable
-    void store.loadBucketTable(currentService.value.endpoint_url)
+    void store.loadBucketTable(currentService.value.endpoint_url, currentService.value.id)
     // watcher已完成任务，注销
     unwatch()
   }
 })
 
-const buckets = computed<BucketInterface[]>(() => Object.values(store.tables.bucketTable.byLocalId).sort((a: BucketInterface, b: BucketInterface) => a.name.localeCompare(b.name, 'en')))
+const buckets = computed<BucketInterface[]>(() =>
+  Object.values(store.tables.bucketTable.byLocalId)
+    .filter((bucket: BucketInterface) => bucket.service_id === currentService.value.id)
+    .sort((a: BucketInterface, b: BucketInterface) => a.name.localeCompare(b.name, 'en'))
+)
 
 </script>
 
