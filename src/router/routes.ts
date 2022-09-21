@@ -12,7 +12,7 @@ const routes: RouteRecordRaw[] = [
         props: true // 组件直接接收url中的params，无需用$route对象承接
       },
       {
-        path: 'service/:serviceId?/file',
+        path: 'service/:serviceId?/bucket/:bucketName',
         component: () => import('pages/bucket/PathList.vue'),
         props: true
       },

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, PropType, ref, watch } from 'vue'
-import { ServiceInterface, useStore } from 'stores/store'
+import { useStore } from 'stores/store'
 import { navigateToUrl } from 'single-spa'
 // import { useRoute, useRouter } from 'vue-router'
 import { i18n } from 'boot/i18n'
@@ -14,8 +14,8 @@ import useFormatSize from 'src/hooks/useFormatSize'
 import PasswordInput from 'components/bucket/PasswordInput.vue'
 
 const props = defineProps({
-  service: {
-    type: Object as PropType<ServiceInterface>,
+  serviceId: {
+    type: String,
     required: true
   },
   buckets: {
@@ -29,8 +29,7 @@ const props = defineProps({
 const store = useStore()
 const { tc } = i18n.global
 
-// const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
-const currentService = computed(() => props.service)
+const currentServiceId = computed(() => props.serviceId)
 
 // table row hover
 const hoverRow = ref('')
@@ -153,26 +152,24 @@ const columns = computed(() => [
              @click="navigateToUrl('/my/storage/bucket/search')"/>
     </div>
 
-    <div class="row items-center q-gutter-sm q-py-sm text-grey">
-
-      <div class="col-auto text-black">{{ currentService?.name }}</div>
-
-      <q-breadcrumbs class="col-auto text-black cursor-pointer">
-        <template v-slot:separator>
-          <q-icon
-            size="xs"
-            name="chevron_right"
-            color="grey"
-          />
-        </template>
-        <q-breadcrumbs-el @click="navigateToUrl('/my/storage/bucket/' + currentService?.id)">
-          <div class="row items-center no-wrap cursor-pointer">
-            <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>
-            <div class="col-auto text-bold">{{ tc('全部存储桶') }}</div>
-          </div>
-        </q-breadcrumbs-el>
-      </q-breadcrumbs>
-    </div>
+    <!--    <div class="row items-center q-gutter-sm q-py-sm text-grey">-->
+    <!--      -->
+    <!--      <q-breadcrumbs class="col-auto text-black cursor-pointer">-->
+    <!--        <template v-slot:separator>-->
+    <!--          <q-icon-->
+    <!--            size="xs"-->
+    <!--            name="chevron_right"-->
+    <!--            color="grey"-->
+    <!--          />-->
+    <!--        </template>-->
+    <!--        <q-breadcrumbs-el @click="navigateToUrl('/my/storage/bucket/' + currentService?.id)">-->
+    <!--          <div class="row items-center no-wrap cursor-pointer">-->
+    <!--            <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>-->
+    <!--            <div class="col-auto text-bold">{{ tc('全部存储桶') }}</div>-->
+    <!--          </div>-->
+    <!--        </q-breadcrumbs-el>-->
+    <!--      </q-breadcrumbs>-->
+    <!--    </div>-->
 
     <div class="row">
       <div class="col">
@@ -207,7 +204,7 @@ const columns = computed(() => [
 
               <q-td key="name" :props="props">
                 <q-btn flat padding="none" no-caps
-                       @click="navigateToUrl(`/my/storage/bucket/file?bucket=${props.row.name}`)">
+                       @click="navigateToUrl(`/my/storage/service/${currentServiceId}/bucket/${props.row.name}`)">
 
                   <div class="row items-center no-wrap">
                     <q-icon class="col-auto" size="sm" color="yellow-8" name="mdi-database"/>

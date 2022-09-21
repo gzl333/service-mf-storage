@@ -119,7 +119,7 @@ export interface PathInterface {
   dir_path: string
   files: FileInterface[]
 
-  // 自己定义的localId，来自bucket_name 和 dir_path的拼接: ’bucketName‘ or ’bucketName/path1/path2/path3...‘
+  // 自己定义的localId，来自serviceId bucket_name dir_path 三者的拼接 'serviceId/bucketName' or 'serviceId/bucketName/path1/path2/path3...'
   localId: string
 }
 
@@ -289,7 +289,8 @@ export const useStore = defineStore('storage', {
         this.tables.serviceTable.status = 'error'
       }
     },
-    async loadBucketTable (base: string, serviceId: string) {
+    // bucketTable应从vms读取，是粗略的信息
+    async addBucketTable (base: string, serviceId: string) {
       // 1. 先清空table内容
       this.tables.bucketTable = {
         byLocalId: {},
@@ -360,22 +361,21 @@ export const useStore = defineStore('storage', {
       // 3. status改为part
       this.tables.bucketTokenTable.status = 'part'
     },
-    // PathTable: 累积加载，localId (bucketName/path1/path2)
-    async addPathTable (payload: { bucket: string, path?: string }) {
+    // PathTable: 累积加载，localId (serviceId-bucketName/path1/path2)
+    async addPathTable (payload: { serviceId: string, bucket: string, path?: string }) {
       // 1. status改为loading
-      this.tables.pathTable = {
-        byLocalId: {},
-        allLocalIds: [],
-        status: 'loading'
-      }
+      this.tables.pathTable.status = 'loading'
       // 2. 判断是桶根目录还是次级目录，判断是否已经有了: 没有发送网络请求，格式化数据，保存对象
       // const currentPath = payload.bucket + (payload.path ? ('/' + payload.path) : '')
       // if (!context.state.tables.pathTable.allLocalIds.includes(currentPath)) {
       if (!payload.path) { // 桶的根目录
-        const respGetDirBucket = await api.storage.api.getDirBucketName({ path: { bucket_name: payload.bucket } })
+        const respGetDirBucket = await api.storage.single.getDirBucketName({
+          base: this.tables.serviceTable.byId[payload.serviceId].endpoint_url,
+          path: { bucket_name: payload.bucket }
+        })
         const item = {
-          [payload.bucket]: Object.assign({}, {
-            localId: respGetDirBucket.data.bucket_name,
+          [payload.serviceId + '/' + payload.bucket]: Object.assign({}, {
+            localId: payload.serviceId + '/' + payload.bucket,
             bucket_name: respGetDirBucket.data.bucket_name,
             dir_path: respGetDirBucket.data.dir_path,
             files: respGetDirBucket.data.files
@@ -385,15 +385,16 @@ export const useStore = defineStore('storage', {
         this.tables.pathTable.allLocalIds.unshift(Object.keys(item)[0])
         this.tables.pathTable.allLocalIds = [...new Set(this.tables.pathTable.allLocalIds)]
       } else { // 次级目录
-        const respGetDirPath = await api.storage.api.getDirBucketNameDirPath({
+        const respGetDirPath = await api.storage.single.getDirBucketNameDirPath({
+          base: this.tables.serviceTable.byId[payload.serviceId].endpoint_url,
           path: {
             bucket_name: payload.bucket,
             dirpath: payload.path
           }
         })
         const item = {
-          [payload.bucket + '/' + payload.path]: Object.assign({}, {
-            localId: respGetDirPath.data.bucket_name + '/' + respGetDirPath.data.dir_path,
+          [payload.serviceId + '/' + payload.bucket + '/' + payload.path]: Object.assign({}, {
+            localId: payload.serviceId + '/' + payload.bucket + '/' + respGetDirPath.data.dir_path,
             bucket_name: respGetDirPath.data.bucket_name,
             dir_path: respGetDirPath.data.dir_path,
             files: respGetDirPath.data.files
