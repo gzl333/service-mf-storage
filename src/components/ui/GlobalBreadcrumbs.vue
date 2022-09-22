@@ -21,8 +21,8 @@ const route = useRoute()
 // const router = useRouter()
 const { tc } = i18n.global
 
-const currentServiceId = route.path.split('/')[route.fullPath.split('/').indexOf('service') + 1]
-const currentBucketName = route.path.split('/')[route.fullPath.split('/').indexOf('bucket') + 1]
+const currentServiceId = route.path.split('/')[route.path.split('/').indexOf('service') + 1]
+const currentBucketName = route.path.split('/')[route.path.split('/').indexOf('bucket') + 1]
 const currentService = computed(() => store.tables.serviceTable.byId[currentServiceId])
 
 const path = route.query.path as string
