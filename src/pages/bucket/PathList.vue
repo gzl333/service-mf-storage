@@ -2,9 +2,11 @@
 import { useStore } from 'stores/store'
 import { useRoute } from 'vue-router'
 import { computed, watch } from 'vue'
+// import { navigateToUrl } from 'single-spa'
 // import { i18n } from 'boot/i18n'
 
 import PathTable from 'components/bucket/PathTable.vue'
+import GlobalBreadcrumbs from 'components/ui/GlobalBreadcrumbs.vue'
 
 const props = defineProps({
   serviceId: {
@@ -50,13 +52,19 @@ const unwatch = watch(currentService, () => {
 })
 
 const path = route.query.path as string
-const pathObj = computed(() => store.tables.pathTable.byLocalId[currentService.value?.id + '/' + props.bucketName + (path ? ('/' + path) : '')])
+const currentPath = computed(() => store.tables.pathTable.byLocalId[currentService.value?.id + '/' + props.bucketName + (path ? ('/' + path) : '')])
+
 </script>
 
 <template>
   <div class="PathList">
 
-    <PathTable :pathObj="pathObj"/>
+    <div class="row items-center text-black q-pb-md">
+      <GlobalBreadcrumbs/>
+    </div>
+
+    <PathTable :pathObj="currentPath"/>
+
   </div>
 </template>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// import { ref, computed, PropType } from "vue"
+// import { ref, computed } from "vue"
 // import { navigateToUrl } from 'single-spa'
 // import { useStore } from 'stores/store'
 // import { useRoute, useRouter } from 'vue-router'
@@ -7,27 +7,27 @@
 
 // const props = defineProps({
 //   foo: {
-//     type: String as PropType<'bar'>,
+//     type: String,
 //     required: false,
 //     default: ''
 //   }
 // })
 // const emits = defineEmits(['change', 'delete'])
 
-// const { tc } = i18n.global
 // const store = useStore()
 // const route = useRoute()
 // const router = useRouter()
+// const tc = i18n.global.tc
 
 </script>
 
 <template>
-  <div class="${NAME}">
-    this is ${NAME}
+  <div class="BucketDetail">
+    this is BucketDetail
   </div>
 </template>
 
 <style lang="scss" scoped>
-.${NAME} {
+.BucketDetail {
 }
 </style>

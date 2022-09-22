@@ -2,16 +2,22 @@
 import { computed, watch } from 'vue'
 // import { navigateToUrl } from 'single-spa'
 import { useStore } from 'stores/store'
-// import { useRoute, useRouter } from 'vue-router'
-import { i18n } from 'boot/i18n'
+// import { useRoute/* , useRouter */ } from 'vue-router'
+// import { i18n } from 'boot/i18n'
 // import api from 'src/api/index'
-
-import BucketTable from 'components/bucket/BucketTable.vue'
 import { BucketInterface } from 'src/stores/store'
 import { navigateToUrl } from 'single-spa'
 
+import BucketTable from 'components/bucket/BucketTable.vue'
+import GlobalBreadcrumbs from 'components/ui/GlobalBreadcrumbs.vue'
+
 const props = defineProps({
   serviceId: {
+    type: String,
+    required: false,
+    default: ''
+  },
+  bucketName: {
     type: String,
     required: false,
     default: ''
@@ -19,7 +25,7 @@ const props = defineProps({
 })
 // const emits = defineEmits(['change', 'delete'])
 
-const { tc } = i18n.global
+// const { tc } = i18n.global
 const store = useStore()
 // const route = useRoute()
 // const router = useRouter()
@@ -38,6 +44,7 @@ if (!props.serviceId) {
     }
   })
 }
+
 // 传了serviceId，则正常显示
 const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
 
@@ -66,29 +73,10 @@ const buckets = computed<BucketInterface[]>(() =>
 
 <template>
   <div class="BucketList">
-    <q-breadcrumbs class="row items-center text-black q-pb-md">
-      <template v-slot:separator>
-        <q-icon
-          size="xs"
-          name="chevron_right"
-          color="grey"
-        />
-      </template>
 
-      <q-breadcrumbs-el>
-        <div class="row items-center no-wrap text-black">
-          {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }}
-        </div>
-      </q-breadcrumbs-el>
-
-      <q-breadcrumbs-el>
-        <div class="row items-center no-wrap">
-          <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>
-          <div class="col-auto">{{ tc('全部存储桶') }}</div>
-        </div>
-      </q-breadcrumbs-el>
-
-    </q-breadcrumbs>
+    <div class="row items-center text-black q-pb-md">
+      <GlobalBreadcrumbs/>
+    </div>
 
     <BucketTable :serviceId="currentService?.id" :buckets="buckets"/>
 

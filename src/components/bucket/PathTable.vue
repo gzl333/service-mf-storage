@@ -6,8 +6,8 @@ import { useRoute } from 'vue-router'
 import { navigateToUrl } from 'single-spa'
 import { i18n } from 'boot/i18n'
 import storage from 'src/api/index'
-import useClipText from '../../../src/hooks/useClipText'
-import useFormatSize from '../../../src/hooks/useFormatSize'
+import useClipText from 'src/hooks/useClipText'
+import useFormatSize from 'src/hooks/useFormatSize'
 import { Notify } from 'quasar'
 
 const props = defineProps({
@@ -21,12 +21,14 @@ const props = defineProps({
 const store = useStore()
 const route = useRoute()
 const { tc } = i18n.global
+
 const bucket = route.query.bucket as string
-const currentBucket = computed(() => props.pathObj?.bucket_name)
+const currentBucketName = computed(() => props.pathObj?.bucket_name)
 const currentPath = computed(() => props.pathObj?.dir_path)
 const currentServiceId = computed(() => props.pathObj.localId.split('/')[0])
-const arrayPaths = computed(() => props.pathObj?.dir_path?.split('/')[0] === '' ? [] : props.pathObj?.dir_path?.split('/'))
-const upperPath = computed(() => currentPath.value === '' ? '/my/storage/bucket' : `/my/storage/bucket/file?bucket=${currentBucket.value}&path=${currentPath.value?.lastIndexOf('/') === -1 ? '' : currentPath.value?.slice(0, currentPath.value?.lastIndexOf('/'))}`)
+// const arrayPaths = computed(() => props.pathObj?.dir_path?.split('/')[0] === '' ? [] : props.pathObj?.dir_path?.split('/'))
+// const upperPath = computed(() => currentPath.value === '' ? '/my/storage/bucket' : `/my/storage/bucket/file?bucket=${currentBucket.value}&path=${currentPath.value?.lastIndexOf('/') === -1 ? '' : currentPath.value?.slice(0, currentPath.value?.lastIndexOf('/'))}`)
+
 // table中选中的对象
 const selected = ref<FileInterface[]>([])
 const fileDetail = ref({})
@@ -41,7 +43,7 @@ const fileDetail = ref({})
 // const fileToShow = ref<FileInterface>()
 
 // 把过长的文本缩短
-const clipText7 = useClipText(7)
+// const clipText7 = useClipText(7)
 const clipText70 = useClipText(70)
 
 // 格式化size
@@ -274,64 +276,64 @@ watch(
       <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')"
              @click="navigateToUrl(`/my/storage/bucket/search?bucket=${bucket}`)"/>
     </div>
-    <div class="row items-center q-gutter-sm q-py-sm text-grey">
+<!--    <div class="row items-center q-gutter-sm q-py-sm text-grey">-->
 
-      <div class="col-auto">
-        <q-btn flat color="primary" padding="none" no-caps @click="navigateToUrl(upperPath)">{{
-            tc('返回上一级')
-          }}
-        </q-btn>
-      </div>
+<!--      <div class="col-auto">-->
+<!--        <q-btn flat color="primary" padding="none" no-caps @click="navigateToUrl(upperPath)">{{-->
+<!--            tc('返回上一级')-->
+<!--          }}-->
+<!--        </q-btn>-->
+<!--      </div>-->
 
-      <div class="col-auto">|</div>
+<!--      <div class="col-auto">|</div>-->
 
-      <q-breadcrumbs class="col-auto text-black">
+<!--      <q-breadcrumbs class="col-auto text-black">-->
 
-        <template v-slot:separator>
-          <q-icon
-            size="xs"
-            name="chevron_right"
-            color="grey"
-          />
-        </template>
+<!--        <template v-slot:separator>-->
+<!--          <q-icon-->
+<!--            size="xs"-->
+<!--            name="chevron_right"-->
+<!--            color="grey"-->
+<!--          />-->
+<!--        </template>-->
 
-        <q-breadcrumbs-el @click="navigateToUrl('/my/storage/service/' + currentServiceId)">
-          <div class="row items-center no-wrap cursor-pointer">
-            <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>
-            <div class="col-auto">{{ tc('全部存储桶') }}</div>
-          </div>
-        </q-breadcrumbs-el>
+<!--        <q-breadcrumbs-el @click="navigateToUrl('/my/storage/service/' + currentServiceId)">-->
+<!--          <div class="row items-center no-wrap cursor-pointer">-->
+<!--            <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>-->
+<!--            <div class="col-auto">{{ tc('全部存储桶') }}</div>-->
+<!--          </div>-->
+<!--        </q-breadcrumbs-el>-->
 
-        <q-breadcrumbs-el @click="navigateToUrl('/my/storage/service/' + currentServiceId +'/bucket/' + currentBucket)">
-          <div class="row items-center no-wrap cursor-pointer">
-            <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>
-            <div class="col-auto" :class="arrayPaths?.length === 0 ? 'text-bold' : ''"> {{ currentBucket }}</div>
-          </div>
-        </q-breadcrumbs-el>
+<!--        <q-breadcrumbs-el @click="navigateToUrl('/my/storage/service/' + currentServiceId +'/bucket/' + currentBucket)">-->
+<!--          <div class="row items-center no-wrap cursor-pointer">-->
+<!--            <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>-->
+<!--            <div class="col-auto" :class="arrayPaths?.length === 0 ? 'text-bold' : ''"> {{ currentBucket }}</div>-->
+<!--          </div>-->
+<!--        </q-breadcrumbs-el>-->
 
-        <q-breadcrumbs-el v-for="(path, index) in arrayPaths?.slice(0, -1)" :key="path"
-                          @click="navigateToUrl('/my/storage/service/' + currentServiceId +'/bucket/' + currentBucket + '?path=' + arrayPaths.slice(0, (index - arrayPaths.length + 1)).reduce((accumulator, item) => accumulator + '/' + item))">
-          <div class="row items-center no-wrap cursor-pointer">
-            <q-icon class="col-auto" size="xs" color="yellow-8" name="folder"/>
-            <div class="col-auto"> {{ clipText7(path) }}</div>
-          </div>
-          <!--          <q-tooltip>-->
-          <!--            {{-->
-          <!--              arrayPaths.slice(0, (index - arrayPaths.length + 1)).reduce((accumulator, item) => accumulator + '/' + item)-->
-          <!--            }}-->
-          <!--          </q-tooltip>-->
-        </q-breadcrumbs-el>
+<!--        <q-breadcrumbs-el v-for="(path, index) in arrayPaths?.slice(0, -1)" :key="path"-->
+<!--                          @click="navigateToUrl('/my/storage/service/' + currentServiceId +'/bucket/' + currentBucket + '?path=' + arrayPaths.slice(0, (index - arrayPaths.length + 1)).reduce((accumulator, item) => accumulator + '/' + item))">-->
+<!--          <div class="row items-center no-wrap cursor-pointer">-->
+<!--            <q-icon class="col-auto" size="xs" color="yellow-8" name="folder"/>-->
+<!--            <div class="col-auto"> {{ clipText7(path) }}</div>-->
+<!--          </div>-->
+<!--          &lt;!&ndash;          <q-tooltip>&ndash;&gt;-->
+<!--          &lt;!&ndash;            {{&ndash;&gt;-->
+<!--          &lt;!&ndash;              arrayPaths.slice(0, (index - arrayPaths.length + 1)).reduce((accumulator, item) => accumulator + '/' + item)&ndash;&gt;-->
+<!--          &lt;!&ndash;            }}&ndash;&gt;-->
+<!--          &lt;!&ndash;          </q-tooltip>&ndash;&gt;-->
+<!--        </q-breadcrumbs-el>-->
 
-        <q-breadcrumbs-el v-if="arrayPaths?.length > 0">
-          <div class="row items-center no-wrap">
-            <q-icon class="col-auto" size="xs" color="yellow-8" name="folder"/>
-            <div class="col-auto text-bold"> {{ clipText70(arrayPaths?.slice(-1)[0]) }}</div>
-          </div>
-        </q-breadcrumbs-el>
+<!--        <q-breadcrumbs-el v-if="arrayPaths?.length > 0">-->
+<!--          <div class="row items-center no-wrap">-->
+<!--            <q-icon class="col-auto" size="xs" color="yellow-8" name="folder"/>-->
+<!--            <div class="col-auto text-bold"> {{ clipText70(arrayPaths?.slice(-1)[0]) }}</div>-->
+<!--          </div>-->
+<!--        </q-breadcrumbs-el>-->
 
-      </q-breadcrumbs>
+<!--      </q-breadcrumbs>-->
 
-    </div>
+<!--    </div>-->
 
     <div class="row">
 
@@ -368,7 +370,7 @@ watch(
 
               <q-td key="name" :props="props">
                 <q-btn v-if="!props.row.fod" flat no-caps padding="none"
-                       @click="navigateToUrl('/my/storage/service/' + currentServiceId +'/bucket/' + currentBucket + '?path=' + (currentPath? currentPath + '/' : '') + props.row.name)">
+                       @click="navigateToUrl('/my/storage/service/' + currentServiceId +'/bucket/' + currentBucketName + '?path=' + (currentPath? currentPath + '/' : '') + props.row.name)">
                   <div class="row items-center no-wrap">
                     <q-icon class="col-auto" color="yellow-8" name="folder"/>
                     <div class="col-auto text-black"> {{ clipText70(props.row.name) }}</div>

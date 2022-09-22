@@ -207,7 +207,7 @@ const columns = computed(() => [
                        @click="navigateToUrl(`/my/storage/service/${currentServiceId}/bucket/${props.row.name}`)">
 
                   <div class="row items-center no-wrap">
-                    <q-icon class="col-auto" size="sm" color="yellow-8" name="mdi-database"/>
+                    <q-icon class="col-auto" size="sm" color="primary" name="mdi-database"/>
                     <div class="col-auto"> {{ clipText80(props.row.name) }}</div>
                   </div>
                 </q-btn>
