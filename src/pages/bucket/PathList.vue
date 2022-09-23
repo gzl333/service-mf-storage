@@ -6,7 +6,6 @@ import { computed, watch } from 'vue'
 // import { i18n } from 'boot/i18n'
 
 import PathTable from 'components/bucket/PathTable.vue'
-import GlobalBreadcrumbs from 'components/ui/GlobalBreadcrumbs.vue'
 
 const props = defineProps({
   serviceId: {
@@ -58,13 +57,7 @@ const currentPath = computed(() => store.tables.pathTable.byLocalId[currentServi
 
 <template>
   <div class="PathList">
-
-    <div class="row items-center text-black q-pb-md">
-      <GlobalBreadcrumbs/>
-    </div>
-
     <PathTable :pathObj="currentPath"/>
-
   </div>
 </template>
 

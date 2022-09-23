@@ -291,16 +291,10 @@ export const useStore = defineStore('storage', {
     },
     // bucketTable应从vms读取，是粗略的信息
     async addBucketTable (base: string, serviceId: string) {
-      // 1. 先清空table内容
-      this.tables.bucketTable = {
-        byLocalId: {},
-        allLocalIds: [],
-        status: 'init'
-      }
-      // 2. status改为loading
+      // 1. status改为loading
       this.tables.bucketTable.status = 'loading'
       try {
-        // 3. 发送网络请求，格式化数据，保存对象
+        // 2. 发送网络请求，格式化数据，保存对象
         const respGetBuckets = await api.storage.single.getBuckets({ base })
         for (const bucket of respGetBuckets.data.buckets) {
           Object.assign(this.tables.bucketTable.byLocalId, {
@@ -312,7 +306,7 @@ export const useStore = defineStore('storage', {
           this.tables.bucketTable.allLocalIds.unshift(Object.keys({ [bucket.name]: Object.assign(bucket, { local_id: bucket.name }) })[0])
           this.tables.bucketTable.allLocalIds = [...new Set(this.tables.bucketTable.allLocalIds)]
         }
-        // 4. status改为total
+        // 3. status改为total
         this.tables.bucketTable.status = 'part'
       } catch (exception) {
         exceptionNotifier(exception)
