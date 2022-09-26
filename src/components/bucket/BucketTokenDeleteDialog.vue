@@ -25,7 +25,7 @@ const { tc } = i18n.global
 onBeforeMount(async () => {
   // 判断bucketToken表里有没有这项，没有就增加这项
   if (!store.tables.bucketTokenTable.allLocalIds.includes(props.bucketName)) {
-    await store.addBucketTokenTable({ bucket: props.bucketName })
+    // await store.addBucketTokenTable({ bucket: props.bucketName }) todo 修改为新的参数
   }
 })
 
@@ -54,7 +54,10 @@ const onOKClick = async () => {
     const respDeleteToken = await storage.storage.api.deleteBucketToken({ path: { token: props.token } })
 
     if (respDeleteToken.status === 204) {
-      await store.storeBucketToken({ id: props.bucketName, value: store.tables.bucketTokenTable.byLocalId[props.bucketName].tokens.filter(token => token.key !== props.token) })
+      await store.storeBucketToken({
+        id: props.bucketName,
+        value: store.tables.bucketTokenTable.byLocalId[props.bucketName].tokens.filter(token => token.key !== props.token)
+      })
       Notify.create({
         classes: 'notification-positive shadow-15',
         icon: 'check_circle',
@@ -130,7 +133,8 @@ const onOKClick = async () => {
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="negative" :label="tc('删除')" unelevated no-caps :disable="!check" @click="onOKClick"/>
+        <q-btn class="q-ma-sm" color="negative" :label="tc('删除')" unelevated no-caps :disable="!check"
+               @click="onOKClick"/>
         <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated no-caps @click="onCancelClick"/>
       </q-card-actions>
 

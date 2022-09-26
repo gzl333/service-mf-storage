@@ -314,13 +314,16 @@ export const useStore = defineStore('storage', {
       }
     },
     // bucketStatTable: 累积加载，localId
-    async addBucketStatTable (payload: { bucket: string }) {
+    async addBucketStatTable (base: string, bucketName: string) {
       // 1. status改为loading
       this.tables.bucketStatTable.status = 'loading'
       // 2. 发送网络请求，格式化数据，保存对象
-      const respGetStatsBucket = await api.storage.api.getStatsBucket({ path: { bucket_name: payload.bucket } })
+      const respGetStatsBucket = await api.storage.single.getStatsBucket({
+        base,
+        path: { bucket_name: bucketName }
+      })
       const item = {
-        [payload.bucket]: Object.assign({}, {
+        [bucketName]: Object.assign({}, {
           localId: respGetStatsBucket.data.bucket_name,
           bucket_name: respGetStatsBucket.data.bucket_name,
           stats: respGetStatsBucket.data.stats,
@@ -334,18 +337,19 @@ export const useStore = defineStore('storage', {
       this.tables.bucketStatTable.status = 'part'
     },
     // bucketTokenTable: 累积加载，localId
-    async addBucketTokenTable (payload: { bucket: string }) {
+    async addBucketTokenTable (base: string, bucketName: string) {
       // 1. status改为loading
       this.tables.bucketTokenTable.status = 'loading'
       // 2. 发送网络请求，格式化数据，保存对象
-      const respGetBucketTokenList = await api.storage.api.getBucketsIdOrNameTokenList({
+      const respGetBucketTokenList = await api.storage.single.getBucketsIdOrNameTokenList({
+        base,
         query: { 'by-name': true },
-        path: { id_or_name: payload.bucket }
+        path: { id_or_name: bucketName }
       })
       const item = {
-        [payload.bucket]: Object.assign({}, {
-          localId: payload.bucket,
-          bucket_name: payload.bucket,
+        [bucketName]: Object.assign({}, {
+          localId: bucketName,
+          bucket_name: bucketName,
           tokens: respGetBucketTokenList.data.tokens
         })
       }

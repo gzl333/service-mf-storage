@@ -40,7 +40,9 @@ const clipText70 = useClipText(70)
 
   <div class="row non-selectable">
 
-    <div class="col-auto">{{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }}</div>
+    <div class="col-auto text-weight-bold">
+      {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }}
+    </div>
 
     <div class="col-auto q-px-sm text-grey">|</div>
 

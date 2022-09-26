@@ -58,10 +58,22 @@ const services = computed(() => Object.values(store.tables.serviceTable.byId))
               active-class="active-item"
             >
               <q-item-section class="column items-center">
-                <q-icon name="lab la-bitbucket" size="lg"/>
+                <q-icon name="las la-server" size="lg"/>
                 <div class="active-text text-center">
                   {{ i18n.global.locale === 'zh' ? service.name : service.name_en }}
                 </div>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              clickable
+              :active="activeItemLabel === 'search'"
+              @click="navigateToUrl('/my/storage/search')"
+              active-class="active-item"
+            >
+              <q-item-section class="column items-center">
+                <q-icon name="search" size="lg"/>
+                <div class="active-text text-center">{{ tc('综合检索') }}</div>
               </q-item-section>
             </q-item>
 
@@ -72,7 +84,7 @@ const services = computed(() => Object.values(store.tables.serviceTable.byId))
               active-class="active-item"
             >
               <q-item-section class="column items-center">
-                <q-icon name="las la-exchange-alt" size="lg"/>
+                <q-icon name="help_outline" size="lg"/>
                 <div class="active-text text-center">{{ tc('使用说明') }}</div>
               </q-item-section>
             </q-item>

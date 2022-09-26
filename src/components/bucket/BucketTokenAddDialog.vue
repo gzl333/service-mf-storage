@@ -21,7 +21,7 @@ const { tc } = i18n.global
 onBeforeMount(async () => {
   // 判断bucketToken表里有没有这项，没有就增加这项
   if (!store.tables.bucketTokenTable.allLocalIds.includes(props.bucketName)) {
-    await store.addBucketTokenTable({ bucket: props.bucketName })
+    // await store.addBucketTokenTable({ bucket: props.bucketName }) todo 修改为新的
   }
 })
 

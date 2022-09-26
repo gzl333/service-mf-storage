@@ -56,9 +56,9 @@ const toggleExpansion = (props: { expand: boolean, row: { name: string } }) => {
   } else {
     props.expand = !props.expand
     // 更新桶统计信息
-    void store.addBucketStatTable({ bucket: props.row.name })
+    // void store.addBucketStatTable({ bucket: props.row.name })
     // 更新桶token信息
-    void store.addBucketTokenTable({ bucket: props.row.name })
+    // void store.addBucketTokenTable({ bucket: props.row.name })
   }
 }
 
