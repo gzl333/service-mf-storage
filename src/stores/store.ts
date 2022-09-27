@@ -501,12 +501,6 @@ export const useStore = defineStore('storage', {
         this.tables.pathTable.status = 'error'
       }
     },
-
-    // 删除桶
-    async deleteBucket (payload: { id: string }) {
-      this.tables.bucketTable.allLocalIds = this.tables.bucketTable.allLocalIds.filter((id: string) => id !== payload.id)
-      delete this.tables.bucketTable.byLocalId[payload.id]
-    },
     // 修改读写只读密码
     async storeFtpPassword (payload: { id: string, field: string, value: string }) {
       if (payload.field === 'ftp_password') {
@@ -603,11 +597,22 @@ export const useStore = defineStore('storage', {
       }
     },
     /* dialogs */
+    // 触发新建存储桶对话框
     triggerCreateBucketDialog (serviceId: string) {
       Dialog.create({
         component: BucketCreateDialog,
         componentProps: {
           serviceId
+        }
+      })
+    },
+    // 触发删除存储桶对话框
+    triggerDeleteBucketDialog (serviceId: string, bucketNames: string[]) {
+      Dialog.create({
+        component: BucketDeleteDialog,
+        componentProps: {
+          serviceId,
+          bucketNames
         }
       })
     },
@@ -673,14 +678,6 @@ export const useStore = defineStore('storage', {
         component: UploadDialog,
         componentProps: {
           bucket_name: payload.bucket_name
-        }
-      })
-    },
-    triggerDeleteBucketDialog (payload: { bucketNames: string[] }) {
-      Dialog.create({
-        component: BucketDeleteDialog,
-        componentProps: {
-          bucketNames: payload.bucketNames
         }
       })
     },
