@@ -1,13 +1,19 @@
 <script lang="ts" setup>
-import { PropType, ref } from 'vue'
+import { PropType, ref, computed } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, useDialogPluginComponent } from 'quasar'
-import storage from 'src/api/index'
+import api from 'src/api/index'
 import { i18n } from 'boot/i18n'
 
+import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
+
 const props = defineProps({
+  serviceId: {
+    type: String,
+    required: true
+  },
   bucketNames: {
-    type: Array as PropType<Array<string>>,
+    type: Array as PropType<string[]>,
     required: true
   }
 })
@@ -23,24 +29,31 @@ const {
   onDialogOK,
   onDialogCancel
 } = useDialogPluginComponent()
-
 const onCancelClick = onDialogCancel
+
+const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
+const exceptionNotifier = useExceptionNotifier()
+
 const check1 = ref(false)
-const bucketIds = props.bucketNames.map((bucketName: string) => store.tables.bucketTable.byLocalId[bucketName]?.id)
+const bucketIds = props.bucketNames.map((bucketName: string) => store.tables.bucketTable.byLocalId[props.serviceId + '/' + bucketName]?.id)
+const isLoading = ref(false)
 
 const onOKClick = async () => {
+  isLoading.value = true
+  const dismissWorking = Notify.create({
+    classes: 'notification-positive shadow-15',
+    icon: 'las la-redo-alt',
+    textColor: 'positive',
+    message: `${tc('正在删除存储桶')}...`,
+    position: 'bottom',
+    // closeBtn: true,
+    timeout: 5000,
+    multiLine: true
+  })
   try {
-    Notify.create({
-      classes: 'notification-positive shadow-15',
-      icon: 'las la-redo-alt',
-      textColor: 'positive',
-      message: `${tc('正在删除存储桶')}...`,
-      position: 'bottom',
-      closeBtn: true,
-      timeout: 5000,
-      multiLine: false
-    })
-    const respDeleteBuckets = await storage.storage.api.deleteBucketsIdOrName({
+    // req
+    await api.storage.single.deleteBucketsIdOrName({
+      base: currentService.value.endpoint_url,
       path: {
         id_or_name: bucketIds[0].toString()
       },
@@ -49,24 +62,36 @@ const onOKClick = async () => {
         ids: bucketIds.slice(1)
       }
     })
-    if (respDeleteBuckets.status === 204) {
-      props.bucketNames.forEach((bucketName: string) => {
-        store.deleteBucket({ id: bucketName })
-      })
-      Notify.create({
-        classes: 'notification-positive shadow-15',
-        icon: 'check_circle',
-        textColor: 'positive',
-        message: `${tc('成功删除存储桶')}`,
-        position: 'bottom',
-        closeBtn: true,
-        timeout: 5000,
-        multiLine: false
-      })
-      onDialogOK()
-    }
-  } catch (error) {
-    // do nothing
+
+    // delete bucket in table
+    props.bucketNames.forEach((bucketName: string) => {
+      const currentLocalId = props.serviceId + '/' + bucketName
+      store.tables.bucketTable.allLocalIds = store.tables.bucketTable.allLocalIds.filter((localId: string) => localId !== currentLocalId)
+      delete store.tables.bucketTable.byLocalId[currentLocalId]
+    })
+
+    // close working notification
+    dismissWorking()
+    isLoading.value = false
+
+    // success notification
+    Notify.create({
+      classes: 'notification-positive shadow-15',
+      icon: 'check_circle',
+      textColor: 'positive',
+      message: `${tc('成功删除存储桶')}`,
+      position: 'bottom',
+      // closeBtn: true,
+      timeout: 5000,
+      multiLine: true
+    })
+
+    // close dialog
+    onDialogOK()
+  } catch (exception) {
+    dismissWorking()
+    isLoading.value = false
+    exceptionNotifier(exception)
   }
 }
 
@@ -90,7 +115,7 @@ const onOKClick = async () => {
 
         <div class="row q-pb-md  items-center">
           <div class="col-auto text-grey-7">
-<!--            即将删除以下{{ props.bucketNames.length }}个存储桶：-->
+            <!--            即将删除以下{{ props.bucketNames.length }}个存储桶：-->
             {{ tc('以下存储桶将被删除：') }}
           </div>
         </div>
@@ -132,8 +157,28 @@ const onOKClick = async () => {
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="negative" :label="tc('删除')" no-caps unelevated :disable="!check1" @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>
+        <q-btn
+          class="q-ma-sm"
+          color="primary"
+          no-caps
+          unelevated
+          @click="onCancelClick"
+        >
+          {{ tc('取消') }}
+        </q-btn>
+
+        <q-btn
+          class="q-ma-sm"
+          color="negative"
+          no-caps
+          unelevated
+          :disable="!check1"
+          :loading="isLoading"
+          @click="onOKClick"
+        >
+          {{ tc('删除') }}
+        </q-btn>
+
       </q-card-actions>
     </q-card>
   </q-dialog>

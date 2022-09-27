@@ -97,7 +97,6 @@ const onOKClick = async () => {
       // close dialog
       onDialogOK()
     } catch (exception) {
-      inputRef.value!.$props.loading = false
       inputRef.value!.focus()
       dismissWorking()
       isLoading.value = false

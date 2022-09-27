@@ -147,7 +147,7 @@ const columns = computed(() => [
              @click="store.triggerCreateBucketDialog(props.serviceId)"/>
       <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('删除存储桶')"
              :disable="selected.length === 0"
-             @click="store.triggerDeleteBucketDialog({bucketNames: selected.map((bucket: BucketInterface) => bucket.name)})"/>
+             @click="store.triggerDeleteBucketDialog(props.serviceId, selected.map((bucket: BucketInterface) => bucket.name))"/>
       <!--      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')"-->
       <!--             @click="navigateToUrl('/my/storage/bucket/search')"/>-->
     </div>
