@@ -291,7 +291,12 @@ export const useStore = defineStore('storage', {
     // loadAllItems () {},
     async loadAllTables () {
       if (this.tables.serviceTable.status === 'init') {
+        // 加载serviceTable
         void await this.loadServiceTable()
+        // 加载全部bucketTable
+        this.tables.serviceTable.allIds.forEach((serviceId) => {
+          void this.addBucketTable(serviceId)
+        })
       }
     },
     async loadServiceTable () {
