@@ -273,8 +273,8 @@ watch(
              :disable="selected.length > 0 ? false : true"/>
       <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="shareFile"
              :disable="selected.length > 0 ? false : true"/>
-      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')"
-             @click="navigateToUrl(`/my/storage/bucket/search?bucket=${bucket}`)"/>
+<!--      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')"-->
+<!--             @click="navigateToUrl(`/my/storage/bucket/search?bucket=${bucket}`)"/>-->
     </div>
 
     <div class="row">

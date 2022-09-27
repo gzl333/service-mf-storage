@@ -23,24 +23,9 @@ const routes: RouteRecordRaw[] = [
           }
         ]
       },
-      // {
-      //   path: 'service/:serviceId?',
-      //   component: () => import('pages/bucket/BucketList.vue'),
-      //   props: true // 组件直接接收url中的params，无需用$route对象承接
-      // },
-      // {
-      //   path: 'service/:serviceId?/bucket/:bucketName/:tab?',
-      //   component: () => import('pages/bucket/BucketDetail.vue'),
-      //   props: true
-      // },
-      // {
-      //   path: 'service/:serviceId?/bucket/:bucketName',
-      //   component: () => import('pages/bucket/PathList.vue'),
-      //   props: true
-      // },
       {
         path: 'search',
-        component: () => import('pages/bucket/SearchList.vue')
+        component: () => import('pages/bucket/IntegratedSearch.vue')
       },
       {
         path: 'instructions',

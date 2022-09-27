@@ -53,11 +53,11 @@ const loadTables = () => {
   void store.addBucketTokenTable(currentService.value?.endpoint_url, props.bucketName)
 
   // 当前path对象
-  void store.addPathTable({
-    serviceId: props.serviceId,
-    bucket: props.bucketName,
-    path: route.query.path as string
-  })
+  void store.addPathTable(
+    props.serviceId,
+    props.bucketName,
+    route.query.path as string
+  )
 }
 
 // setup时调用一次
@@ -116,7 +116,7 @@ const formatSize = useFormatSize(1024)
 
     <q-separator/>
 
-    <q-tab-panels style="min-width: 1230px;" :model-value="tab" animated>
+    <q-tab-panels  :model-value="tab" animated>
 
       <q-tab-panel
         name="object"

@@ -148,8 +148,8 @@ const columns = computed(() => [
       <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('删除存储桶')"
              :disable="selected.length === 0"
              @click="store.triggerDeleteBucketDialog({bucketNames: selected.map((bucket: BucketInterface) => bucket.name)})"/>
-      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')"
-             @click="navigateToUrl('/my/storage/bucket/search')"/>
+<!--      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')"-->
+<!--             @click="navigateToUrl('/my/storage/bucket/search')"/>-->
     </div>
 
     <!--    <div class="row items-center q-gutter-sm q-py-sm text-grey">-->

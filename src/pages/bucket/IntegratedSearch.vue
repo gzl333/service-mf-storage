@@ -86,10 +86,10 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="SearchList">
-    <div class="row items-center title-area q-mt-lg">
-      <q-btn icon="arrow_back_ios" color="primary" flat unelevated dense @click="router.back()"/>
-      <span class="text-primary text-h6 text-weight-bold">{{ tc('返回上一级') }}</span>
-    </div>
+<!--    <div class="row items-center title-area q-mt-lg">-->
+<!--      <q-btn icon="arrow_back_ios" color="primary" flat unelevated dense @click="router.back()"/>-->
+<!--      <span class="text-primary text-h6 text-weight-bold">{{ tc('返回上一级') }}</span>-->
+<!--    </div>-->
     <div class="row items-center q-mt-md">
       <div class="col-2">
         <q-select outlined dense :label="tc('请选择存储桶')" v-model="defaultBucket" option-value="id"

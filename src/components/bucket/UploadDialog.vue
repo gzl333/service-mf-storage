@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Ref, ref } from 'vue'
+import { computed, Ref, ref } from 'vue'
 import { useStore } from 'stores/store'
 import { useRoute } from 'vue-router'
 import { Notify, useDialogPluginComponent } from 'quasar'
@@ -22,8 +22,11 @@ const $route = useRoute()
 const store = useStore()
 const { tc } = i18n.global
 defineEmits([...useDialogPluginComponent.emits])
-const bucket = $route.query.bucket as string // string or undefined
+
 const path = $route.query.path as string
+const currentBucket = computed(() => store.tables.bucketTable.byLocalId[props.bucket_name])
+const currentService = computed(() => store.tables.serviceTable.byId[currentBucket?.value.service_id])
+
 const {
   dialogRef,
   onDialogHide,
@@ -223,7 +226,7 @@ const putObjPath = async (payload: { path: { objpath: string, bucket_name: strin
   const formData = new FormData()
   formData.append('file', payload.body.file)
   return axiosStorage({
-    url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
+    url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`, // todo 改成服务单元对应api
     method: 'put',
     cancelToken: source.token,
     data: formData,
@@ -236,10 +239,11 @@ const putObjPath = async (payload: { path: { objpath: string, bucket_name: strin
         if (isClose.value) {
           // 取消正在发的请求
           cancelUpload()
-          void await store.addPathTable({
-            bucket,
+          void await store.addPathTable(
+            currentService.value.id,
+            props.bucket_name,
             path
-          })
+          )
         }
       }
     }
@@ -321,10 +325,11 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
         objpath: fileName
       }
     })
-    void await store.addPathTable({
-      bucket,
+    void await store.addPathTable(
+      currentService.value.id,
+      props.bucket_name,
       path
-    })
+    )
     fileArr.value = []
     isUploading.value = false
   }
@@ -387,10 +392,11 @@ const upload = async () => {
       })
     }
     onDialogOK()
-    void await store.addPathTable({
-      bucket,
+    void await store.addPathTable(
+      currentService.value.id,
+      props.bucket_name,
       path
-    })
+    )
     fileArr.value = []
     isUploading.value = false
   } else {

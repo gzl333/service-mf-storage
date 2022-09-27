@@ -108,7 +108,7 @@ const services = computed(() => Object.values(store.tables.serviceTable.byId))
     </q-drawer>
 
     <q-page-container>
-      <q-scroll-area style="height: calc(100vh - 60px)">
+      <q-scroll-area style="height: calc(100vh - 60px); min-width: 1290px;">
         <router-view class="q-pa-md" :key="$route.fullPath"/>
       </q-scroll-area>
     </q-page-container>
