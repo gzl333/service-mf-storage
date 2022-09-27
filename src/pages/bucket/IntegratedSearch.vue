@@ -2,7 +2,7 @@
 import { ref, computed, Ref, onBeforeUnmount } from 'vue'
 import { useStore } from 'stores/store'
 import storage from 'src/api/index'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute/* , useRouter */ } from 'vue-router'
 import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
 import emitter from 'boot/mitt'
@@ -22,7 +22,7 @@ const firstBucket = computed(() => store.getFirstsBucket)
 const { tc } = i18n.global
 const store = useStore()
 const route = useRoute()
-const router = useRouter()
+// const router = useRouter()
 const bucket = route.query.bucket as string
 const defaultBucket = ref()
 const pathObj: Ref = ref({})

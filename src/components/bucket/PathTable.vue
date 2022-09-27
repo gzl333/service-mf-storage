@@ -2,7 +2,7 @@
 import { ref, computed, PropType, watch } from 'vue'
 import { FileInterface, PathInterface } from 'src/stores/store'
 import { useStore } from 'stores/store'
-import { useRoute } from 'vue-router'
+// import { useRoute } from 'vue-router'
 import { navigateToUrl } from 'single-spa'
 import { i18n } from 'boot/i18n'
 import storage from 'src/api/index'
@@ -19,10 +19,9 @@ const props = defineProps({
 // const emit = defineEmits(['change', 'delete'])
 // code starts...
 const store = useStore()
-const route = useRoute()
+// const route = useRoute()
 const { tc } = i18n.global
 
-const bucket = route.query.bucket as string
 const currentBucketName = computed(() => props.pathObj?.bucket_name)
 const currentPath = computed(() => props.pathObj?.dir_path)
 const currentServiceId = computed(() => props.pathObj.localId.split('/')[0])
@@ -273,8 +272,8 @@ watch(
              :disable="selected.length > 0 ? false : true"/>
       <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="shareFile"
              :disable="selected.length > 0 ? false : true"/>
-<!--      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')"-->
-<!--             @click="navigateToUrl(`/my/storage/bucket/search?bucket=${bucket}`)"/>-->
+      <!--      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')"-->
+      <!--             @click="navigateToUrl(`/my/storage/bucket/search?bucket=${bucket}`)"/>-->
     </div>
 
     <div class="row">
