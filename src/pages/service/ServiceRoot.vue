@@ -49,14 +49,14 @@ const currentService = computed(() => store.tables.serviceTable.byId[props.servi
 /* load bucket table */
 // setup时调用一次
 if (currentService.value?.endpoint_url) {
-  void store.addBucketTable(currentService.value.endpoint_url, currentService.value.id)
+  void store.addBucketTable(currentService.value.id)
 }
 
 // 刷新页面时，等待有效的service信息，再调用
 const unwatch = watch(currentService, () => {
   if (currentService.value?.endpoint_url) {
     // serviceTable已经加载，可以load bucketTable
-    void store.addBucketTable(currentService.value.endpoint_url, currentService.value.id)
+    void store.addBucketTable(currentService.value.id)
     // watcher已完成任务，注销
     unwatch()
   }

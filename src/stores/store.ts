@@ -314,7 +314,8 @@ export const useStore = defineStore('storage', {
       }
     },
     // bucketTable应从vms读取，是粗略的信息
-    async addBucketTable (base: string, serviceId: string) {
+    async addBucketTable (serviceId: string) {
+      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
       // 1. status改为loading
       this.tables.bucketTable.status = 'loading'
       try {
@@ -322,12 +323,12 @@ export const useStore = defineStore('storage', {
         const respGetBuckets = await api.storage.single.getBuckets({ base })
         for (const bucket of respGetBuckets.data.buckets) {
           Object.assign(this.tables.bucketTable.byLocalId, {
-            [bucket.name]: Object.assign(bucket, {
+            [serviceId + '/' + bucket.name]: Object.assign(bucket, {
               local_id: bucket.name,
               service_id: serviceId
             })
           })
-          this.tables.bucketTable.allLocalIds.unshift(Object.keys({ [bucket.name]: Object.assign(bucket, { local_id: bucket.name }) })[0])
+          this.tables.bucketTable.allLocalIds.unshift(Object.keys({ [serviceId + '/' + bucket.name]: Object.assign(bucket, { local_id: serviceId + '/' + bucket.name }) })[0])
           this.tables.bucketTable.allLocalIds = [...new Set(this.tables.bucketTable.allLocalIds)]
         }
         // 3. status改为total
@@ -338,7 +339,8 @@ export const useStore = defineStore('storage', {
       }
     },
     // bucketStatTable: 累积加载，localId
-    async addBucketStatTable (base: string, bucketName: string) {
+    async addBucketStatTable (serviceId: string, bucketName: string) {
+      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
       // 1. status改为loading
       this.tables.bucketStatTable.status = 'loading'
       // 2. 发送网络请求，格式化数据，保存对象
@@ -347,7 +349,7 @@ export const useStore = defineStore('storage', {
         path: { bucket_name: bucketName }
       })
       const item = {
-        [bucketName]: Object.assign({}, {
+        [serviceId + '/' + bucketName]: Object.assign({}, {
           localId: respGetStatsBucket.data.bucket_name,
           bucket_name: respGetStatsBucket.data.bucket_name,
           stats: respGetStatsBucket.data.stats,
@@ -361,7 +363,8 @@ export const useStore = defineStore('storage', {
       this.tables.bucketStatTable.status = 'part'
     },
     // bucketTokenTable: 累积加载，localId
-    async addBucketTokenTable (base: string, bucketName: string) {
+    async addBucketTokenTable (serviceId: string, bucketName: string) {
+      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
       // 1. status改为loading
       this.tables.bucketTokenTable.status = 'loading'
       // 2. 发送网络请求，格式化数据，保存对象
@@ -371,7 +374,7 @@ export const useStore = defineStore('storage', {
         path: { id_or_name: bucketName }
       })
       const item = {
-        [bucketName]: Object.assign({}, {
+        [serviceId + '/' + bucketName]: Object.assign({}, {
           localId: bucketName,
           bucket_name: bucketName,
           tokens: respGetBucketTokenList.data.tokens

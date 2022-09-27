@@ -39,18 +39,18 @@ if (!store.items.currentPath[4]) {
 }
 
 const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
-const currentBucket = computed(() => store.tables.bucketTable.byLocalId[props.bucketName])
-const currentBucketStat = computed(() => store.tables.bucketStatTable.byLocalId[props.bucketName])
-const currentBucketToken = computed(() => store.tables.bucketTokenTable.byLocalId[props.bucketName])
+const currentBucket = computed(() => store.tables.bucketTable.byLocalId[props.serviceId + '/' + props.bucketName])
+const currentBucketStat = computed(() => store.tables.bucketStatTable.byLocalId[props.serviceId + '/' + props.bucketName])
+const currentBucketToken = computed(() => store.tables.bucketTokenTable.byLocalId[props.serviceId + '/' + props.bucketName])
 
 /* 获取相关table对象 */
 
 const loadTables = () => {
   // 当前bucket统计对象
-  void store.addBucketStatTable(currentService.value?.endpoint_url, props.bucketName)
+  void store.addBucketStatTable(currentService.value?.id, props.bucketName)
 
   // 当前bucket token对象
-  void store.addBucketTokenTable(currentService.value?.endpoint_url, props.bucketName)
+  void store.addBucketTokenTable(currentService.value?.id, props.bucketName)
 
   // 当前path对象
   void store.addPathTable(
