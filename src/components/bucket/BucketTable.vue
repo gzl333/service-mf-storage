@@ -144,32 +144,13 @@ const columns = computed(() => [
 
     <div class="row q-gutter-x-md">
       <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('新建存储桶')"
-             @click="store.triggerCreateBucketDialog"/>
+             @click="store.triggerCreateBucketDialog(props.serviceId)"/>
       <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('删除存储桶')"
              :disable="selected.length === 0"
              @click="store.triggerDeleteBucketDialog({bucketNames: selected.map((bucket: BucketInterface) => bucket.name)})"/>
-<!--      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')"-->
-<!--             @click="navigateToUrl('/my/storage/bucket/search')"/>-->
+      <!--      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')"-->
+      <!--             @click="navigateToUrl('/my/storage/bucket/search')"/>-->
     </div>
-
-    <!--    <div class="row items-center q-gutter-sm q-py-sm text-grey">-->
-    <!--      -->
-    <!--      <q-breadcrumbs class="col-auto text-black cursor-pointer">-->
-    <!--        <template v-slot:separator>-->
-    <!--          <q-icon-->
-    <!--            size="xs"-->
-    <!--            name="chevron_right"-->
-    <!--            color="grey"-->
-    <!--          />-->
-    <!--        </template>-->
-    <!--        <q-breadcrumbs-el @click="navigateToUrl('/my/storage/bucket/' + currentService?.id)">-->
-    <!--          <div class="row items-center no-wrap cursor-pointer">-->
-    <!--            <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>-->
-    <!--            <div class="col-auto text-bold">{{ tc('全部存储桶') }}</div>-->
-    <!--          </div>-->
-    <!--        </q-breadcrumbs-el>-->
-    <!--      </q-breadcrumbs>-->
-    <!--    </div>-->
 
     <div class="row">
       <div class="col">
@@ -203,6 +184,7 @@ const columns = computed(() => [
               </q-td>
 
               <q-td key="name" :props="props">
+
                 <q-btn flat padding="none" no-caps
                        @click="navigateToUrl(`/my/storage/service/${currentServiceId}/bucket/${props.row.name}`)">
 
@@ -210,7 +192,16 @@ const columns = computed(() => [
                     <q-icon class="col-auto" size="sm" color="primary" name="mdi-database"/>
                     <div class="col-auto"> {{ clipText80(props.row.name) }}</div>
                   </div>
+
+                  <!--创建时间距离当下小于1小时则打上new标记-->
+                  <q-badge style="top:-10px;"
+                           v-if="(new Date() - new Date(props.row.created_time)) < 1000 * 60 * 60 * 1 "
+                           color="light-green" floating transparent rounded align="middle">
+                    new
+                  </q-badge>
+
                 </q-btn>
+
                 <q-btn v-if="hoverRow === props.row.name" class="col-shrink q-px-xs q-ma-none" flat dense
                        icon="content_copy" size="xs" color="primary"
                        @click="clickToCopy(props.row.name)">
@@ -221,6 +212,7 @@ const columns = computed(() => [
                 <q-btn v-else
                        class="col-shrink q-px-xs q-ma-none invisible" flat dense icon="content_copy" size="xs">
                 </q-btn>
+
               </q-td>
 
               <q-td key="creation" :props="props">

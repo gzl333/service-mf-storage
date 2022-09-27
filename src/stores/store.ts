@@ -333,7 +333,8 @@ export const useStore = defineStore('storage', {
               service_id: serviceId
             })
           })
-          this.tables.bucketTable.allLocalIds.unshift(Object.keys({ [serviceId + '/' + bucket.name]: Object.assign(bucket, { local_id: serviceId + '/' + bucket.name }) })[0])
+          // this.tables.bucketTable.allLocalIds.unshift(Object.keys({ [serviceId + '/' + bucket.name]: Object.assign(bucket, { local_id: serviceId + '/' + bucket.name }) })[0])
+          this.tables.bucketTable.allLocalIds.unshift(serviceId + '/' + bucket.name)
           this.tables.bucketTable.allLocalIds = [...new Set(this.tables.bucketTable.allLocalIds)]
         }
         // 3. status改为total
@@ -348,103 +349,117 @@ export const useStore = defineStore('storage', {
       const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
       // 1. status改为loading
       this.tables.bucketStatTable.status = 'loading'
-      // 2. 发送网络请求，格式化数据，保存对象
-      const respGetStatsBucket = await api.storage.single.getStatsBucket({
-        base,
-        path: { bucket_name: bucketName }
-      })
-      const item = {
-        [serviceId + '/' + bucketName]: Object.assign({}, {
-          localId: respGetStatsBucket.data.bucket_name,
-          bucket_name: respGetStatsBucket.data.bucket_name,
-          stats: respGetStatsBucket.data.stats,
-          stats_time: respGetStatsBucket.data.stats_time
+      try {
+        // 2. 发送网络请求，格式化数据，保存对象
+        const respGetStatsBucket = await api.storage.single.getStatsBucket({
+          base,
+          path: { bucket_name: bucketName }
         })
+        const item = {
+          [serviceId + '/' + bucketName]: Object.assign({}, {
+            localId: respGetStatsBucket.data.bucket_name,
+            bucket_name: respGetStatsBucket.data.bucket_name,
+            stats: respGetStatsBucket.data.stats,
+            stats_time: respGetStatsBucket.data.stats_time
+          })
+        }
+        Object.assign(this.tables.bucketStatTable.byLocalId, item)
+        // this.tables.bucketStatTable.allLocalIds.unshift(Object.keys(item)[0])
+        this.tables.bucketStatTable.allLocalIds.unshift(serviceId + '/' + bucketName)
+        this.tables.bucketStatTable.allLocalIds = [...new Set(this.tables.bucketStatTable.allLocalIds)]
+        // 3. status改为part
+        this.tables.bucketStatTable.status = 'part'
+      } catch (exception) {
+        exceptionNotifier(exception)
+        this.tables.bucketStatTable.status = 'error'
       }
-      Object.assign(this.tables.bucketStatTable.byLocalId, item)
-      this.tables.bucketStatTable.allLocalIds.unshift(Object.keys(item)[0])
-      this.tables.bucketStatTable.allLocalIds = [...new Set(this.tables.bucketStatTable.allLocalIds)]
-      // 3. status改为part
-      this.tables.bucketStatTable.status = 'part'
     },
     // bucketTokenTable: 累积加载，localId
     async addBucketTokenTable (serviceId: string, bucketName: string) {
       const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
       // 1. status改为loading
       this.tables.bucketTokenTable.status = 'loading'
-      // 2. 发送网络请求，格式化数据，保存对象
-      const respGetBucketTokenList = await api.storage.single.getBucketsIdOrNameTokenList({
-        base,
-        query: { 'by-name': true },
-        path: { id_or_name: bucketName }
-      })
-      const item = {
-        [serviceId + '/' + bucketName]: Object.assign({}, {
-          localId: bucketName,
-          bucket_name: bucketName,
-          tokens: respGetBucketTokenList.data.tokens
+      try {
+        // 2. 发送网络请求，格式化数据，保存对象
+        const respGetBucketTokenList = await api.storage.single.getBucketsIdOrNameTokenList({
+          base,
+          query: { 'by-name': true },
+          path: { id_or_name: bucketName }
         })
+        const item = {
+          [serviceId + '/' + bucketName]: Object.assign({}, {
+            localId: bucketName,
+            bucket_name: bucketName,
+            tokens: respGetBucketTokenList.data.tokens
+          })
+        }
+        Object.assign(this.tables.bucketTokenTable.byLocalId, item)
+        // this.tables.bucketTokenTable.allLocalIds.unshift(Object.keys(item)[0])
+        this.tables.bucketTokenTable.allLocalIds.unshift(serviceId + '/' + bucketName)
+        this.tables.bucketTokenTable.allLocalIds = [...new Set(this.tables.bucketTokenTable.allLocalIds)]
+        // 3. status改为part
+        this.tables.bucketTokenTable.status = 'part'
+      } catch (exception) {
+        exceptionNotifier(exception)
+        this.tables.bucketTokenTable.status = 'error'
       }
-      Object.assign(this.tables.bucketTokenTable.byLocalId, item)
-      this.tables.bucketTokenTable.allLocalIds.unshift(Object.keys(item)[0])
-      this.tables.bucketTokenTable.allLocalIds = [...new Set(this.tables.bucketTokenTable.allLocalIds)]
-      // 3. status改为part
-      this.tables.bucketTokenTable.status = 'part'
     },
     // PathTable: 累积加载，localId (serviceId-bucketName/path1/path2)
     async addPathTable (serviceId: string, bucketName: string, path?: string) {
       const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
       // 1. status改为loading
       this.tables.pathTable.status = 'loading'
-      // 2. 判断是桶根目录还是次级目录，判断是否已经有了: 没有发送网络请求，格式化数据，保存对象
-      // const currentPath = payload.bucket + (payload.path ? ('/' + payload.path) : '')
-      // if (!context.state.tables.pathTable.allLocalIds.includes(currentPath)) {
-      if (!path) { // 桶的根目录
-        const respGetDirBucket = await api.storage.single.getDirBucketName({
-          base,
-          path: { bucket_name: bucketName }
-        })
-        const item = {
-          [serviceId + '/' + bucketName]: Object.assign({}, {
-            localId: serviceId + '/' + bucketName,
-            bucket_name: respGetDirBucket.data.bucket_name,
-            dir_path: respGetDirBucket.data.dir_path,
-            files: respGetDirBucket.data.files
+      try {
+        // 2. 判断是桶根目录还是次级目录，判断是否已经有了: 没有发送网络请求，格式化数据，保存对象
+        // const currentPath = payload.bucket + (payload.path ? ('/' + payload.path) : '')
+        // if (!context.state.tables.pathTable.allLocalIds.includes(currentPath)) {
+        if (!path) { // 桶的根目录
+          const respGetDirBucket = await api.storage.single.getDirBucketName({
+            base,
+            path: { bucket_name: bucketName }
           })
-        }
-        Object.assign(this.tables.pathTable.byLocalId, item)
-        this.tables.pathTable.allLocalIds.unshift(Object.keys(item)[0])
-        this.tables.pathTable.allLocalIds = [...new Set(this.tables.pathTable.allLocalIds)]
-      } else { // 次级目录
-        const respGetDirPath = await api.storage.single.getDirBucketNameDirPath({
-          base: this.tables.serviceTable.byId[serviceId].endpoint_url,
-          path: {
-            bucket_name: bucketName,
-            dirpath: path
+          const item = {
+            [serviceId + '/' + bucketName]: Object.assign({}, {
+              localId: serviceId + '/' + bucketName,
+              bucket_name: respGetDirBucket.data.bucket_name,
+              dir_path: respGetDirBucket.data.dir_path,
+              files: respGetDirBucket.data.files
+            })
           }
-        })
-        const item = {
-          [serviceId + '/' + bucketName + '/' + path]: Object.assign({}, {
-            localId: serviceId + '/' + bucketName + '/' + respGetDirPath.data.dir_path,
-            bucket_name: respGetDirPath.data.bucket_name,
-            dir_path: respGetDirPath.data.dir_path,
-            files: respGetDirPath.data.files
+          Object.assign(this.tables.pathTable.byLocalId, item)
+          // this.tables.pathTable.allLocalIds.unshift(Object.keys(item)[0])
+          this.tables.pathTable.allLocalIds.unshift(serviceId + '/' + bucketName)
+          this.tables.pathTable.allLocalIds = [...new Set(this.tables.pathTable.allLocalIds)]
+        } else { // 次级目录
+          const respGetDirPath = await api.storage.single.getDirBucketNameDirPath({
+            base: this.tables.serviceTable.byId[serviceId].endpoint_url,
+            path: {
+              bucket_name: bucketName,
+              dirpath: path
+            }
           })
+          const item = {
+            [serviceId + '/' + bucketName + '/' + path]: Object.assign({}, {
+              localId: serviceId + '/' + bucketName + '/' + respGetDirPath.data.dir_path,
+              bucket_name: respGetDirPath.data.bucket_name,
+              dir_path: respGetDirPath.data.dir_path,
+              files: respGetDirPath.data.files
+            })
+          }
+          Object.assign(this.tables.pathTable.byLocalId, item)
+          // this.tables.pathTable.allLocalIds.unshift(Object.keys(item)[0])
+          this.tables.pathTable.allLocalIds.unshift(serviceId + '/' + bucketName + '/' + path)
+          this.tables.pathTable.allLocalIds = [...new Set(this.tables.pathTable.allLocalIds)]
         }
-        Object.assign(this.tables.pathTable.byLocalId, item)
-        this.tables.pathTable.allLocalIds.unshift(Object.keys(item)[0])
-        this.tables.pathTable.allLocalIds = [...new Set(this.tables.pathTable.allLocalIds)]
+        // }
+        // 3. status改为part
+        this.tables.pathTable.status = 'part'
+      } catch (exception) {
+        exceptionNotifier(exception)
+        this.tables.pathTable.status = 'error'
       }
-      // }
-      // 3. status改为part
-      this.tables.pathTable.status = 'part'
     },
-    // 新建桶
-    async storeBucket (payload: { table: BucketTableInterface, item: Record<string, string> }) {
-      Object.assign(this.tables.bucketTable.byLocalId, payload.item)
-      this.tables.bucketTable.allLocalIds.unshift(Object.keys(payload.item)[0])
-      this.tables.bucketTable.allLocalIds = [...new Set(this.tables.bucketTable.allLocalIds)]
-    },
+
     // 删除桶
     async deleteBucket (payload: { id: string }) {
       this.tables.bucketTable.allLocalIds = this.tables.bucketTable.allLocalIds.filter((id: string) => id !== payload.id)
@@ -515,9 +530,12 @@ export const useStore = defineStore('storage', {
       }
     },
     /* dialogs */
-    triggerCreateBucketDialog () {
+    triggerCreateBucketDialog (serviceId: string) {
       Dialog.create({
-        component: BucketCreateDialog
+        component: BucketCreateDialog,
+        componentProps: {
+          serviceId
+        }
       })
     },
     // 新建文件夹

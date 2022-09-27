@@ -11,7 +11,7 @@ export default function () {
         icon: 'mdi-alert',
         textColor: 'negative',
         message: exception?.response?.status + ' - ' + exception?.response?.data.code,
-        caption: exception?.response?.data.message,
+        caption: exception?.response?.data.code_text, // exception?.response?.data.message
         position: 'bottom',
         // closeBtn: true,
         timeout: 5000,
