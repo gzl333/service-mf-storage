@@ -5,9 +5,11 @@ import { useStore } from 'stores/store'
 import { useRoute/* , useRouter */ } from 'vue-router'
 import { i18n } from 'boot/i18n'
 
+import PasswordToggle from 'components/ui/PasswordToggle.vue'
 import AccessStatus from 'components/ui/AccessStatus.vue'
 import PathTable from 'components/bucket/PathTable.vue'
 import useFormatSize from 'src/hooks/useFormatSize'
+import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 
 const props = defineProps({
   serviceId: {
@@ -80,6 +82,7 @@ const path = route.query.path as string
 const currentPath = computed(() => store.tables.pathTable.byLocalId[props.serviceId + '/' + props.bucketName + (path ? ('/' + path) : '')])
 
 const formatSize = useFormatSize(1024)
+const clickToCopy = useCopyToClipboard()
 </script>
 
 <template>
@@ -264,8 +267,15 @@ const formatSize = useFormatSize(1024)
                 <div class="col text-grey">
                   Web 访问权限
                 </div>
-                <div class="col">
-                  {{ currentBucket?.access_permission }}
+                <div class="col row items-center">
+                  <q-toggle
+                    :model-value="currentBucket?.access_permission === '公有'"
+                    :icon="currentBucket?.access_permission === '私有' ? 'mdi-lock' : 'mdi-lock-open-variant'"
+                    :color="currentBucket?.access_permission === '私有' ? 'primary' : 'green'"
+                    keep-color
+                    @click="store.toggleBucketAccess(props.serviceId, props.bucketName)"
+                  />
+                  <div>{{ currentBucket?.access_permission }}</div>
                 </div>
               </div>
 
@@ -314,8 +324,14 @@ const formatSize = useFormatSize(1024)
                 <div class="col text-grey">
                   FTP 状态
                 </div>
-                <div class="col">
-                  {{ currentBucket?.ftp_enable }}
+                <div class="col row items-center">
+                  <q-toggle
+                    :model-value="currentBucket?.ftp_enable"
+                    :icon="currentBucket?.ftp_enable ? 'check' : 'close'"
+                    color="green"
+                    @click="store.toggleBucketFtp(props.serviceId, props.bucketName)"
+                  />
+                  {{ currentBucket?.ftp_enable ? '开启' : '关闭' }}
                 </div>
               </div>
 
@@ -328,8 +344,31 @@ const formatSize = useFormatSize(1024)
                 <div class="col text-grey">
                   FTP 只读密码
                 </div>
-                <div class="col">
-                  {{ currentBucket?.ftp_password }}
+                <div class="col row items-center">
+                  <PasswordToggle :text="currentBucket?.ftp_ro_password"/>
+
+                  <q-btn class="q-px-xs"
+                         flat
+                         color="primary"
+                         icon="content_copy"
+                         size="sm"
+                         @click="clickToCopy(currentBucket?.ftp_ro_password, true)">
+                    <q-tooltip>
+                      {{ tc('复制') }}
+                    </q-tooltip>
+                  </q-btn>
+
+                  <q-btn icon="edit"
+                         size="sm"
+                         dense
+                         flat
+                         color="primary"
+                         @click="store.triggerEditBucketFtpPasswordDialog(props.serviceId, props.bucketName, true)">
+                    <q-tooltip>
+                      {{ tc('修改') }}
+                    </q-tooltip>
+                  </q-btn>
+
                 </div>
               </div>
 
@@ -342,8 +381,31 @@ const formatSize = useFormatSize(1024)
                 <div class="col text-grey">
                   FTP 读写密码
                 </div>
-                <div class="col">
-                  {{ currentBucket?.ftp_ro_password }}
+                <div class="col row items-center">
+                  <PasswordToggle :text="currentBucket?.ftp_password"/>
+
+                  <q-btn class="q-px-xs"
+                         flat
+                         color="primary"
+                         icon="content_copy"
+                         size="sm"
+                         @click="clickToCopy(currentBucket?.ftp_password, true)">
+                    <q-tooltip>
+                      {{ tc('复制') }}
+                    </q-tooltip>
+                  </q-btn>
+
+                  <q-btn icon="edit"
+                         size="sm"
+                         dense
+                         flat
+                         color="primary"
+                         @click="store.triggerEditBucketFtpPasswordDialog(props.serviceId, props.bucketName, false)">
+                    <q-tooltip>
+                      {{ tc('修改') }}
+                    </q-tooltip>
+                  </q-btn>
+
                 </div>
               </div>
 

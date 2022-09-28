@@ -7,6 +7,7 @@ import { i18n } from 'boot/i18n'
 
 import type { BucketInterface } from 'stores/store'
 
+import AccessStatus from 'components/ui/AccessStatus.vue'
 import useClipText from 'src/hooks/useClipText'
 import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 import useFormatSize from 'src/hooks/useFormatSize'
@@ -220,23 +221,23 @@ const columns = computed(() => [
               </q-td>
 
               <q-td key="access" :props="props">
-                <q-toggle
-                  :model-value="props.row.access_permission === '私有'"
-                  icon="lock"
-                  color="primary"
-                  keep-color
-                  @click="store.toggleBucketAccess({bucketName: props.row.name})"
-                />
-                {{ tc(props.row.access_permission) }}
+                <!--                <q-toggle-->
+                <!--                  :model-value="props.row.access_permission === '私有'"-->
+                <!--                  icon="lock"-->
+                <!--                  color="primary"-->
+                <!--                  keep-color-->
+                <!--                  @click="store.toggleBucketAccess({bucketName: props.row.name})"-->
+                <!--                />-->
+                <AccessStatus :is-private="props.row.access_permission === '私有'"/>
               </q-td>
 
               <q-td key="ftp" :props="props">
-                <q-toggle
-                  :model-value="props.row.ftp_enable"
-                  color="positive"
-                  keep-color
-                  @click="store.toggleBucketFtp({bucketName: props.row.name})"
-                />
+                <!--                <q-toggle-->
+                <!--                  :model-value="props.row.ftp_enable"-->
+                <!--                  color="positive"-->
+                <!--                  keep-color-->
+                <!--                  @click="store.toggleBucketFtp({bucketName: props.row.name})"-->
+                <!--                />-->
                 {{ props.row.ftp_enable === false ? tc('关闭') : tc('开启') }}
               </q-td>
 

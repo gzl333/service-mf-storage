@@ -27,7 +27,7 @@
     私有访问
   </q-chip>
 
-  <q-chip v-else color="primary" text-color="green" size="sm" icon="mdi-lock-open-variant">
+  <q-chip v-else color="green" text-color="white" size="sm" icon="mdi-lock-open-variant">
     公有访问
   </q-chip>
 

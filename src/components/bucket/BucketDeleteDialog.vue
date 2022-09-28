@@ -47,7 +47,7 @@ const onOKClick = async () => {
     message: `${tc('正在删除存储桶')}...`,
     position: 'bottom',
     // closeBtn: true,
-    timeout: 5000,
+    // timeout: 5000,
     multiLine: true
   })
   try {
