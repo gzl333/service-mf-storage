@@ -5,6 +5,7 @@ import { useStore } from 'stores/store'
 import { useRoute/* , useRouter */ } from 'vue-router'
 import { i18n } from 'boot/i18n'
 
+import AccessStatus from 'components/ui/AccessStatus.vue'
 import PathTable from 'components/bucket/PathTable.vue'
 import useFormatSize from 'src/hooks/useFormatSize'
 
@@ -90,7 +91,12 @@ const formatSize = useFormatSize(1024)
         {{ currentBucket?.name }}
         <q-tooltip> {{ tc('进入存储桶根目录') }}</q-tooltip>
       </div>
-      <div class="col-auto q-px-md text-caption">{{ currentBucket?.remarks }}</div>
+      <AccessStatus class="col-auto" :is-private="currentBucket?.access_permission === '私有'"/>
+
+    </div>
+
+    <div class="row">
+      <div class="col-auto text-caption">{{ currentBucket?.remarks }}</div>
     </div>
 
     <q-tabs
@@ -116,7 +122,7 @@ const formatSize = useFormatSize(1024)
 
     <q-separator/>
 
-    <q-tab-panels  :model-value="tab" animated>
+    <q-tab-panels :model-value="tab" animated>
 
       <q-tab-panel
         name="object"
