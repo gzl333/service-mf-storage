@@ -501,14 +501,6 @@ export const useStore = defineStore('storage', {
         this.tables.pathTable.status = 'error'
       }
     },
-    // 修改读写只读密码
-    async storeFtpPassword (payload: { id: string, field: string, value: string }) {
-      if (payload.field === 'ftp_password') {
-        this.tables.bucketTable.byLocalId[payload.id].ftp_password = payload.value
-      } else if (payload.field === 'ftp_ro_password') {
-        this.tables.bucketTable.byLocalId[payload.id].ftp_ro_password = payload.value
-      }
-    },
     // 修改桶备注
     async storeBucketNote (payload: { id: string, value: string }) {
       this.tables.bucketTable.byLocalId[payload.id].remarks = payload.value

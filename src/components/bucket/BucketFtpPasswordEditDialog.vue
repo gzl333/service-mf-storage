@@ -7,7 +7,6 @@ import storage from 'src/api/index'
 
 import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
 
-
 const props = defineProps({
   serviceId: {
     type: String,

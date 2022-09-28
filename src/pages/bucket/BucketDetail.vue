@@ -5,9 +5,11 @@ import { useStore } from 'stores/store'
 import { useRoute/* , useRouter */ } from 'vue-router'
 import { i18n } from 'boot/i18n'
 
+import TokenDetail from 'components/bucket/TokenDetail.vue'
 import PasswordToggle from 'components/ui/PasswordToggle.vue'
 import AccessStatus from 'components/ui/AccessStatus.vue'
 import PathTable from 'components/bucket/PathTable.vue'
+
 import useFormatSize from 'src/hooks/useFormatSize'
 import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 
@@ -44,7 +46,7 @@ if (!store.items.currentPath[4]) {
 const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
 const currentBucket = computed(() => store.tables.bucketTable.byLocalId[props.serviceId + '/' + props.bucketName])
 const currentBucketStat = computed(() => store.tables.bucketStatTable.byLocalId[props.serviceId + '/' + props.bucketName])
-const currentBucketToken = computed(() => store.tables.bucketTokenTable.byLocalId[props.serviceId + '/' + props.bucketName])
+const currentBucketTokenSet = computed(() => store.tables.bucketTokenTable.byLocalId[props.serviceId + '/' + props.bucketName])
 
 /* 获取相关table对象 */
 
@@ -299,8 +301,11 @@ const clickToCopy = useCopyToClipboard()
                 <div class="col text-grey">
                   存储桶token
                 </div>
-                <div class="col">
-                  {{ currentBucketToken?.tokens }}
+                <div class="col column">
+                  <TokenDetail v-for="token in currentBucketTokenSet?.tokens" :key="token.key" :token="token"/>
+                  <!--                  <div v-for="token in currentBucketTokenSet?.tokens" :key="token.key">-->
+                  <!--                    {{ token }}-->
+                  <!--                  </div>-->
                 </div>
               </div>
 
