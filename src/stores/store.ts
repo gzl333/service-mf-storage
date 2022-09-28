@@ -681,12 +681,14 @@ export const useStore = defineStore('storage', {
         }
       })
     },
-    triggerEditBucketFtpPasswordDialog (payload: { bucketName: string, isRo: boolean }) {
+    // 修改存储桶ftp密码
+    triggerEditBucketFtpPasswordDialog (serviceId: string, bucketName: string, isRo: boolean) {
       Dialog.create({
         component: BucketFtpPasswordEditDialog,
         componentProps: {
-          bucketName: payload.bucketName,
-          isRo: payload.isRo
+          serviceId,
+          bucketName,
+          isRo
         }
       })
     },
@@ -715,27 +717,43 @@ export const useStore = defineStore('storage', {
         }
       })
     },
-    async toggleBucketAccess (payload: { bucketName: string }) {
-      const respPatchAccess = await api.storage.api.patchBucketsIdOrName({
-        path: { id_or_name: payload.bucketName },
-        query: {
-          'by-name': true,
-          public: this.tables.bucketTable.byLocalId[payload.bucketName]?.access_permission === '私有' ? 1 : 2
-        }
-      })
-      if (respPatchAccess.data.code === 200) {
-        this.tables.bucketTable.byLocalId[payload.bucketName].access_permission = respPatchAccess.data.public === 1 ? '公有' : '私有'
+    // 切换存储桶web访问权限
+    async toggleBucketAccess (serviceId: string, bucketName: string) {
+      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
+      this.tables.bucketTable.status = 'loading'
+      try {
+        const respPatchAccess = await api.storage.single.patchBucketsIdOrName({
+          base,
+          path: { id_or_name: bucketName },
+          query: {
+            'by-name': true,
+            public: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.access_permission === '私有' ? 1 : 2
+          }
+        })
+        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].access_permission = respPatchAccess.data.public === 1 ? '公有' : '私有'
+        this.tables.bucketTable.status = 'part'
+      } catch (exception) {
+        this.tables.bucketTable.status = 'error'
+        exceptionNotifier(exception)
       }
     },
-    async toggleBucketFtp (payload: { bucketName: string }) {
-      const respPatchFtp = await api.storage.api.patchFtpBucketName({
-        path: { bucket_name: payload.bucketName },
-        query: {
-          enable: this.tables.bucketTable.byLocalId[payload.bucketName]?.ftp_enable !== true
-        }
-      })
-      if (respPatchFtp.data.code === 200) {
-        this.tables.bucketTable.byLocalId[payload.bucketName].ftp_enable = respPatchFtp.data.data.enable
+    // 切换存储桶FTP状态
+    async toggleBucketFtp (serviceId: string, bucketName: string) {
+      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
+      this.tables.bucketTable.status = 'loading'
+      try {
+        const respPatchFtp = await api.storage.single.patchFtpBucketName({
+          base,
+          path: { bucket_name: bucketName },
+          query: {
+            enable: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.ftp_enable !== true
+          }
+        })
+        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].ftp_enable = respPatchFtp.data.data.enable
+        this.tables.bucketTable.status = 'part'
+      } catch (exception) {
+        this.tables.bucketTable.status = 'error'
+        exceptionNotifier(exception)
       }
     }
   }

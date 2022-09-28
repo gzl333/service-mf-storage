@@ -4,6 +4,7 @@ import { useStore } from 'stores/store'
 import { Notify, QBtn, QInput, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import api from 'src/api/index'
+
 import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
 
 const props = defineProps({
@@ -37,6 +38,7 @@ const inputRef = ref<QInput>()
 const onOKClick = async () => {
   // validate bucket name, todo refine reg exp
   if (bucketName.value.length < 3 || bucketName.value.length > 64) {
+    inputRef.value!.focus()
     Notify.create({
       classes: 'notification-negative shadow-15',
       icon: 'las la-times-circle',
@@ -57,7 +59,7 @@ const onOKClick = async () => {
       message: `${tc('正在创建存储桶')}  ${bucketName.value}`,
       position: 'bottom',
       // closeBtn: true,
-      timeout: 5000,
+      // timeout: 5000,
       multiLine: true
     })
     // submit creation

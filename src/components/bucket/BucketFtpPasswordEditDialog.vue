@@ -1,19 +1,26 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useStore } from 'stores/store'
 import { i18n } from 'boot/i18n'
-
 import { Notify, QInput, useDialogPluginComponent } from 'quasar'
 import storage from 'src/api/index'
 
+import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
+
+
 const props = defineProps({
+  serviceId: {
+    type: String,
+    required: true
+  },
   bucketName: {
     type: String,
     required: true
   },
   isRo: {
     type: Boolean,
-    required: true
+    required: true,
+    default: true
   }
 })
 defineEmits([...useDialogPluginComponent.emits])
@@ -30,54 +37,76 @@ const {
 } = useDialogPluginComponent()
 
 const onCancelClick = onDialogCancel
-const password = ref(store.tables.bucketTable.byLocalId[props.bucketName][props.isRo ? 'ftp_ro_password' : 'ftp_password'] || '')
 
+const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
+const password = ref(store.tables.bucketTable.byLocalId[props.serviceId + '/' + props.bucketName][props.isRo ? 'ftp_ro_password' : 'ftp_password'] || '')
 const inputRef = ref<QInput>()
+const isLoading = ref(false)
+const exceptionNotifier = useExceptionNotifier()
 
 const onOKClick = async () => {
   if (password.value.length < 6 || password.value.length > 20) {
+    inputRef.value!.focus()
     Notify.create({
       classes: 'notification-negative shadow-15',
       icon: 'las la-times-circle',
       textColor: 'negative',
-      message: `${tc('密码长度应为6-30个字符')}`,
+      message: `${tc('密码长度应为6-20个字符')}`,
       position: 'bottom',
-      closeBtn: true,
+      // closeBtn: true,
       timeout: 5000,
-      multiLine: false
+      multiLine: true
     })
   } else {
-    Notify.create({
+    isLoading.value = true
+    const dismissWorking = Notify.create({
       classes: 'notification-positive shadow-15',
       icon: 'las la-redo-alt',
       textColor: 'positive',
       message: `${tc('正在修改FTP密码')}...`,
       position: 'bottom',
-      closeBtn: true,
-      timeout: 5000,
+      // closeBtn: true,
+      // timeout: 5000,
       multiLine: false
     })
     try {
-      inputRef.value!.$props.loading = true
-      const respPatchFtpPassword = await storage.storage.api.patchFtpBucketName({
+      // req
+      const respPatchFtpPassword = await storage.storage.single.patchFtpBucketName({
+        base: currentService?.value.endpoint_url,
         path: { bucket_name: props.bucketName },
         query: props.isRo ? { ro_password: password.value } : { password: password.value }
       })
-      await store.storeFtpPassword({ id: props.bucketName, field: props.isRo ? 'ftp_ro_password' : 'ftp_password', value: props.isRo ? respPatchFtpPassword.data.data.ro_password : respPatchFtpPassword.data.data.password })
+
+      // store new password in table
+      if (props.isRo) {
+        store.tables.bucketTable.byLocalId[props.serviceId + '/' + props.bucketName].ftp_ro_password = respPatchFtpPassword.data.data.ro_password
+      } else {
+        store.tables.bucketTable.byLocalId[props.serviceId + '/' + props.bucketName].ftp_password = respPatchFtpPassword.data.data.password
+      }
+
+      // close working notification
+      dismissWorking()
+      isLoading.value = false
+
+      // success notification
       Notify.create({
         classes: 'notification-positive shadow-15',
         icon: 'check_circle',
         textColor: 'positive',
         message: `${tc('成功修改FTP密码')}`,
         position: 'bottom',
-        closeBtn: true,
+        // closeBtn: true,
         timeout: 5000,
-        multiLine: false
+        multiLine: true
       })
+
+      // close dialog
       onDialogOK()
-    } catch (error: unknown) {
+    } catch (exception) {
       inputRef.value!.focus()
-      // leave it to axios
+      dismissWorking()
+      isLoading.value = false
+      exceptionNotifier(exception)
     }
   }
 }
@@ -89,8 +118,11 @@ const onOKClick = async () => {
     <q-card class="q-dialog-plugin dialog-primary">
 
       <q-card-section class="row items-center justify-center q-pb-md">
-<!--        <div class="text-primary">{{ '修改' + props.bucketName + '的FTP密码' }}</div>-->
-        <div class="text-primary">{{ tc('修改存储桶FTP密码') }}</div>
+        <!--        <div class="text-primary">{{ '修改' + props.bucketName + '的FTP密码' }}</div>-->
+        <div class="text-primary">{{
+            props.bucketName
+          }}-{{ props.isRo ? tc('修改FTP只读密码') : tc('修改FTP密码') }}
+        </div>
         <q-space/>
         <q-btn icon="close" flat dense size="sm" v-close-popup/>
       </q-card-section>
@@ -115,8 +147,8 @@ const onOKClick = async () => {
       <q-separator/>
 
       <q-card-actions align="between">
-        <q-btn class="q-ma-sm" color="primary" :label="tc('修改')" no-caps unelevated @click="onOKClick"/>
         <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('修改')" no-caps unelevated @click="onOKClick"/>
       </q-card-actions>
     </q-card>
   </q-dialog>
