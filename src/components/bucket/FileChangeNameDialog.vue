@@ -2,16 +2,23 @@
 import { ref } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, QInput, useDialogPluginComponent } from 'quasar'
-import storage from 'src/api/index'
 import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
 
 const props = defineProps({
+  domain: {
+    type: String,
+    required: true
+  },
   bucket_name: {
     type: String,
     required: true
   },
   objpath: {
+    type: String,
+    required: true
+  },
+  dirName: {
     type: String,
     required: true
   },
@@ -22,6 +29,8 @@ const props = defineProps({
 })
 const store = useStore()
 const { tc } = i18n.global
+const dirName = ref(props.dirName)
+const inputRef = ref<QInput>()
 defineEmits([...useDialogPluginComponent.emits])
 
 const {
@@ -77,15 +86,16 @@ const onOKClick = async () => {
       multiLine: false
     })
     try {
-      const respGetDir = await storage.storage.api.postObjPath({ path: { objpath: props.objpath, bucket_name: props.bucket_name }, query: { rename: dirName.value } })
+      await store.changeObjNameItem({ domain: props.domain, path: { bucket_name: props.bucket_name, objPath: props.objpath }, query: { rename: dirName.value } })
+      // const respGetDir = await storage.storage.api.postObjPath({ path: { bucket_name: props.bucket_name, objpath: props.objpath }, query: { rename: dirName.value } })
       if (!props.isSearch) {
-        await store.changeObjName({
-          item: {
-            bucket_name: props.bucket_name,
-            dirName: props.objpath,
-            newName: respGetDir.data.obj.name
-          }
-        })
+        // await store.changeObjName({
+        //   item: {
+        //     bucket_name: props.bucket_name,
+        //     dirName: props.objpath,
+        //     newName: respGetDir.data.obj.name
+        //   }
+        // })
       } else {
         emitter.emit('done', true)
       }
@@ -107,8 +117,6 @@ const onOKClick = async () => {
   }
 }
 const onCancelClick = onDialogCancel
-const dirName = ref(props.objpath)
-const inputRef = ref<QInput>()
 </script>
 
 <template>

@@ -67,7 +67,7 @@ const services = computed(() => Object.values(store.tables.serviceTable.byId))
 
             <q-item
               clickable
-              :active="activeItemLabel === 'search'"
+              :active="activeItemLabel === 'searchundefined'"
               @click="navigateToUrl('/my/storage/search')"
               active-class="active-item"
             >

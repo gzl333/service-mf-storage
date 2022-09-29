@@ -8,6 +8,10 @@ import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
 
 const props = defineProps({
+  domain: {
+    type: String,
+    required: true
+  },
   bucket_name: {
     type: String,
     required: true
@@ -112,30 +116,32 @@ const share = async () => {
     if (props.pathObj.fileArrs && props.pathObj.fileArrs.length > 0) {
       if (isPass.value === false) {
         for (const item of props.pathObj.fileArrs) {
-          void await storage.storage.api.patchObjPath({
-            path: {
-              bucket_name: props.bucket_name,
-              objpath: item
-            },
-            query: {
-              share: shareQuery.value.share,
-              days: shareQuery.value.days
-            }
-          })
+          await store.shareObjItem({ domain: props.domain, path: { bucket_name: props.bucket_name, objPath: item }, query: { share: shareQuery.value.share, days: shareQuery.value.days } })
+          // void await storage.storage.api.patchObjPath({
+          //   path: {
+          //     bucket_name: props.bucket_name,
+          //     objpath: item
+          //   },
+          //   query: {
+          //     share: shareQuery.value.share,
+          //     days: shareQuery.value.days
+          //   }
+          // })
         }
       } else {
         for (const item of props.pathObj.fileArrs) {
-          void await storage.storage.api.patchObjPath({
-            path: {
-              bucket_name: props.bucket_name,
-              objpath: item
-            },
-            query: {
-              share: shareQuery.value.share,
-              days: shareQuery.value.days,
-              password: ''
-            }
-          })
+          await store.shareObjItem({ domain: props.domain, path: { bucket_name: props.bucket_name, objPath: item }, query: { share: shareQuery.value.share, days: shareQuery.value.days, password: '' } })
+          // void await storage.storage.api.patchObjPath({
+          //   path: {
+          //     bucket_name: props.bucket_name,
+          //     objpath: item
+          //   },
+          //   query: {
+          //     share: shareQuery.value.share,
+          //     days: shareQuery.value.days,
+          //     password: ''
+          //   }
+          // })
         }
       }
     }
