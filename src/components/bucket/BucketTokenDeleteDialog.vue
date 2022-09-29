@@ -1,17 +1,24 @@
 <script lang="ts" setup>
-import { ref, onBeforeMount } from 'vue'
+import { ref, onBeforeMount, computed } from 'vue'
 import { useStore } from 'stores/store'
 import { i18n } from 'boot/i18n'
-
 import { Notify, useDialogPluginComponent } from 'quasar'
-import storage from 'src/api/index'
+import api from 'src/api/index'
+
+import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
 
 const props = defineProps({
+  serviceId: {
+    type: String,
+    required: true,
+    default: ''
+  },
   bucketName: {
     type: String,
-    required: true
+    required: true,
+    default: ''
   },
-  token: {
+  tokenKey: {
     type: String,
     required: true
   }
@@ -36,42 +43,58 @@ const {
   onDialogCancel
 } = useDialogPluginComponent()
 
+const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
+const exceptionNotifier = useExceptionNotifier()
 const onCancelClick = onDialogCancel
 const check = ref(false)
+const isLoading = ref(false)
 
 const onOKClick = async () => {
+  // init
+  isLoading.value = true
+  const dismissWorking = Notify.create({
+    classes: 'notification-positive shadow-15',
+    icon: 'las la-redo-alt',
+    textColor: 'positive',
+    spinner: true,
+    message: `${tc('正在删除token:')}  ${props.tokenKey}`,
+    position: 'bottom',
+    // closeBtn: true,
+    // timeout: 5000,
+    multiLine: true
+  })
   try {
-    // Notify.create({
-    //   classes: 'notification-positive shadow-15',
-    //   icon: 'las la-redo-alt',
-    //   textColor: 'positive',
-    //   message: '正在删除token...',
-    //   position: 'bottom',
-    //   closeBtn: true,
-    //   timeout: 5000,
-    //   multiLine: false
-    // })
-    const respDeleteToken = await storage.storage.api.deleteBucketToken({ path: { token: props.token } })
+    // req
+    void await api.storage.single.deleteBucketToken({
+      base: currentService.value?.endpoint_url,
+      path: { token: props.tokenKey }
+    })
 
-    if (respDeleteToken.status === 204) {
-      await store.storeBucketToken({
-        id: props.bucketName,
-        value: store.tables.bucketTokenTable.byLocalId[props.bucketName].tokens.filter(token => token.key !== props.token)
-      })
-      Notify.create({
-        classes: 'notification-positive shadow-15',
-        icon: 'check_circle',
-        textColor: 'positive',
-        message: `${tc('成功删除token')}`,
-        position: 'bottom',
-        closeBtn: true,
-        timeout: 5000,
-        multiLine: false
-      })
-      onDialogOK()
-    }
-  } catch (error) {
-    // do nothing
+    // update tokens
+    store.tables.bucketTokenTable.byLocalId[props.serviceId + '/' + props.bucketName].tokens =
+      store.tables.bucketTokenTable.byLocalId[props.serviceId + '/' + props.bucketName].tokens.filter(token => token.key !== props.tokenKey)
+
+    // close working notification
+    dismissWorking()
+    isLoading.value = false
+
+    // success notification
+    Notify.create({
+      classes: 'notification-positive shadow-15',
+      icon: 'check_circle',
+      textColor: 'positive',
+      message: `${tc('成功删除token')}`,
+      position: 'bottom',
+      closeBtn: true,
+      timeout: 5000,
+      multiLine: false
+    })
+    // close dialog
+    onDialogOK()
+  } catch (exception) {
+    dismissWorking()
+    isLoading.value = false
+    exceptionNotifier(exception)
   }
 }
 
@@ -80,10 +103,10 @@ const onOKClick = async () => {
 <template>
   <!-- notice dialogRef here -->
   <q-dialog ref="dialogRef" @hide="onDialogHide">
-    <q-card class="q-dialog-plugin dialog-primary">
+    <q-card class="q-dialog-plugin dialog-negative">
 
       <q-card-section class="row items-center justify-center q-pb-md">
-        <div class="text-primary">{{ tc('删除token') }}</div>
+        <div class="text-negative">{{ tc('删除token') }}</div>
         <q-space/>
         <q-btn icon="close" flat dense size="sm" v-close-popup/>
       </q-card-section>
@@ -92,21 +115,30 @@ const onOKClick = async () => {
 
       <q-card-section>
 
-        <div class="row items-center">
-          <div class="col-2 text-grey-7">
-            {{ tc('所属存储桶') }}：
+        <div class="row items-center q-pb-md">
+          <div class="col-3 text-grey-7">
+            {{ tc('所属服务单元') }}：
           </div>
           <div class="col">
-            {{ props.bucketName }}
+            {{ i18n.global.locale === 'zh' ? currentService.name : currentService.name_en }}
           </div>
         </div>
 
-        <div class="row q-pt-lg items-center">
-          <div class="col-2 text-grey-7">
+        <div class="row items-center q-pb-md">
+          <div class="col-3 text-grey-7">
+            {{ tc('所属存储桶') }}：
+          </div>
+          <div class="col">
+            {{ bucketName }}
+          </div>
+        </div>
+
+        <div class="row items-center">
+          <div class="col-3 text-grey-7">
             token:
           </div>
           <div class="col">
-            {{ props.token }}
+            {{ tokenKey }}
           </div>
         </div>
 
@@ -133,9 +165,9 @@ const onOKClick = async () => {
       <q-separator/>
 
       <q-card-actions align="between">
+        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated no-caps @click="onCancelClick"/>
         <q-btn class="q-ma-sm" color="negative" :label="tc('删除')" unelevated no-caps :disable="!check"
                @click="onOKClick"/>
-        <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated no-caps @click="onCancelClick"/>
       </q-card-actions>
 
     </q-card>

@@ -700,12 +700,14 @@ export const useStore = defineStore('storage', {
         }
       })
     },
-    triggerDeleteBucketTokenDialog (payload: { bucketName: string, token: string }) {
+    // 删除存储桶的token
+    triggerDeleteBucketTokenDialog (serviceId: string, bucketName: string, tokenKey: string) {
       Dialog.create({
         component: BucketTokenDeleteDialog,
         componentProps: {
-          bucketName: payload.bucketName,
-          token: payload.token
+          serviceId,
+          bucketName,
+          tokenKey
         }
       })
     },

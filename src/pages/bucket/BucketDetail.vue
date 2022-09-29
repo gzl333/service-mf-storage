@@ -91,11 +91,15 @@ const clickToCopy = useCopyToClipboard()
   <div class="BucketDetail">
 
     <div class="row items-center" style="vertical-align: bottom;">
+
+      <q-icon name="mdi-database" color="primary" size="md"/>
+
       <div class="col-auto text-h5 text-weight-bold cursor-pointer"
            @click="navigateToUrl('/my/storage/service/' + props.serviceId + '/bucket/' + props.bucketName + '/object')">
         {{ currentBucket?.name }}
         <q-tooltip> {{ tc('进入存储桶根目录') }}</q-tooltip>
       </div>
+
       <AccessStatus class="col-auto" :is-private="currentBucket?.access_permission === '私有'"/>
 
     </div>
@@ -285,6 +289,27 @@ const clickToCopy = useCopyToClipboard()
 
             <!--            <q-separator vertical/>-->
 
+            <q-card-section class="col-auto">
+              <div class="column">
+                <div class="col text-grey">
+                  Web 访问地址
+                </div>
+                <div class="col row items-center">
+                  {{ $route.fullPath }}
+                  <q-btn class="col-auto q-px-xs"
+                         flat
+                         color="primary"
+                         icon="content_copy"
+                         size="sm"
+                         @click="clickToCopy($route.fullPath, false)">
+                    <q-tooltip>
+                      {{ tc('复制') }}
+                    </q-tooltip>
+                  </q-btn>
+                </div>
+              </div>
+            </q-card-section>
+
           </q-card-section>
         </q-card>
 
@@ -296,16 +321,21 @@ const clickToCopy = useCopyToClipboard()
           <q-separator/>
 
           <q-card-section class="row item-center" horizontal>
-            <q-card-section class="col-3">
+            <q-card-section class="col">
               <div class="column">
                 <div class="col text-grey">
                   存储桶token
                 </div>
-                <div class="col column">
-                  <TokenDetail v-for="token in currentBucketTokenSet?.tokens" :key="token.key" :token="token"/>
-                  <!--                  <div v-for="token in currentBucketTokenSet?.tokens" :key="token.key">-->
-                  <!--                    {{ token }}-->
-                  <!--                  </div>-->
+                <div v-if="currentBucketTokenSet?.tokens.length === 0" class="col row items-start">
+                  {{ tc('暂无可用token') }}
+                </div>
+                <div v-else class="col column">
+                  <TokenDetail class="col-auto q-pb-sm" v-for="(token, index) in currentBucketTokenSet?.tokens"
+                               :key="token.key"
+                               :token="token"
+                               :index="index"
+                               :service-id="serviceId"
+                               :bucket-name="bucketName"/>
                 </div>
               </div>
 
@@ -339,7 +369,6 @@ const clickToCopy = useCopyToClipboard()
                   {{ currentBucket?.ftp_enable ? '开启' : '关闭' }}
                 </div>
               </div>
-
             </q-card-section>
 
             <!--            <q-separator vertical/>-->

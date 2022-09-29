@@ -69,12 +69,13 @@ const clipText70 = useClipText(70)
             {{ tc('全部存储桶') }}
           </div>
         </div>
+        <q-tooltip>{{ tc('全部存储桶列表') }}</q-tooltip>
       </q-breadcrumbs-el>
 
       // 桶名称
       <q-breadcrumbs-el v-if="currentBucketName"
                         @click="navigateToUrl('/my/storage/service/' + currentServiceId +'/bucket/' + currentBucketName)">
-        <div class="row items-center no-wrap" :class="path ? 'cursor-pointer' : ''">
+        <div class="row items-center no-wrap cursor-pointer">
           <q-icon class="col-auto" size="xs" color="primary" name="mdi-database"/>
           <div class="col-auto" :class="path ? '':'text-bold'">
             {{ currentBucketName }}
@@ -89,6 +90,7 @@ const clipText70 = useClipText(70)
           <q-icon class="col-auto" size="xs" color="yellow-8" name="folder"/>
           <div class="col-auto"> {{ clipText7(path) }}</div>
         </div>
+        <q-tooltip>{{ path }}</q-tooltip>
       </q-breadcrumbs-el>
 
       // 最后一个文件夹
