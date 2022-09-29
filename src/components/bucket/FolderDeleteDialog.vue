@@ -6,6 +6,10 @@ import storage from 'src/api/index'
 import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
 const props = defineProps({
+  domain: {
+    type: String,
+    required: true
+  },
   bucket_name: {
     type: String,
     required: true
@@ -46,7 +50,7 @@ const onOKClick = async () => {
   })
   if (props.dirpath.dirArrs && props.dirpath.dirArrs.length > 0) {
     for (const item of props.dirpath.dirArrs) {
-      await storage.storage.api.deleteDirPath({ path: { dirpath: item, bucket_name: props.bucket_name } }).then(() => {
+      await storage.storage.api.deleteDirPath({ path: { bucket_name: props.bucket_name, dirpath: item } }).then(() => {
         deleteDirArr.push(item)
       }).catch((error) => {
         deleteFailArr.push(item)
@@ -56,11 +60,15 @@ const onOKClick = async () => {
   }
   if (props.dirpath.fileArrs && props.dirpath.fileArrs.length > 0) {
     for (const item of props.dirpath.fileArrs) {
-      await storage.storage.api.deleteObjPath({ path: { objpath: item, bucket_name: props.bucket_name } }).then(() => {
+      const res = await store.deleteObjItem({ domain: props.domain, bucket_name: props.bucket_name, objPath: item })
+      if (res === 204) {
         deleteFileArr.push(item)
-      }).catch((error) => {
-        console.log(error)
-      })
+      }
+      // await storage.storage.api.deleteObjPath({ path: { objpath: item, bucket_name: props.bucket_name } }).then(() => {
+      //   deleteFileArr.push(item)
+      // }).catch((error) => {
+      //   console.log(error)
+      // })
     }
   }
   if (deleteFailArr.length !== 0) {
