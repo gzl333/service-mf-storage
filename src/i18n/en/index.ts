@@ -81,7 +81,7 @@ export default {
   公有: 'Public',
   // BucketTokenAddDialog
   成功创建存储桶token: 'Successfully created bucket token',
-  数量s: 'quantity',
+  数量: 'quantity',
   已达最大token数量: 'The maximum number of tokens has been reached',
   创建读写token: 'Create read / write token',
   创建只读token: 'Create read-only token',

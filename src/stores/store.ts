@@ -692,11 +692,13 @@ export const useStore = defineStore('storage', {
         }
       })
     },
-    triggerAddBucketTokenDialog (payload: { bucketName: string }) {
+    // 创建存储桶token
+    triggerAddBucketTokenDialog (serviceId: string, bucketName: string) {
       Dialog.create({
         component: BucketTokenAddDialog,
         componentProps: {
-          bucketName: payload.bucketName
+          serviceId,
+          bucketName
         }
       })
     },
