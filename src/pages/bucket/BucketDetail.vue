@@ -48,6 +48,7 @@ const currentBucket = computed(() => store.tables.bucketTable.byLocalId[props.se
 const currentBucketStat = computed(() => store.tables.bucketStatTable.byLocalId[props.serviceId + '/' + props.bucketName])
 const currentBucketTokenSet = computed(() => store.tables.bucketTokenTable.byLocalId[props.serviceId + '/' + props.bucketName])
 
+// todo 待设计分享url结构后更新
 const currentBucketUrl = computed(() => location.origin + `/storage/share/?base=${props.bucketName}`)
 /* 获取相关table对象 */
 
@@ -193,8 +194,17 @@ const clickToCopy = useCopyToClipboard()
               <div class="col text-grey">
                 备注
               </div>
-              <div class="col">
-                {{ currentBucket?.remarks }}
+              <div class="col"
+                   style="max-width: 300px; word-break: break-all; word-wrap: break-word; white-space: normal;">
+                {{ currentBucket?.remarks || tc('无备注') }}
+                <q-btn icon="edit"
+                       dense
+                       flat
+                       no-caps
+                       color="primary"
+                       @click="store.triggerEditBucketNoteDialog(serviceId, bucketName)">
+                  {{ tc('修改备注') }}
+                </q-btn>
               </div>
             </q-card-section>
 

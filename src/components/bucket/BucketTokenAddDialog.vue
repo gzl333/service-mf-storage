@@ -15,7 +15,8 @@ const props = defineProps({
   },
   bucketName: {
     type: String,
-    required: true
+    required: true,
+    default: ''
   }
 })
 defineEmits([...useDialogPluginComponent.emits])
