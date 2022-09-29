@@ -333,11 +333,11 @@ const columns = computed(() => [
                     <div class="col-auto text-grey">
                       {{ tc('存储桶') }}Token
                     </div>
-                    <q-btn class="col-auto" flat dense no-caps padding="none" color="primary" icon="add_circle"
-                           size="sm"
-                           @click="store.triggerAddBucketTokenDialog({bucketName: props.row.name})">
-                      {{ `${tc('创建')}  Token` }}
-                    </q-btn>
+<!--                    <q-btn class="col-auto" flat dense no-caps padding="none" color="primary" icon="add_circle"-->
+<!--                           size="sm"-->
+<!--                           @click="store.triggerAddBucketTokenDialog({bucketName: props.row.name})">-->
+<!--                      {{ `${tc('创建')}  Token` }}-->
+<!--                    </q-btn>-->
                   </div>
 
                   <div v-if="store.tables.bucketTokenTable.byLocalId[props.row.name]?.tokens.length === 0">
@@ -364,13 +364,13 @@ const columns = computed(() => [
                         {{ tc('创建时间') }}: {{ new Date(token.created).toLocaleString(i18n.global.locale) }}
                       </div>
 
-                      <div class="col-auto">
-                        <q-btn class="col-auto" flat dense no-caps padding="none" color="primary" icon="remove_circle"
-                               size="sm"
-                               @click="store.triggerDeleteBucketTokenDialog({bucketName: props.row.name, token:token.key})">
-                          {{ `${tc('删除')}  Token` }}
-                        </q-btn>
-                      </div>
+<!--                      <div class="col-auto">-->
+<!--                        <q-btn class="col-auto" flat dense no-caps padding="none" color="primary" icon="remove_circle"-->
+<!--                               size="sm"-->
+<!--                               @click="store.triggerDeleteBucketTokenDialog({bucketName: props.row.name, token:token.key})">-->
+<!--                          {{ `${tc('删除')}  Token` }}-->
+<!--                        </q-btn>-->
+<!--                      </div>-->
                     </div>
                   </div>
 

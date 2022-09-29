@@ -48,6 +48,7 @@ const currentBucket = computed(() => store.tables.bucketTable.byLocalId[props.se
 const currentBucketStat = computed(() => store.tables.bucketStatTable.byLocalId[props.serviceId + '/' + props.bucketName])
 const currentBucketTokenSet = computed(() => store.tables.bucketTokenTable.byLocalId[props.serviceId + '/' + props.bucketName])
 
+const currentBucketUrl = computed(() => location.origin + `/storage/share/?base=${props.bucketName}`)
 /* 获取相关table对象 */
 
 const loadTables = () => {
@@ -295,13 +296,13 @@ const clickToCopy = useCopyToClipboard()
                   Web 访问地址
                 </div>
                 <div class="col row items-center">
-                  {{ $route.fullPath }}
+                  {{ currentBucketUrl }}
                   <q-btn class="col-auto q-px-xs"
                          flat
                          color="primary"
                          icon="content_copy"
                          size="sm"
-                         @click="clickToCopy($route.fullPath, false)">
+                         @click="clickToCopy(currentBucketUrl, false)">
                     <q-tooltip>
                       {{ tc('复制') }}
                     </q-tooltip>
@@ -323,8 +324,14 @@ const clickToCopy = useCopyToClipboard()
           <q-card-section class="row item-center" horizontal>
             <q-card-section class="col">
               <div class="column">
-                <div class="col text-grey">
-                  存储桶token
+                <div class="col text-grey row items-center">
+                  <div class="col-auto q-pr-md">
+                    {{ tc('存储桶token') }}
+                  </div>
+                  <q-btn class="col-auto" flat dense no-caps padding="none" color="primary" icon="add_circle"
+                         @click="store.triggerAddBucketTokenDialog(serviceId, bucketName)">
+                    {{ `${tc('创建')} token` }}
+                  </q-btn>
                 </div>
                 <div v-if="currentBucketTokenSet?.tokens.length === 0" class="col row items-start">
                   {{ tc('暂无可用token') }}

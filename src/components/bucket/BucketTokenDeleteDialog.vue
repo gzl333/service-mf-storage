@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, onBeforeMount, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useStore } from 'stores/store'
 import { i18n } from 'boot/i18n'
 import { Notify, useDialogPluginComponent } from 'quasar'
@@ -29,12 +29,12 @@ const store = useStore()
 const { tc } = i18n.global
 // code starts...
 
-onBeforeMount(async () => {
-  // 判断bucketToken表里有没有这项，没有就增加这项
-  if (!store.tables.bucketTokenTable.allLocalIds.includes(props.bucketName)) {
-    // await store.addBucketTokenTable({ bucket: props.bucketName }) todo 修改为新的参数
-  }
-})
+// onBeforeMount(async () => {
+//   // 判断bucketToken表里有没有这项，没有就增加这项
+//   if (!store.tables.bucketTokenTable.allLocalIds.includes(props.bucketName)) {
+//     // await store.addBucketTokenTable({ bucket: props.bucketName }) todo 修改为新的参数
+//   }
+// })
 
 const {
   dialogRef,
@@ -85,9 +85,9 @@ const onOKClick = async () => {
       textColor: 'positive',
       message: `${tc('成功删除token')}`,
       position: 'bottom',
-      closeBtn: true,
+      // closeBtn: true,
       timeout: 5000,
-      multiLine: false
+      multiLine: true
     })
     // close dialog
     onDialogOK()
