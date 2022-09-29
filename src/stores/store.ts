@@ -607,11 +607,13 @@ export const useStore = defineStore('storage', {
         }
       })
     },
-    triggerEditBucketNoteDialog (payload: { bucketName: string }) {
+    // 修改存储桶备注
+    triggerEditBucketNoteDialog (serviceId: string, bucketName: string) {
       Dialog.create({
         component: BucketNoteEditDialog,
         componentProps: {
-          bucketName: payload.bucketName
+          serviceId,
+          bucketName
         }
       })
     },
