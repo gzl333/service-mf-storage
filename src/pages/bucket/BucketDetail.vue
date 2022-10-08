@@ -94,6 +94,11 @@ const clickToCopy = useCopyToClipboard()
 
     <div class="row items-center" style="vertical-align: bottom;">
 
+      <q-btn icon="arrow_back_ios" color="primary" size="md" flat dense
+             @click="navigateToUrl('/my/storage/service/' + props.serviceId)">
+        <q-tooltip> 返回存储桶列表</q-tooltip>
+      </q-btn>
+
       <q-icon name="mdi-database" color="primary" size="md"/>
 
       <div class="col-auto text-h5 text-weight-bold cursor-pointer"
