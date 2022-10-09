@@ -11,9 +11,7 @@ import AccessStatus from 'components/ui/AccessStatus.vue'
 import FtpStatus from 'components/ui/FtpStatus.vue'
 import useClipText from 'src/hooks/useClipText'
 import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
-import useFormatSize from 'src/hooks/useFormatSize'
-
-import PasswordInput from 'components/bucket/PasswordInput.vue'
+// import useFormatSize from 'src/hooks/useFormatSize'
 
 const props = defineProps({
   serviceId: {
@@ -50,19 +48,19 @@ watch(store.tables.bucketTable, () => {
 
 const clipText80 = useClipText(80)
 const clipText20 = useClipText(20)
-const formatSize = useFormatSize(1024)
+// const formatSize = useFormatSize(1024)
 const clickToCopy = useCopyToClipboard()
-const toggleExpansion = (props: { expand: boolean, row: { name: string } }) => {
-  if (props.expand) {
-    props.expand = !props.expand
-  } else {
-    props.expand = !props.expand
-    // 更新桶统计信息
-    // void store.addBucketStatTable({ bucket: props.row.name })
-    // 更新桶token信息
-    // void store.addBucketTokenTable({ bucket: props.row.name })
-  }
-}
+// const toggleExpansion = (props: { expand: boolean, row: { name: string } }) => {
+//   if (props.expand) {
+//     props.expand = !props.expand
+//   } else {
+//     props.expand = !props.expand
+//     // 更新桶统计信息
+//     // void store.addBucketStatTable({ bucket: props.row.name })
+//     // 更新桶token信息
+//     // void store.addBucketTokenTable({ bucket: props.row.name })
+//   }
+// }
 
 const columns = computed(() => [
   {

@@ -64,7 +64,7 @@ axios.interceptors.response.use(config => {
 axiosVms.interceptors.request.use(config => {
   // get jwt token from @cnic/main's store
   const store = useStoreMain()
-  Object.assign(config, { headers: { Authorization: `Bearer ${store.items.tokenAccess as string}` } })
+  Object.assign(config, store.items.isLogin ? { headers: { Authorization: `Bearer ${store.items.tokenAccess as string}` } } : {}) // 登录状态使用token，未登录状态不传token
   return config
 }, (error: AxiosError) => {
   return Promise.reject(error)
@@ -80,8 +80,7 @@ axiosVms.interceptors.response.use(config => {
 axiosSingle.interceptors.request.use(config => {
   // get jwt token from @cnic/main's store
   const store = useStoreMain()
-  // config.headers.common.Authorization = store.items.tokenAccess ? `AAI-JWT ${store.items.tokenAccess as string}` : ''
-  Object.assign(config, { headers: { Authorization: store.items.tokenAccess ? `AAI-JWT ${store.items.tokenAccess as string}` : '' } })
+  Object.assign(config, store.items.isLogin ? { headers: { Authorization: `AAI-JWT ${store.items.tokenAccess as string}` } } : {})
   return config
 }, (error: AxiosError) => {
   return Promise.reject(error)
@@ -97,8 +96,7 @@ axiosSingle.interceptors.response.use(config => {
 axiosStorage.interceptors.request.use(config => {
   // get jwt token from @cnic/main's store
   const store = useStoreMain()
-  // config.headers.common.Authorization = store.items.tokenAccess ? `AAI-JWT ${store.items.tokenAccess as string}` : ''
-  Object.assign(config, { headers: { Authorization: store.items.tokenAccess ? `AAI-JWT ${store.items.tokenAccess as string}` : '' } })
+  Object.assign(config, store.items.isLogin ? { headers: { Authorization: `AAI-JWT ${store.items.tokenAccess as string}` } } : {})
   return config
 }, (error: AxiosError) => {
   return Promise.reject(error)
