@@ -250,6 +250,7 @@ watch(
           active-color="primary"
           indicator-color="primary"
           align="justify"
+          narrow-indicator
         >
           <q-tab v-for="tabItem in props.pathArr" :name="tabItem.tab.index" :label="tabItem.tab.desc" :key="tabItem.tab.id" no-caps/>
         </q-tabs>
@@ -261,7 +262,7 @@ watch(
       <q-btn class="col-auto q-ml-sm" unelevated no-caps color="primary" :label="tc('批量分享')" @click="batchShareFile"
              :disable="selected.length > 0 ? false : true"/>
     </div>
-    <q-tab-panels v-model="tabActive" animated>
+    <q-tab-panels v-model="tabActive" animated transition-prev="scale" transition-next="scale">
       <q-tab-panel v-for="tabItem in props.pathArr" :name="tabItem.tab.index" :key="tabItem.tab.id" class="no-padding q-mt-sm">
         <div class="row">
           <div class="col">

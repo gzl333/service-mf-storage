@@ -148,7 +148,7 @@ export interface FileObjInterface {
 
 // 删除文件需要的参数类型
 export interface deleteInterface {
-  bucket_name: string
+  localId: string
   dirpath: {
     dirArrs: string[]
     fileArrs: string[]
@@ -285,7 +285,7 @@ export const useStore = defineStore('storage', {
       let obj: Record<string, string> = {}
       for (const objElement of state.tables.bucketTable.allLocalIds) {
         obj = {}
-        obj.id = state.tables.bucketTable.byLocalId[objElement].local_id
+        obj.id = state.tables.bucketTable.byLocalId[objElement]?.service_id + '/' + state.tables.bucketTable.byLocalId[objElement].local_id
         // obj.id = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
         obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
         bucketOptions.push(obj)
@@ -302,7 +302,7 @@ export const useStore = defineStore('storage', {
     },
     getFirstsIntegratedSearchOptionId (state): string {
       let bucketName = ''
-      bucketName = state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.local_id
+      bucketName = state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.local_id
       return bucketName
     },
     getBuckets (state): Record<string, string>[] {
@@ -509,18 +509,6 @@ export const useStore = defineStore('storage', {
     async storeBucketToken (payload: { id: string, value: tokenInterface[] }) {
       this.tables.bucketTokenTable.byLocalId[payload.id].tokens = payload.value
     },
-    // 添加文件
-    storeSingleFileItem (payload: { item: addFileInterface }) {
-      this.tables.pathTable.byLocalId[payload.item.bucket_name].files.unshift(payload.item.files)
-    },
-    // 文件重命名
-    changeObjName (payload: { item: Record<string, string> }) {
-      this.tables.pathTable.byLocalId[payload.item.bucket_name].files.forEach((item) => {
-        if (item.name === payload.item.dirName) {
-          item.name = payload.item.newName
-        }
-      })
-    },
     // 文件更改分享状态
     changeShareStatus (payload: { item: shareInterface }) {
       if (payload.item.dirpath.dirArrs !== undefined && payload.item.dirpath.dirArrs.length > 0) {
@@ -548,6 +536,14 @@ export const useStore = defineStore('storage', {
         })
       }
     },
+    // 删除文件夹
+    async deleteDirItem (localId: string, bucketName: string, dirPath: string) {
+      const base = this.tables.serviceTable.byId[this.tables.bucketTable.byLocalId[localId]?.service_id]?.endpoint_url
+      let status = 0
+      const res = await api.storage.single.deleteDirPath({ base, path: { bucket_name: bucketName, dirpath: dirPath } })
+      status = res.status
+      return status
+    },
     // 删除文件
     async deleteObjItem (payload: { domain: string, bucket_name: string, objPath: string }) {
       const base = this.tables.serviceTable.byId[this.tables.bucketTable.byLocalId[payload.domain]?.service_id]?.endpoint_url
@@ -573,19 +569,13 @@ export const useStore = defineStore('storage', {
       const res = await api.storage.single.getObjPath({ base, path: { objpath: payload.path.objPath } })
       return res
     },
-    async changeObjNameItem (payload: { domain: string, path: { bucket_name: string, objPath: string }, query: { rename: string }}) {
-      const query = payload.query
-      const base = this.tables.serviceTable.byId[this.tables.bucketTable.byLocalId[payload.domain]?.service_id]?.endpoint_url
-      const respGetDir = await api.storage.single.postObjPath({ base, path: { bucket_name: payload.path.bucket_name, objpath: payload.path.objPath }, query })
-      console.log(respGetDir)
-    },
     // 删除文件
-    deleteFile (payload: { item: deleteInterface }) {
-      if (payload.item.dirpath.dirArrs.length > 0) {
-        this.tables.pathTable.byLocalId[payload.item.bucket_name].files = this.tables.pathTable.byLocalId[payload.item.bucket_name].files.filter((item) => !payload.item.dirpath.dirArrs.includes(item.name))
+    deleteFile (deleteItem: deleteInterface) {
+      if (deleteItem.dirpath.dirArrs.length > 0) {
+        this.tables.pathTable.byLocalId[deleteItem.localId].files = this.tables.pathTable.byLocalId[deleteItem.localId].files.filter((item) => !deleteItem.dirpath.dirArrs.includes(item.name))
       }
-      if (payload.item.dirpath.fileArrs.length > 0) {
-        this.tables.pathTable.byLocalId[payload.item.bucket_name].files = this.tables.pathTable.byLocalId[payload.item.bucket_name].files.filter((item) => !payload.item.dirpath.fileArrs.includes(item.name))
+      if (deleteItem.dirpath.fileArrs.length > 0) {
+        this.tables.pathTable.byLocalId[deleteItem.localId].files = this.tables.pathTable.byLocalId[deleteItem.localId].files.filter((item) => !deleteItem.dirpath.fileArrs.includes(item.name))
       }
     },
     /* dialogs */
@@ -609,23 +599,25 @@ export const useStore = defineStore('storage', {
       })
     },
     // 新建文件夹
-    triggerCreateFolderDialog (payload: { dirName: string }) {
+    triggerCreateFolderDialog (localId: string, bucketName: string, dirPath: string) {
       Dialog.create({
         component: FolderCreateDialog,
         componentProps: {
-          bucket_name: payload.dirName
+          localId,
+          bucketName,
+          dirPath
         }
       })
     },
     // 删除文件夹
-    triggerDeleteFolderDialog (payload: { domain: string, localId: string, dirNames: { dirArrs?: string[], fileArrs?: string[] }, isSearch?: boolean }) {
+    triggerDeleteFolderDialog (localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean) {
       Dialog.create({
         component: FolderDeleteDialog,
         componentProps: {
-          domain: payload.domain,
-          bucket_name: payload.localId,
-          dirpath: payload.dirNames,
-          isSearch: payload.isSearch
+          localId,
+          bucket_name: bucketName,
+          dirpath: dirNames,
+          isOperationStore
         }
       })
     },
@@ -652,24 +644,26 @@ export const useStore = defineStore('storage', {
       })
     },
     // 文件重命名
-    triggerChangeFolderDialog (payload: { domain: string, localId: string, objPath: string, dirName: string, isSearch?: boolean }) {
+    triggerChangeFolderDialog (localId: string, bucketName: string, objPath: string, dirName: string, isSearch: boolean) {
       Dialog.create({
         component: FileChangeNameDialog,
         componentProps: {
-          domain: payload.domain,
-          bucket_name: payload.localId,
-          objpath: payload.objPath,
-          dirName: payload.dirName,
-          isSearch: payload.isSearch
+          localId,
+          bucket_name: bucketName,
+          objpath: objPath,
+          dirName,
+          isSearch
         }
       })
     },
     // 上传文件
-    triggerUploadDialog (payload: { bucket_name: string }) {
+    triggerUploadDialog (localId: string, bucketName: string, dirPath: string) {
       Dialog.create({
         component: UploadDialog,
         componentProps: {
-          bucket_name: payload.bucket_name
+          localId,
+          bucket_name: bucketName,
+          dirPath
         }
       })
     },
