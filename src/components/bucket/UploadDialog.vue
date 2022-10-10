@@ -370,8 +370,8 @@ const factoryFn = async (files: File, index: number) => {
   if (files.size / 1024 / 1024 > 500) {
     await postObjPath({
       path: {
-        objpath: files.name,
-        bucket_name: bucketName
+        bucket_name: bucketName,
+        objpath: files.name
       },
       query: { reset: true },
       body: { file: files },
@@ -396,6 +396,7 @@ const upload = async () => {
     }
     isUploading.value = true
     for (let index = 0; index < fileArr.value.length; index++) {
+      // 开始上传
       void await factoryFn(fileArr.value[index], index)
     }
     if (isCancel.value === false) {

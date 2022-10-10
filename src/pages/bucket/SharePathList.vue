@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onBeforeMount } from 'vue'
-// import { useStore } from 'stores/store'
 import { useRoute/* , useRouter */ } from 'vue-router'
+import { useStore } from 'stores/store'
 import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
 import { navigateToUrl } from 'single-spa'
@@ -9,17 +9,16 @@ import storage from 'src/api'
 import axios from 'axios'
 import ShareTable from 'components/bucket/ShareTable.vue'
 
-// const props = defineProps({
-//   serviceId: {
-//     type: String,
-//     required: false,
-//     default: ''
-//   }
-// })
+const props = defineProps({
+  serviceId: {
+    type: String,
+    required: false,
+    default: ''
+  }
+})
 
 // const emits = defineEmits(['change', 'delete'])
-// console.log(props.serviceId)
-// const store = useStore()
+const store = useStore()
 const route = useRoute()
 // const router = useRouter()
 const { tc } = i18n.global
@@ -30,6 +29,9 @@ const { tc } = i18n.global
 const shareBase = route.query.base as string // string or undefined
 const subPath = route.query.sub as string
 const password = route.query.p as string
+console.log(props.serviceId)
+console.log(store.tables)
+console.log(route)
 const isPassword = ref(false)
 const isRight = ref(false)
 const tableRow = ref([])

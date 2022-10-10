@@ -501,68 +501,32 @@ export const useStore = defineStore('storage', {
         this.tables.pathTable.status = 'error'
       }
     },
-    // 修改桶备注
-    async storeBucketNote (payload: { id: string, value: string }) {
-      this.tables.bucketTable.byLocalId[payload.id].remarks = payload.value
-    },
-    // 新建token
-    async storeBucketToken (payload: { id: string, value: tokenInterface[] }) {
-      this.tables.bucketTokenTable.byLocalId[payload.id].tokens = payload.value
-    },
     // 文件更改分享状态
-    changeShareStatus (payload: { item: shareInterface }) {
-      if (payload.item.dirpath.dirArrs !== undefined && payload.item.dirpath.dirArrs.length > 0) {
-        payload.item.dirpath.dirArrs.forEach((dir: string) => {
-          const index = this.tables.pathTable.byLocalId[payload.item.bucket_name].files.findIndex(item => item.name === dir)
-          if (payload.item.share === 0) {
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_code = 0
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_permission = '私有'
+    changeShareStatus (item: shareInterface) {
+      if (item.dirpath.dirArrs !== undefined && item.dirpath.dirArrs.length > 0) {
+        item.dirpath.dirArrs.forEach((dir: string) => {
+          const index = this.tables.pathTable.byLocalId[item.bucket_name].files.findIndex(item => item.name === dir)
+          if (item.share === 0) {
+            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_code = 0
+            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_permission = '私有'
           } else {
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_code = 1
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_permission = '公有'
+            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_code = 1
+            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_permission = '公有'
           }
         })
       }
-      if (payload.item.dirpath.fileArrs !== undefined && payload.item.dirpath.fileArrs.length > 0) {
-        payload.item.dirpath.fileArrs.forEach((file: string) => {
-          const index = this.tables.pathTable.byLocalId[payload.item.bucket_name].files.findIndex(item => item.name === file)
-          if (payload.item.share === 0) {
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_code = 0
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_permission = '私有'
+      if (item.dirpath.fileArrs !== undefined && item.dirpath.fileArrs.length > 0) {
+        item.dirpath.fileArrs.forEach((file: string) => {
+          const index = this.tables.pathTable.byLocalId[item.bucket_name].files.findIndex(item => item.name === file)
+          if (item.share === 0) {
+            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_code = 0
+            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_permission = '私有'
           } else {
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_code = 1
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_permission = '公有'
+            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_code = 1
+            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_permission = '公有'
           }
         })
       }
-    },
-    // 删除文件夹
-    async deleteDirItem (localId: string, bucketName: string, dirPath: string) {
-      const base = this.tables.serviceTable.byId[this.tables.bucketTable.byLocalId[localId]?.service_id]?.endpoint_url
-      let status = 0
-      const res = await api.storage.single.deleteDirPath({ base, path: { bucket_name: bucketName, dirpath: dirPath } })
-      status = res.status
-      return status
-    },
-    // 删除文件
-    async deleteObjItem (payload: { domain: string, bucket_name: string, objPath: string }) {
-      const base = this.tables.serviceTable.byId[this.tables.bucketTable.byLocalId[payload.domain]?.service_id]?.endpoint_url
-      let status = 0
-      const res = await api.storage.single.deleteObjPath({ base, path: { bucket_name: payload.bucket_name, objpath: payload.objPath } })
-      status = res.status
-      return status
-    },
-    async shareObjItem (payload: { domain: string, path: { bucket_name: string, objPath: string }, query: { share: number, days: number, password?: string }}) {
-      const query = payload.query
-      const base = this.tables.serviceTable.byId[this.tables.bucketTable.byLocalId[payload.domain]?.service_id]?.endpoint_url
-      void await api.storage.single.patchObjPath({
-        base,
-        path: {
-          bucket_name: payload.path.bucket_name,
-          objpath: payload.path.objPath
-        },
-        query
-      })
     },
     async downloadObjItem (payload: { domain: string, path: { objPath: string }}) {
       const base = this.tables.serviceTable.byId[this.tables.bucketTable.byLocalId[payload.domain]?.service_id]?.endpoint_url
@@ -622,24 +586,27 @@ export const useStore = defineStore('storage', {
       })
     },
     // 公开分享
-    triggerPublicShareDialog (payload: { domain: string, localId: string, dirNames: { dirArrs?: string[], fileArrs?: string[] }, isSearch?: boolean }) {
+    triggerPublicShareDialog (localId: string, bucketName: string, path: string, dirNames: { dirArrs?: string[], fileArrs?: string[] }, isOperationStore: boolean) {
       Dialog.create({
         component: PublicShareDialog,
         componentProps: {
-          domain: payload.domain,
-          bucket_name: payload.localId,
-          pathObj: payload.dirNames,
-          isSearch: payload.isSearch
+          localId,
+          bucket_name: bucketName,
+          path,
+          pathObj: dirNames,
+          isOperationStore
         }
       })
     },
     // 已经分享
-    triggerAlreadyShareDialog (payload: { localId: string, dirNames: { dirArrs?: string[], fileArrs?: string[] } }) {
+    triggerAlreadyShareDialog (localId: string, bucketName: string, path: string, dirNames: { dirArrs?: string[], fileArrs?: string[] }) {
       Dialog.create({
         component: AlreadyShareDialog,
         componentProps: {
-          bucket_name: payload.localId,
-          pathObj: payload.dirNames
+          localId,
+          bucketName,
+          path,
+          pathObj: dirNames
         }
       })
     },
