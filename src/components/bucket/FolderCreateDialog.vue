@@ -3,8 +3,8 @@ import { ref } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, QInput, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
-import api from 'src/api/index'
 import { conversionBase } from 'src/hooks/useEndpointUrl'
+import api from 'src/api/index'
 
 const props = defineProps({
   localId: {
@@ -54,13 +54,16 @@ const onOKClick = async () => {
       timeout: 5000,
       multiLine: false
     })
+    // 判断table是几级页面
     const count = props.localId.split('/').length - 1
     let base
     let bucketName
     if (count > 1) {
+      // 多层
       const str = conversionBase(props.localId, '/', 1)
       base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
     } else {
+      // 第一层
       base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
     }
     if (props.dirPath === '') {

@@ -3,11 +3,20 @@ import { onBeforeMount, ref } from 'vue'
 import { useDialogPluginComponent } from 'quasar'
 import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 import { useStore } from 'stores/store'
-import storage from 'src/api/index'
 import { i18n } from 'boot/i18n'
+import api from 'src/api/index'
+import { conversionBase } from 'src/hooks/useEndpointUrl'
 
 const props = defineProps({
-  bucket_name: {
+  localId: {
+    type: String,
+    required: true
+  },
+  bucketName: {
+    type: String,
+    required: true
+  },
+  path: {
     type: String,
     required: true
   },
@@ -29,18 +38,10 @@ const shareUrl = ref('')
 const shareCode = ref('')
 const share = async () => {
   if (props.pathObj.dirArrs && props.pathObj.dirArrs.length > 0) {
-    await store.triggerPublicShareDialog({
-      localId: props.bucket_name,
-      dirNames: { dirArrs: props.pathObj.dirArrs },
-      isSearch: true
-    })
+    await store.triggerPublicShareDialog(props.localId, props.bucketName, props.path, { dirArrs: props.pathObj.dirArrs }, true)
   }
   if (props.pathObj.fileArrs && props.pathObj.fileArrs.length > 0) {
-    await store.triggerPublicShareDialog({
-      localId: props.bucket_name,
-      dirNames: { fileArrs: props.pathObj.fileArrs },
-      isSearch: true
-    })
+    await store.triggerPublicShareDialog(props.localId, props.bucketName, props.path, { fileArrs: props.pathObj.fileArrs }, true)
   }
   onCancelClick()
 }
@@ -58,15 +59,38 @@ onBeforeMount(async () => {
   } else {
     dirName = props.pathObj.fileArrs[0]
   }
-  const respShareDir = await storage.storage.api.getPath({
+  const count = props.localId.split('/').length - 1
+  let base
+  let serviceId
+  if (count > 1) {
+    const str = conversionBase(props.localId, '/', 1)
+    base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
+    serviceId = store.tables.bucketTable.byLocalId[str]?.service_id
+  } else {
+    base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
+    serviceId = store.tables.bucketTable.byLocalId[props.localId]?.service_id
+  }
+  let dirPath
+  if (props.path === '') {
+    dirPath = dirName
+  } else {
+    dirPath = props.path + '/' + dirName
+  }
+  const respShareDir = await api.storage.single.getPath({
+    base,
     path: {
-      bucket_name: props.bucket_name,
-      path: dirName
+      bucket_name: props.bucketName,
+      path: dirPath
     }
   })
   shareCode.value = respShareDir.data.share_code || ''
   if (respShareDir.data.is_obj === false) {
-    shareUrl.value = window.location.protocol + '//' + window.location.hostname + '/storage/share/?base=' + props.bucket_name + '/' + props.pathObj.dirArrs[0]
+    // http://servicedev.cstcloud.cn/storage/share/123?base=xxx&sub=yyy&p=zzz
+    if (props.path === '') {
+      shareUrl.value = window.location.protocol + '//' + window.location.hostname + '/storage/share/' + serviceId + '?base=' + props.bucketName + '/' + props.pathObj.dirArrs[0]
+    } else {
+      shareUrl.value = window.location.protocol + '//' + window.location.hostname + '/storage/share/' + serviceId + '?base=' + props.bucketName + '/' + props.path + '/' + props.pathObj.dirArrs[0]
+    }
   } else {
     // shareUrl.value = 'https://' + domainName + '/storage/share/down/obs/' + props.bucket_name + '/' + props.pathObj.fileArrs[0]
     shareUrl.value = respShareDir.data.share_uri
@@ -83,13 +107,15 @@ onBeforeMount(async () => {
       </div>
       <q-card-section>
         <div class="text-h6 text-center">{{ tc('当前对象已经是共享状态') }}</div>
-        <div class="text-subtitle1 q-mt-lg text-center" style="word-wrap: break-word; word-break: break-all; overflow: hidden;">
+        <div class="text-subtitle1 q-mt-lg text-center"
+             style="word-wrap: break-word; word-break: break-all; overflow: hidden;">
           <span>{{ tc('分享链接') }}：{{ shareUrl }}</span>
         </div>
         <div v-if="shareCode !== ''" class="text-subtitle1 text-center q-mt-lg">{{ tc('分享密码') }}：{{ shareCode }}
         </div>
         <div class="row justify-center q-mt-lg">
-          <q-btn class="q-ma-sm" color="primary" :label="tc('复制分享链接')" no-caps unelevated @click="copyUrl(shareUrl)"/>
+          <q-btn class="q-ma-sm" color="primary" :label="tc('复制分享链接')" no-caps unelevated
+                 @click="copyUrl(shareUrl)"/>
           <q-btn class="q-ma-sm" color="primary" :label="tc('修改共享状态')" no-caps unelevated @click="share"/>
         </div>
       </q-card-section>

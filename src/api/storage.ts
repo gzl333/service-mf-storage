@@ -410,32 +410,6 @@ export default {
     }
   },
   api: {
-    // 公开分享文件夹
-    patchDirPath (payload: {
-      path: {
-        dirpath: string
-        bucket_name: string
-      }
-      query: {
-        share: number
-        days: number
-        password?: string
-      }
-    }) {
-      const config = {
-        params: payload.query
-      }
-      return axiosStorage.patch('/api/v1/dir/' + payload.path.bucket_name + '/' + payload.path.dirpath + '/', null, config)
-    },
-    // 查询链接
-    getPath (payload: {
-      path: {
-        path: string
-        bucket_name: string
-      }
-    }) {
-      return axiosStorage.get('/api/v1/share/' + payload.path.bucket_name + '/' + payload.path.path)
-    },
     // 获取分享列表
     getShareBase (payload: {
       path: {

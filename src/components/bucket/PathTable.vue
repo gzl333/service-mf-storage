@@ -27,7 +27,7 @@ const currentPath = computed(() => props.pathObj?.dir_path)
 const currentServiceId = computed(() => props.pathObj.localId.split('/')[0])
 // const arrayPaths = computed(() => props.pathObj?.dir_path?.split('/')[0] === '' ? [] : props.pathObj?.dir_path?.split('/'))
 // const upperPath = computed(() => currentPath.value === '' ? '/my/storage/bucket' : `/my/storage/bucket/file?bucket=${currentBucket.value}&path=${currentPath.value?.lastIndexOf('/') === -1 ? '' : currentPath.value?.slice(0, currentPath.value?.lastIndexOf('/'))}`)
-
+console.log(props)
 // table中选中的对象
 const selected = ref<FileInterface[]>([])
 const fileDetail = ref({})
@@ -145,28 +145,16 @@ const shareItemClick = async (name: string, accessCode: number, fod: boolean) =>
   const dataArr = []
   dataArr.push(name)
   if (accessCode === 0) {
-    if (fod === false) {
-      void store.triggerPublicShareDialog({
-        localId: props.pathObj.localId,
-        dirNames: { dirArrs: dataArr }
-      })
+    if (fod) {
+      void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path, { fileArrs: dataArr }, true)
     } else {
-      void store.triggerPublicShareDialog({
-        localId: props.pathObj.localId,
-        dirNames: { fileArrs: dataArr }
-      })
+      void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path, { dirArrs: dataArr }, true)
     }
   } else {
-    if (fod === false) {
-      void store.triggerAlreadyShareDialog({
-        localId: props.pathObj.localId,
-        dirNames: { dirArrs: dataArr }
-      })
+    if (fod) {
+      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path, { fileArrs: dataArr })
     } else {
-      void store.triggerAlreadyShareDialog({
-        localId: props.pathObj.localId,
-        dirNames: { fileArrs: dataArr }
-      })
+      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path, { dirArrs: dataArr })
     }
   }
 }
@@ -180,13 +168,7 @@ const shareFile = async () => {
       shareObjArr.push(item.name)
     }
   })
-  void store.triggerPublicShareDialog({
-    localId: props.pathObj.localId,
-    dirNames: {
-      dirArrs: shareDirArr,
-      fileArrs: shareObjArr
-    }
-  })
+  void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path, { dirArrs: shareDirArr, fileArrs: shareObjArr }, true)
 }
 const changeName = (path: string, name: string) => {
   void store.triggerChangeFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, path, name, false)

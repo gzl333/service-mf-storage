@@ -5,7 +5,7 @@ import { Notify, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
 import api from 'src/api/index'
-
+import { conversionBase } from 'src/hooks/useEndpointUrl'
 const props = defineProps({
   localId: {
     type: String,
@@ -34,13 +34,6 @@ const {
   onDialogCancel
 } = useDialogPluginComponent()
 const isDisable = ref(false)
-const conversionBase = (localId: string, str: string, num: number) => {
-  let index = localId.indexOf(str)
-  for (let i = 0; i < num; i++) {
-    index = localId.indexOf(str, index + 1)
-  }
-  return localId.slice(0, index)
-}
 const onOKClick = async () => {
   const deleteDirArr: string[] = []
   const deleteFileArr: string[] = []
