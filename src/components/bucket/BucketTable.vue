@@ -29,7 +29,7 @@ const props = defineProps({
 const store = useStore()
 const { tc } = i18n.global
 
-const currentServiceId = computed(() => props.serviceId)
+const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
 
 // table row hover
 const hoverRow = ref('')
@@ -186,7 +186,7 @@ const columns = computed(() => [
               <q-td key="name" :props="props">
 
                 <q-btn flat padding="none" no-caps
-                       @click="navigateToUrl(`/my/storage/service/${currentServiceId}/bucket/${props.row.name}`)">
+                       @click="navigateToUrl(`/my/storage/service/${currentService?.id}/bucket/${props.row.name}`)">
 
                   <div class="row items-center no-wrap">
                     <q-icon class="col-auto" size="sm" color="primary" name="mdi-database"/>
@@ -231,8 +231,8 @@ const columns = computed(() => [
               </q-td>
 
               <q-td key="ftp" :props="props">
-                <FtpStatus :is-enable="props.row.ftp_enable"/>
-                <!--                {{ props.row.ftp_enable === false ? tc('关闭') : tc('开启') }}-->
+                <FtpStatus v-if="currentService?.provide_ftp" :is-enable="props.row.ftp_enable"/>
+                <div v-else>本服务单元不支持FTP连接</div>
               </q-td>
 
               <!--              <q-td key="write" :props="props">-->
@@ -252,7 +252,7 @@ const columns = computed(() => [
 
                 <q-btn :class="hoverRow === props.row.name ? '':'invisible'" icon="edit" size="sm" dense flat
                        color="primary"
-                       @click="store.triggerEditBucketNoteDialog({ bucketName: props.row.name})">
+                       @click="store.triggerEditBucketNoteDialog(currentService?.id, props.row.name)">
                   <q-tooltip>
                     {{ tc('修改') }}
                   </q-tooltip>
@@ -270,7 +270,7 @@ const columns = computed(() => [
                 <!--                </div>-->
 
                 <q-btn unelevated dense color="primary" no-caps
-                       @click="navigateToUrl(`/my/storage/service/${currentServiceId}/bucket/${props.row.name}`)">
+                       @click="navigateToUrl(`/my/storage/service/${currentService?.id}/bucket/${props.row.name}`)">
                   查看详情
                 </q-btn>
               </q-td>

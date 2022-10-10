@@ -164,7 +164,7 @@ const onOKClick = async (permission: 'readwrite' | 'readonly') => {
         <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" unelevated no-caps @click="onCancelClick"/>
 
         <div class="q-ma-sm row items-center justify-end q-gutter-x-md">
-          <q-btn class="col-auto" color="primary" :label="tc('创建读写token')" unelevated no-caps
+          <q-btn class="col-auto" color="green" :label="tc('创建读写token')" unelevated no-caps
                  @click="onOKClick('readwrite')"/>
           <q-btn class="col-auto" color="primary" :label="tc('创建只读token')" unelevated no-caps
                  @click="onOKClick('readonly')"/>

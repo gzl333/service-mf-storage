@@ -305,10 +305,10 @@ const clickToCopy = useCopyToClipboard()
 
             <!--            <q-separator vertical/>-->
 
-            <q-card-section class="col-auto">
+            <q-card-section v-if="currentBucket?.access_permission === '公有'" class="col-auto">
               <div class="column">
                 <div class="col text-grey">
-                  Web 访问地址
+                  存储桶分享地址
                 </div>
                 <div class="col row items-center">
                   {{ currentBucketUrl }}
@@ -375,7 +375,13 @@ const clickToCopy = useCopyToClipboard()
 
           <q-separator/>
 
-          <q-card-section class="row item-center" horizontal>
+          <q-card-section v-if="!currentService?.provide_ftp" class="row item-center" horizontal>
+            <q-card-section class="col-3">
+              本服务单位不支持FTP连接
+            </q-card-section>
+          </q-card-section>
+
+          <q-card-section v-else class="row item-center" horizontal>
             <q-card-section class="col-3">
               <div class="column">
                 <div class="col text-grey">
@@ -395,7 +401,7 @@ const clickToCopy = useCopyToClipboard()
 
             <!--            <q-separator vertical/>-->
 
-            <q-card-section class="col-3">
+            <q-card-section v-if="currentBucket?.ftp_enable" class="col-3">
               <div class="column">
                 <div class="col text-grey">
                   FTP 只读密码
@@ -432,7 +438,7 @@ const clickToCopy = useCopyToClipboard()
 
             <!--            <q-separator vertical/>-->
 
-            <q-card-section class="col-3">
+            <q-card-section v-if="currentBucket?.ftp_enable" class="col-3">
               <div class="column">
                 <div class="col text-grey">
                   FTP 读写密码
