@@ -12,6 +12,10 @@ const routes: RouteRecordRaw[] = [
         props: true,
         children: [
           {
+            path: 'all',
+            component: () => import('pages/bucket/BucketList.vue') // todo 全部服务单元的存储桶聚合显示
+          },
+          {
             path: ':serviceId',
             component: () => import('pages/bucket/BucketList.vue'),
             props: true // 组件直接接收url中的params，无需用$route对象承接
