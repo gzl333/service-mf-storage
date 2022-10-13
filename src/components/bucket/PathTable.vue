@@ -27,7 +27,6 @@ const currentPath = computed(() => props.pathObj?.dir_path)
 const currentServiceId = computed(() => props.pathObj.localId.split('/')[0])
 // const arrayPaths = computed(() => props.pathObj?.dir_path?.split('/')[0] === '' ? [] : props.pathObj?.dir_path?.split('/'))
 // const upperPath = computed(() => currentPath.value === '' ? '/my/storage/bucket' : `/my/storage/bucket/file?bucket=${currentBucket.value}&path=${currentPath.value?.lastIndexOf('/') === -1 ? '' : currentPath.value?.slice(0, currentPath.value?.lastIndexOf('/'))}`)
-console.log(props)
 // table中选中的对象
 const selected = ref<FileInterface[]>([])
 const fileDetail = ref({})
@@ -141,37 +140,51 @@ const deleteFile = async () => {
   })
   void store.triggerDeleteFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dirArr, fileArrs: fileArr }, true)
 }
-const shareItemClick = async (name: string, accessCode: number, fod: boolean) => {
+const shareItemClick = async (na: string, name: string, accessCode: number, fod: boolean) => {
   const dataArr = []
-  dataArr.push(name)
+  const obj = {
+    na: '',
+    name: ''
+  }
+  obj.na = na
+  obj.name = name
+  dataArr.push(obj)
   if (accessCode === 0) {
     if (fod) {
-      void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path, { fileArrs: dataArr }, true)
+      void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { fileArrs: dataArr }, true)
     } else {
-      void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path, { dirArrs: dataArr }, true)
+      void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true)
     }
   } else {
     if (fod) {
-      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path, { fileArrs: dataArr })
+      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { fileArrs: dataArr }, true)
     } else {
-      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path, { dirArrs: dataArr })
+      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true)
     }
   }
 }
 const shareFile = async () => {
-  const shareDirArr: string[] = []
-  const shareObjArr: string[] = []
+  const shareDirArr: Record<string, string>[] = []
+  const shareObjArr: Record<string, string>[] = []
   selected.value.forEach((item) => {
+    const obj = {
+      na: '',
+      name: ''
+    }
     if (item.fod === false) {
-      shareDirArr.push(item.name)
+      obj.na = item.na
+      obj.name = item.name
+      shareDirArr.push(obj)
     } else {
-      shareObjArr.push(item.name)
+      obj.na = item.na
+      obj.name = item.name
+      shareObjArr.push(obj)
     }
   })
-  void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path, { dirArrs: shareDirArr, fileArrs: shareObjArr }, true)
+  void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: shareDirArr, fileArrs: shareObjArr }, true)
 }
 const changeName = (path: string, name: string) => {
-  void store.triggerChangeFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, path, name, false)
+  void store.triggerChangeFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, path, name, true)
 }
 const download = async (fileName: string, na: string) => {
   // 创建a标签
@@ -336,7 +349,7 @@ watch(
                   {{ tc('删除') }}
                 </q-btn>
                 <q-btn class="q-ml-xs" color="primary" unelevated no-caps
-                       @click="shareItemClick(props.row.name, props.row.access_code, props.row.fod)">{{
+                       @click="shareItemClick(props.row.na, props.row.name, props.row.access_code, props.row.fod)">{{
                     tc('公开分享')
                   }}
                 </q-btn>

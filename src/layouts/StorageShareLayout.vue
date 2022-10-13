@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // import { ref, computed } from "vue"
 // import { navigateToUrl } from 'single-spa'
-// import { useStore } from 'stores/store'
+import { useStore } from 'stores/store'
 // import { useRoute, useRouter } from 'vue-router'
 // import { i18n } from 'boot/i18n'
 
@@ -14,10 +14,13 @@
 // })
 // const emits = defineEmits(['change', 'delete'])
 
-// const store = useStore()
+const store = useStore()
 // const route = useRoute()
 // const router = useRouter()
 // const tc = i18n.global.tc
+// the root layout of @cnic/storage, load @cnic/storage's store here
+console.log('@cnic/storage store:', store.$state)
+void store.loadAllTables()
 
 </script>
 

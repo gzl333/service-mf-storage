@@ -16,12 +16,12 @@ const props = defineProps({
     type: String,
     required: true
   },
-  path: {
-    type: String,
-    required: true
-  },
   pathObj: {
     type: Object,
+    required: true
+  },
+  isOperationStore: {
+    type: Boolean,
     required: true
   }
 })
@@ -38,10 +38,10 @@ const shareUrl = ref('')
 const shareCode = ref('')
 const share = async () => {
   if (props.pathObj.dirArrs && props.pathObj.dirArrs.length > 0) {
-    await store.triggerPublicShareDialog(props.localId, props.bucketName, props.path, { dirArrs: props.pathObj.dirArrs }, true)
+    await store.triggerPublicShareDialog(props.localId, props.bucketName, { dirArrs: props.pathObj.dirArrs }, props.isOperationStore)
   }
   if (props.pathObj.fileArrs && props.pathObj.fileArrs.length > 0) {
-    await store.triggerPublicShareDialog(props.localId, props.bucketName, props.path, { fileArrs: props.pathObj.fileArrs }, true)
+    await store.triggerPublicShareDialog(props.localId, props.bucketName, { fileArrs: props.pathObj.fileArrs }, props.isOperationStore)
   }
   onCancelClick()
 }
@@ -55,9 +55,9 @@ const copyUrl = (url: string) => {
 onBeforeMount(async () => {
   let dirName = ''
   if (props.pathObj.dirArrs) {
-    dirName = props.pathObj.dirArrs[0]
+    dirName = props.pathObj.dirArrs[0].na
   } else {
-    dirName = props.pathObj.fileArrs[0]
+    dirName = props.pathObj.fileArrs[0].na
   }
   const count = props.localId.split('/').length - 1
   let base
@@ -70,27 +70,17 @@ onBeforeMount(async () => {
     base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
     serviceId = store.tables.bucketTable.byLocalId[props.localId]?.service_id
   }
-  let dirPath
-  if (props.path === '') {
-    dirPath = dirName
-  } else {
-    dirPath = props.path + '/' + dirName
-  }
   const respShareDir = await api.storage.single.getPath({
     base,
     path: {
       bucket_name: props.bucketName,
-      path: dirPath
+      path: dirName
     }
   })
   shareCode.value = respShareDir.data.share_code || ''
   if (respShareDir.data.is_obj === false) {
     // http://servicedev.cstcloud.cn/storage/share/123?base=xxx&sub=yyy&p=zzz
-    if (props.path === '') {
-      shareUrl.value = window.location.protocol + '//' + window.location.hostname + '/storage/share/' + serviceId + '?base=' + props.bucketName + '/' + props.pathObj.dirArrs[0]
-    } else {
-      shareUrl.value = window.location.protocol + '//' + window.location.hostname + '/storage/share/' + serviceId + '?base=' + props.bucketName + '/' + props.path + '/' + props.pathObj.dirArrs[0]
-    }
+    shareUrl.value = window.location.protocol + '//' + window.location.hostname + '/storage/share/' + serviceId + '?base=' + props.bucketName + '/' + props.pathObj.dirArrs[0].na
   } else {
     // shareUrl.value = 'https://' + domainName + '/storage/share/down/obs/' + props.bucket_name + '/' + props.pathObj.fileArrs[0]
     shareUrl.value = respShareDir.data.share_uri

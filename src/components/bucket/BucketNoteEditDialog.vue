@@ -42,7 +42,6 @@ const isLoading = ref(false)
 const inputRef = ref<QInput>()
 
 const onOKClick = async () => {
-  console.log(note)
   if (note.value?.length < 1 || note.value?.length > MAX_LENGTH) {
     inputRef.value!.focus()
     Notify.create({

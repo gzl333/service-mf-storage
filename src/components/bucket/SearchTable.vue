@@ -4,9 +4,10 @@ import { FileInterface } from 'src/stores/store'
 import { useStore } from 'stores/store'
 // import { useRoute } from 'vue-router'
 import { i18n } from 'boot/i18n'
+import { Notify } from 'quasar'
 import useClipText from '../../../src/hooks/useClipText'
 import useFormatSize from '../../../src/hooks/useFormatSize'
-import { Notify } from 'quasar'
+import api from 'src/api'
 
 interface ArrayInterface {
   id: string,
@@ -15,7 +16,7 @@ interface ArrayInterface {
 
 const props = defineProps({
   pathArr: {
-    type: Array,
+    type: Object,
     required: true
   },
   tabArr: {
@@ -31,15 +32,6 @@ const { tc } = i18n.global
 const selected = ref<FileInterface[]>([])
 const fileDetail = ref({})
 const tabActive: Ref<string> = ref('1')
-// const toggleSelection = (file: FileInterface) => {
-//   if (selected.value.filter((item) => item.name === file.name).length === 0) {
-//     selected.value.push(file)
-//   } else {
-//     selected.value = selected.value.filter((item) => item.name !== file.name)
-//   }
-// }
-// 要展示detail的对象
-// const fileToShow = ref<FileInterface>()
 
 // 把过长的文本缩短
 const clipText70 = useClipText(70)
@@ -56,15 +48,6 @@ const columns = computed(() => [
     style: 'max-width: 1200px;padding: 15px 0px',
     classes: 'ellipsis',
     sortable: true
-    // sort: (a: FileInterface, b: FileInterface) => {
-    //   if ((!a.fod && !b.fod) || (a.fod && b.fod)) {
-    //     return parseInt(a.name, 10) - parseInt(b.name, 10)
-    //   } else if (!a.fod && b.fod) {
-    //     return 1
-    //   } else if (a.fod && !b.fod) {
-    //     return -1
-    //   }
-    // }
   },
   {
     name: 'time',
@@ -106,71 +89,69 @@ const columns = computed(() => [
   }
 ])
 
-const deleteSingleFile = (bucket: string, path: string) => {
+// 删除单个文件
+const deleteSingleFile = (na: string, name: string) => {
   const dataArr = []
-  dataArr.push(path)
-  void store.triggerDeleteFolderDialog({
-    domain: props.tabArr[Number(tabActive.value) - 1].id,
-    localId: bucket,
-    dirNames: { fileArrs: dataArr },
-    isSearch: true
-  })
+  const obj = {
+    na: '',
+    name: ''
+  }
+  obj.na = na
+  // 添加name用于删除失败 提示文件名
+  obj.name = name
+  dataArr.push(obj)
+  void store.triggerDeleteFolderDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: dataArr }, false)
 }
+// 删除多个文件 批量删除
 const batchDeleteFile = async () => {
-  const index = props.tabArr[Number(tabActive.value) - 1].id.lastIndexOf('/')
-  const str = props.tabArr[Number(tabActive.value) - 1].id.substring(index + 1, props.tabArr[0].id.length)
-  const fileArr: string[] = []
+  const fileArr: Record<string, string>[] = []
   selected.value.forEach((item) => {
-    fileArr.push(item.name)
+    const obj = {
+      na: '',
+      name: ''
+    }
+    obj.na = item.na
+    // 添加name用于删除失败 提示文件名
+    obj.name = item.name
+    fileArr.push(obj)
   })
-  void store.triggerDeleteFolderDialog({
-    domain: props.tabArr[Number(tabActive.value) - 1].id,
-    localId: str,
-    dirNames: { fileArrs: fileArr },
-    isSearch: true
-  })
+  void store.triggerDeleteFolderDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: fileArr }, false)
 }
-const shareSingleFile = async (bucket: string, path: string, accessCode: number) => {
+// 单个文件分享
+const shareSingleFile = async (na: string, name: string, accessCode: number) => {
   const dataArr = []
-  dataArr.push(path)
+  const obj = {
+    na: '',
+    name: ''
+  }
+  obj.na = na
+  obj.name = name
+  dataArr.push(obj)
   if (accessCode === 0) {
-    void store.triggerPublicShareDialog({
-      domain: props.tabArr[Number(tabActive.value) - 1].id,
-      localId: bucket,
-      dirNames: { fileArrs: dataArr },
-      isSearch: true
-    })
+    void store.triggerPublicShareDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: dataArr }, false)
   } else {
-    void store.triggerAlreadyShareDialog({
-      localId: bucket,
-      dirNames: { fileArrs: dataArr }
-    })
+    void store.triggerAlreadyShareDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: dataArr }, false)
   }
 }
+// 批量分享
 const batchShareFile = async () => {
-  const index = props.tabArr[Number(tabActive.value) - 1].id.lastIndexOf('/')
-  const str = props.tabArr[Number(tabActive.value) - 1].id.substring(index + 1, props.tabArr[0].id.length)
-  const shareObjArr: string[] = []
+  const shareObjArr: Record<string, string>[] = []
   selected.value.forEach((item) => {
-    shareObjArr.push(item.name)
+    const obj = {
+      na: '',
+      name: ''
+    }
+    obj.na = item.na
+    obj.name = item.name
+    shareObjArr.push(obj)
   })
-  void store.triggerPublicShareDialog({
-    domain: props.tabArr[Number(tabActive.value) - 1].id,
-    localId: str,
-    dirNames: { fileArrs: shareObjArr },
-    isSearch: true
-  })
+  void store.triggerPublicShareDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: shareObjArr }, false)
 }
-const changeName = (bucket: string, path: string, name: string) => {
-  void store.triggerChangeFolderDialog({
-    domain: props.tabArr[Number(tabActive.value) - 1].id,
-    localId: bucket,
-    objPath: path,
-    dirName: name,
-    isSearch: true
-  })
+// 文件重命名
+const changeName = (path: string, name: string) => {
+  void store.triggerChangeFolderDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, path, name, false)
 }
-const download = async (bucket: string, fileName: string) => {
+const download = async (fileName: string) => {
   // 创建a标签
   // const a = document.createElement('a')
   // 定义下载名称
@@ -185,6 +166,8 @@ const download = async (bucket: string, fileName: string) => {
   // a.click()
   // 将标签从dom移除
   // document.body.removeChild(a)
+
+  // 权限为私有的文件不能通过url直接下载,所以暂时请求后端api进行下载
   Notify.create({
     classes: 'notification-positive shadow-15',
     icon: 'las la-redo-alt',
@@ -195,9 +178,12 @@ const download = async (bucket: string, fileName: string) => {
     timeout: 5000,
     multiLine: false
   })
-  const objPath = bucket + '/' + fileName
-  // const res = await storage.storage.api.getObjPath({ path: { objpath: objPath } })
-  const downloadRes = await store.downloadObjItem({ domain: props.tabArr[Number(tabActive.value) - 1].id, path: { objPath } })
+  const objPath = props.pathArr.bucket + '/' + fileName
+  const base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.tabArr[Number(tabActive.value) - 1].id]?.service_id]?.endpoint_url
+  const downloadRes = await api.storage.single.getObjPath({
+    base,
+    path: { objpath: objPath }
+  })
   const url = window.URL.createObjectURL(new Blob([downloadRes.data]))
   const link = document.createElement('a')
   link.style.display = 'none'
@@ -241,146 +227,127 @@ watch(
 
 <template>
   <div class="SearchTable">
-    <div class="row">
-      <div class="col-auto">
-        <q-tabs
-          v-model="tabActive"
-          dense
-          class="bg-grey-2"
-          active-color="primary"
-          indicator-color="primary"
-          align="justify"
-          narrow-indicator
-        >
-          <q-tab v-for="tabItem in props.pathArr" :name="tabItem.tab.index" :label="tabItem.tab.desc" :key="tabItem.tab.id" no-caps/>
-        </q-tabs>
-      </div>
-    </div>
     <div class="row q-mt-sm">
       <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('批量删除')" @click="batchDeleteFile"
              :disable="selected.length > 0 ? false : true"/>
       <q-btn class="col-auto q-ml-sm" unelevated no-caps color="primary" :label="tc('批量分享')" @click="batchShareFile"
              :disable="selected.length > 0 ? false : true"/>
     </div>
-    <q-tab-panels v-model="tabActive" animated transition-prev="scale" transition-next="scale">
-      <q-tab-panel v-for="tabItem in props.pathArr" :name="tabItem.tab.index" :key="tabItem.tab.id" class="no-padding q-mt-sm">
-        <div class="row">
-          <div class="col">
-            <q-table
-              class="rounded-borders"
-              flat
-              square
-              table-header-class="bg-grey-1 text-grey"
-              :rows="tabItem.results.files"
-              :columns="columns"
-              row-key="name"
-              hide-pagination
-              :pagination="{rowsPerPage: 0}"
-              :loading="store.tables.pathTable.status === 'loading'"
-              :no-data-label="tc('暂无文件对象')"
-              selection="multiple"
-              v-model:selected="selected"
-            >
-              <template v-slot:header-selection="scope">
-                <q-checkbox style="" v-model="scope.selected" dense size="xs"/>
-              </template>
+    <div class="row">
+      <div class="col">
+        <q-table
+          class="rounded-borders"
+          flat
+          square
+          table-header-class="bg-grey-1 text-grey"
+          :rows="props.pathArr?.files"
+          :columns="columns"
+          row-key="na"
+          hide-pagination
+          :pagination="{rowsPerPage: 0}"
+          :loading="store.tables.pathTable.status === 'loading'"
+          :no-data-label="tc('暂无文件对象')"
+          selection="multiple"
+          v-model:selected="selected"
+        >
+          <template v-slot:header-selection="scope">
+            <q-checkbox style="" v-model="scope.selected" dense size="xs"/>
+          </template>
 
-              <template v-slot:body="props">
-                <q-tr :props="props" :class="props.expand ? 'bg-blue-1':''">
+          <template v-slot:body="props">
+            <q-tr :props="props" :class="props.expand ? 'bg-blue-1':''">
 
-                  <q-td auto-width>
-                    <q-checkbox v-model="props.selected" dense size="xs"/>
-                  </q-td>
+              <q-td auto-width>
+                <q-checkbox v-model="props.selected" dense size="xs"/>
+              </q-td>
 
-                  <q-td key="name" :props="props">
-                    <q-btn flat no-caps color="black" padding="none" :ripple="false"
-                           @click="toggleExpansion(props)">
-                      <div class="row items-center no-wrap">
-                        <q-icon class="col-auto" color="grey" name="insert_drive_file"/>
-                        <div class="col-auto"> {{ clipText70(props.row.name) }}</div>
-                      </div>
-                    </q-btn>
-                  </q-td>
+              <q-td key="name" :props="props">
+                <q-btn flat no-caps color="black" padding="none" :ripple="false"
+                       @click="toggleExpansion(props)">
+                  <div class="row items-center no-wrap">
+                    <q-icon class="col-auto" color="grey" name="insert_drive_file"/>
+                    <div class="col-auto"> {{ clipText70(props.row.name) }}</div>
+                  </div>
+                </q-btn>
+              </q-td>
 
-                  <q-td key="time" :props="props">
-                    {{ new Date(props.row.ult).toLocaleString(i18n.global.locale) }}
-                  </q-td>
+              <q-td key="time" :props="props">
+                {{ new Date(props.row.ult).toLocaleString(i18n.global.locale) }}
+              </q-td>
 
-                  <q-td key="size" :props="props">
-                    {{ formatSize1024(props.row.si) }}
-                  </q-td>
+              <q-td key="size" :props="props">
+                {{ formatSize1024(props.row.si) }}
+              </q-td>
 
-                  <q-td key="access" :props="props">
-                    {{ tc(props.row.access_permission) }}
-                  </q-td>
+              <q-td key="access" :props="props">
+                {{ tc(props.row.access_permission) }}
+              </q-td>
 
-                  <q-td key="operation" :props="props">
-                    <q-btn color="primary" unelevated no-caps @click="deleteSingleFile(tabItem.results.bucket, props.row.na)">
-                      {{ tc('删除') }}
-                    </q-btn>
-                    <q-btn class="q-ml-xs" color="primary" unelevated no-caps
-                           @click="shareSingleFile(tabItem.results.bucket, props.row.na, props.row.access_code)">
-                      {{ tc('公开分享') }}
-                    </q-btn>
-                    <q-btn class="q-ml-xs" color="primary" unelevated no-caps
-                           @click="changeName(tabItem.results.bucket, props.row.na, props.row.name)">{{ tc('重命名') }}
-                    </q-btn>
-                    <q-btn class="q-ml-xs" color="primary" unelevated no-caps
-                           @click="download(tabItem.results.bucket, props.row.name)">{{ tc('下载') }}
-                    </q-btn>
-                    <q-btn color="primary" flat dense no-caps
-                           :label="props.expand ? tc('折叠详情') : tc('展开详情')"
-                           @click="toggleExpansion(props)"></q-btn>
-                  </q-td>
+              <q-td key="operation" :props="props">
+                <q-btn color="primary" unelevated no-caps @click="deleteSingleFile(props.row.na, props.row.name)">
+                  {{ tc('删除') }}
+                </q-btn>
+                <q-btn class="q-ml-xs" color="primary" unelevated no-caps
+                       @click="shareSingleFile(props.row.na, props.row.name, props.row.access_code)">
+                  {{ tc('公开分享') }}
+                </q-btn>
+                <q-btn class="q-ml-xs" color="primary" unelevated no-caps
+                       @click="changeName(props.row.na, props.row.name)">{{ tc('重命名') }}
+                </q-btn>
+                <q-btn class="q-ml-xs" color="primary" unelevated no-caps
+                       @click="download(props.row.name)">{{ tc('下载') }}
+                </q-btn>
+                <q-btn color="primary" flat dense no-caps
+                       :label="props.expand ? tc('折叠详情') : tc('展开详情')"
+                       @click="toggleExpansion(props)"></q-btn>
+              </q-td>
 
-                </q-tr>
-                <q-tr v-show="props.expand" :props="props" class="bg-blue-1">
+            </q-tr>
+            <q-tr v-show="props.expand" :props="props" class="bg-blue-1">
 
-                  <q-td auto-width>
-                  </q-td>
+              <q-td auto-width>
+              </q-td>
 
-                  <q-td key="name" class="text-center" style="padding: 15px 0px">
-                    <q-icon name="subdirectory_arrow_right" size="sm" color="grey-7"/>
-                  </q-td>
+              <q-td key="name" class="text-center" style="padding: 15px 0px">
+                <q-icon name="subdirectory_arrow_right" size="sm" color="grey-7"/>
+              </q-td>
 
-                  <q-td colspan="100%" style="padding: 15px 0px">
-                    <div class="column q-gutter-md">
-                      <div class="col-auto text-bold">
-                        {{ fileDetail[props.row.name]?.name }}
-                      </div>
+              <q-td colspan="100%" style="padding: 15px 0px">
+                <div class="column q-gutter-md">
+                  <div class="col-auto text-bold">
+                    {{ fileDetail[props.row.name]?.name }}
+                  </div>
+                </div>
+                <q-separator/>
+                <div class="row">
+                  <div>
+                    <div>
+                      {{ tc('创建时间') }}: {{
+                        new Date(fileDetail[props.row.name]?.ult).toLocaleString(i18n.global.locale)
+                      }}
                     </div>
-                    <q-separator/>
-                    <div class="row">
-                      <div>
-                        <div>
-                          {{ tc('创建时间') }}: {{
-                            new Date(fileDetail[props.row.name]?.ult).toLocaleString(i18n.global.locale)
-                          }}
-                        </div>
-                        <div>
-                          {{ tc('文件大小') }}: {{ fileDetail[props.row.name]?.si }}
-                        </div>
-                        <div>
-                          {{ tc('下载次数') }}: {{ fileDetail[props.row.name]?.dlc }}
-                        </div>
-                      </div>
-                      <div class="q-ml-xl">
-                        <div>{{ tc('最后修改') }}:
-                          {{ new Date(fileDetail[props.row.name]?.upt).toLocaleString(i18n.global.locale) }}
-                        </div>
-                        <div>{{ tc('访问权限') }}: {{ tc(props.row.access_permission) }}</div>
-                        <div>MD5: {{ fileDetail[props.row.name]?.md5 }}</div>
-                      </div>
+                    <div>
+                      {{ tc('文件大小') }}: {{ fileDetail[props.row.name]?.si }}
                     </div>
-                  </q-td>
-                </q-tr>
-              </template>
-            </q-table>
-            <q-separator/>
-          </div>
-        </div>
-      </q-tab-panel>
-    </q-tab-panels>
+                    <div>
+                      {{ tc('下载次数') }}: {{ fileDetail[props.row.name]?.dlc }}
+                    </div>
+                  </div>
+                  <div class="q-ml-xl">
+                    <div>{{ tc('最后修改') }}:
+                      {{ new Date(fileDetail[props.row.name]?.upt).toLocaleString(i18n.global.locale) }}
+                    </div>
+                    <div>{{ tc('访问权限') }}: {{ tc(props.row.access_permission) }}</div>
+                    <div>MD5: {{ fileDetail[props.row.name]?.md5 }}</div>
+                  </div>
+                </div>
+              </q-td>
+            </q-tr>
+          </template>
+        </q-table>
+        <q-separator/>
+      </div>
+    </div>
   </div>
 </template>
 

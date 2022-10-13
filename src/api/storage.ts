@@ -2,7 +2,7 @@
 
 /* eslint-disable camelcase */
 
-import { axiosSingle, axiosStorage } from 'boot/axios'
+import { axiosSingle } from 'boot/axios'
 
 export default {
   single: {
@@ -407,23 +407,6 @@ export default {
         params: payload.query
       }
       return axiosSingle.get(payload.base + '/api/v1/search/object/', config)
-    }
-  },
-  api: {
-    // 获取分享列表
-    getShareBase (payload: {
-      path: {
-        share_base: string
-      }
-      query?: {
-        subpath?: string
-        p?: string
-      }
-    }) {
-      const config = {
-        params: payload.query
-      }
-      return axiosStorage.get('/share/list/' + payload.path.share_base, config)
     }
   }
 }

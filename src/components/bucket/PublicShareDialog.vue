@@ -17,10 +17,6 @@ const props = defineProps({
     type: String,
     required: true
   },
-  path: {
-    type: String,
-    required: true
-  },
   pathObj: {
     type: Object,
     required: true
@@ -90,7 +86,6 @@ const share = async () => {
   if (selectModel.value !== null) {
     const count = props.localId.split('/').length - 1
     let base
-    let dirPath
     if (count > 1) {
       const str = conversionBase(props.localId, '/', 1)
       base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
@@ -100,16 +95,11 @@ const share = async () => {
     if (props.pathObj.dirArrs && props.pathObj.dirArrs.length > 0) {
       if (isPass.value === false) {
         for (const item of props.pathObj.dirArrs) {
-          if (props.path === '') {
-            dirPath = item
-          } else {
-            dirPath = props.path + '/' + item
-          }
           void await api.storage.single.patchDirPath({
             base,
             path: {
               bucket_name: props.bucket_name,
-              dirpath: dirPath
+              dirpath: item.na
             },
             query: {
               share: shareQuery.value.share,
@@ -119,16 +109,11 @@ const share = async () => {
         }
       } else {
         for (const item of props.pathObj.dirArrs) {
-          if (props.path === '') {
-            dirPath = item
-          } else {
-            dirPath = props.path + '/' + item
-          }
           void await api.storage.single.patchDirPath({
             base,
             path: {
               bucket_name: props.bucket_name,
-              dirpath: dirPath
+              dirpath: item.na
             },
             query: {
               share: shareQuery.value.share,
@@ -142,16 +127,11 @@ const share = async () => {
     if (props.pathObj.fileArrs && props.pathObj.fileArrs.length > 0) {
       if (isPass.value === false) {
         for (const item of props.pathObj.fileArrs) {
-          if (props.path === '') {
-            dirPath = item
-          } else {
-            dirPath = props.path + '/' + item
-          }
           void await api.storage.single.patchObjPath({
             base,
             path: {
               bucket_name: props.bucket_name,
-              objpath: dirPath
+              objpath: item.na
             },
             query: {
               share: shareQuery.value.share,
@@ -161,16 +141,11 @@ const share = async () => {
         }
       } else {
         for (const item of props.pathObj.fileArrs) {
-          if (props.path === '') {
-            dirPath = item
-          } else {
-            dirPath = props.path + '/' + item
-          }
           void await api.storage.single.patchObjPath({
             base,
             path: {
               bucket_name: props.bucket_name,
-              objpath: dirPath
+              objpath: item.na
             },
             query: {
               share: shareQuery.value.share,
@@ -195,16 +170,10 @@ const share = async () => {
     }
     onDialogOK()
     if (props.pathObj.dirArrs && !props.pathObj.fileArrs && props.pathObj.dirArrs.length === 1 && shareQuery.value.share !== 0) {
-      void store.triggerAlreadyShareDialog(props.localId, props.bucket_name, props.path, { dirArrs: props.pathObj.dirArrs })
+      void store.triggerAlreadyShareDialog(props.localId, props.bucket_name, { dirArrs: props.pathObj.dirArrs }, props.isOperationStore)
     } else if (!props.pathObj.dirArrs && props.pathObj.fileArrs && props.pathObj.fileArrs.length === 1 && shareQuery.value.share !== 0) {
-      void store.triggerAlreadyShareDialog(props.localId, props.bucket_name, props.path, { fileArrs: props.pathObj.fileArrs })
+      void store.triggerAlreadyShareDialog(props.localId, props.bucket_name, { fileArrs: props.pathObj.fileArrs }, props.isOperationStore)
     }
-    // if (shareQuery.value.share !== 0) {
-    //   void store.triggerAlreadyShareDialog({
-    //     localId: props.bucket_name,
-    //     dirNames: { dirArrs: props.pathObj.dirArrs }
-    //   })
-    // }
   } else {
     Notify.create({
       classes: 'notification-negative shadow-15',

@@ -24,7 +24,7 @@ const props = defineProps({
     type: String,
     required: true
   },
-  isSearch: {
+  isOperationStore: {
     type: Boolean,
     required: false
   }
@@ -34,7 +34,6 @@ const { tc } = i18n.global
 const dirName = ref(props.dirName)
 const inputRef = ref<QInput>()
 defineEmits([...useDialogPluginComponent.emits])
-
 const {
   dialogRef,
   onDialogHide,
@@ -97,7 +96,7 @@ const onOKClick = async () => {
         base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
       }
       await api.storage.single.postObjPath({ base, path: { bucket_name: props.bucket_name, objpath: props.objpath }, query: { rename: dirName.value } })
-      if (!props.isSearch) {
+      if (props.isOperationStore) {
         store.tables.pathTable.byLocalId[props.localId].files.forEach((item) => {
           if (item.name === props.dirName) {
             item.name = dirName.value

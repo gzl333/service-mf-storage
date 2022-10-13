@@ -1,10 +1,8 @@
 import { defineStore } from 'pinia'
 import { normalize, schema } from 'normalizr'
 import { Dialog } from 'quasar'
-
 import api from 'src/api/index'
 import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
-
 import BucketCreateDialog from 'components/bucket/BucketCreateDialog.vue'
 import BucketDeleteDialog from 'components/bucket/BucketDeleteDialog.vue'
 import BucketFtpPasswordEditDialog from 'components/bucket/BucketFtpPasswordEditDialog.vue'
@@ -159,8 +157,8 @@ export interface deleteInterface {
 export interface shareInterface {
   bucket_name: string
   dirpath: {
-    dirArrs: string[]
-    fileArrs: string[]
+    dirArrs: Record<string, string>[]
+    fileArrs: Record<string, string>[]
   }
   share: number
 }
@@ -182,15 +180,10 @@ export interface tokenInterface {
   permission: string
 }
 
-// export interface ArrayInterface {
-//   id: string,
-//   desc: string
-// }
-
-// export interface searchInterface {
-//   tab: ArrayInterface,
-//   results: FileInterface[],
-// }
+export interface StatusInterface {
+  na: string,
+  name: string
+}
 
 /* table的类型 */
 
@@ -244,7 +237,9 @@ export const useStore = defineStore('storage', {
     items: {
       // 实时记录用户所在app局部路径位置
       // 例如'/my/server/personal/list' -> ['personal', 'list'], 供二级三级导航栏在刷新时保持选择使用
-      currentPath: [] as string[]
+      currentPath: [] as string[],
+      // 分享链接所用的服务单元信息
+      shareService: {} as ServiceInterface
     },
     tables: {
       serviceTable: {
@@ -280,31 +275,6 @@ export const useStore = defineStore('storage', {
     }
   }),
   getters: {
-    getIntegratedSearchOptions (state): Record<string, string>[] {
-      const bucketOptions = []
-      let obj: Record<string, string> = {}
-      for (const objElement of state.tables.bucketTable.allLocalIds) {
-        obj = {}
-        obj.id = state.tables.bucketTable.byLocalId[objElement]?.service_id + '/' + state.tables.bucketTable.byLocalId[objElement].local_id
-        // obj.id = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
-        obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
-        bucketOptions.push(obj)
-      }
-      return bucketOptions
-    },
-    getFirstsIntegratedSearchOption (state): string {
-      let bucketName = ''
-      // const obj: Record<string, string> = {}
-      // obj.id = state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.local_id
-      // obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id]?.name + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.name
-      bucketName = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id]?.name + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.name
-      return bucketName
-    },
-    getFirstsIntegratedSearchOptionId (state): string {
-      let bucketName = ''
-      bucketName = state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.local_id
-      return bucketName
-    },
     getBuckets (state): Record<string, string>[] {
       const bucketOptions = []
       let obj: Record<string, string> = {}
@@ -320,6 +290,34 @@ export const useStore = defineStore('storage', {
       let bucketName = ''
       bucketName = state.tables.bucketTable.allLocalIds[0]
       return bucketName
+    },
+    getIntegratedSearchOptions (state): Record<string, string>[] {
+      const bucketOptions = []
+      let obj: Record<string, string> = {}
+      for (const objElement of state.tables.bucketTable.allLocalIds) {
+        obj = {}
+        obj.id = state.tables.bucketTable.byLocalId[objElement]?.service_id + '/' + state.tables.bucketTable.byLocalId[objElement].local_id
+        // obj.id = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
+        obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
+        bucketOptions.push(obj)
+      }
+      return bucketOptions
+    },
+    getFirstsIntegratedSearchOptionName (state): string {
+      let name = ''
+      name = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id]?.name + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.name
+      return name
+    },
+    getFirstsIntegratedSearchOptionId (state): string {
+      let localId = ''
+      localId = state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.local_id
+      return localId
+    },
+    getFirstIntrgratedSearchOptions (state): Record<string, string> {
+      const obj: Record<string, string> = {}
+      obj.id = state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.local_id
+      obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id]?.name + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.name
+      return obj
     }
   },
   actions: {
@@ -378,13 +376,6 @@ export const useStore = defineStore('storage', {
         exceptionNotifier(exception)
         this.tables.bucketTable.status = 'error'
       }
-    },
-    async getSearchTable (serviceId: string, keyword: string) {
-      const base = this.tables.serviceTable.byId[this.tables.bucketTable.byLocalId[serviceId]?.service_id]?.endpoint_url
-      const bucketName = this.tables.bucketTable.byLocalId[serviceId]?.name
-      // 2. 发送网络请求，格式化数据，保存对象
-      const respGetBuckets = await api.storage.single.getSearchObject({ base, query: { bucket: bucketName, search: keyword } })
-      return respGetBuckets
     },
     // bucketStatTable: 累积加载，localId
     async addBucketStatTable (serviceId: string, bucketName: string) {
@@ -502,36 +493,31 @@ export const useStore = defineStore('storage', {
       }
     },
     // 文件更改分享状态
-    changeShareStatus (item: shareInterface) {
-      if (item.dirpath.dirArrs !== undefined && item.dirpath.dirArrs.length > 0) {
-        item.dirpath.dirArrs.forEach((dir: string) => {
-          const index = this.tables.pathTable.byLocalId[item.bucket_name].files.findIndex(item => item.name === dir)
-          if (item.share === 0) {
-            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_code = 0
-            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_permission = '私有'
+    changeShareStatus (fileStatus: shareInterface) {
+      if (fileStatus.dirpath.dirArrs !== undefined && fileStatus.dirpath.dirArrs.length > 0) {
+        fileStatus.dirpath.dirArrs.forEach(dir => {
+          const index = this.tables.pathTable.byLocalId[fileStatus.bucket_name].files.findIndex(item => item.name === dir.name)
+          if (fileStatus.share === 0) {
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_code = 0
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_permission = '私有'
           } else {
-            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_code = 1
-            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_permission = '公有'
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_code = 1
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_permission = '公有'
           }
         })
       }
-      if (item.dirpath.fileArrs !== undefined && item.dirpath.fileArrs.length > 0) {
-        item.dirpath.fileArrs.forEach((file: string) => {
-          const index = this.tables.pathTable.byLocalId[item.bucket_name].files.findIndex(item => item.name === file)
-          if (item.share === 0) {
-            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_code = 0
-            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_permission = '私有'
+      if (fileStatus.dirpath.fileArrs !== undefined && fileStatus.dirpath.fileArrs.length > 0) {
+        fileStatus.dirpath.fileArrs.forEach(file => {
+          const index = this.tables.pathTable.byLocalId[fileStatus.bucket_name].files.findIndex(item => item.name === file.name)
+          if (fileStatus.share === 0) {
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_code = 0
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_permission = '私有'
           } else {
-            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_code = 1
-            this.tables.pathTable.byLocalId[item.bucket_name].files[index].access_permission = '公有'
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_code = 1
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_permission = '公有'
           }
         })
       }
-    },
-    async downloadObjItem (payload: { domain: string, path: { objPath: string }}) {
-      const base = this.tables.serviceTable.byId[this.tables.bucketTable.byLocalId[payload.domain]?.service_id]?.endpoint_url
-      const res = await api.storage.single.getObjPath({ base, path: { objpath: payload.path.objPath } })
-      return res
     },
     // 删除文件
     deleteFile (deleteItem: deleteInterface) {
@@ -540,6 +526,45 @@ export const useStore = defineStore('storage', {
       }
       if (deleteItem.dirpath.fileArrs.length > 0) {
         this.tables.pathTable.byLocalId[deleteItem.localId].files = this.tables.pathTable.byLocalId[deleteItem.localId].files.filter((item) => !deleteItem.dirpath.fileArrs.includes(item.name))
+      }
+    },
+    // 切换存储桶web访问权限
+    async toggleBucketAccess (serviceId: string, bucketName: string) {
+      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
+      this.tables.bucketTable.status = 'loading'
+      try {
+        const respPatchAccess = await api.storage.single.patchBucketsIdOrName({
+          base,
+          path: { id_or_name: bucketName },
+          query: {
+            'by-name': true,
+            public: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.access_permission === '私有' ? 1 : 2
+          }
+        })
+        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].access_permission = respPatchAccess.data.public === 1 ? '公有' : '私有'
+        this.tables.bucketTable.status = 'part'
+      } catch (exception) {
+        this.tables.bucketTable.status = 'error'
+        exceptionNotifier(exception)
+      }
+    },
+    // 切换存储桶FTP状态
+    async toggleBucketFtp (serviceId: string, bucketName: string) {
+      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
+      this.tables.bucketTable.status = 'loading'
+      try {
+        const respPatchFtp = await api.storage.single.patchFtpBucketName({
+          base,
+          path: { bucket_name: bucketName },
+          query: {
+            enable: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.ftp_enable !== true
+          }
+        })
+        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].ftp_enable = respPatchFtp.data.data.enable
+        this.tables.bucketTable.status = 'part'
+      } catch (exception) {
+        this.tables.bucketTable.status = 'error'
+        exceptionNotifier(exception)
       }
     },
     /* dialogs */
@@ -586,32 +611,31 @@ export const useStore = defineStore('storage', {
       })
     },
     // 公开分享
-    triggerPublicShareDialog (localId: string, bucketName: string, path: string, dirNames: { dirArrs?: string[], fileArrs?: string[] }, isOperationStore: boolean) {
+    triggerPublicShareDialog (localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean) {
       Dialog.create({
         component: PublicShareDialog,
         componentProps: {
           localId,
           bucket_name: bucketName,
-          path,
           pathObj: dirNames,
           isOperationStore
         }
       })
     },
     // 已经分享
-    triggerAlreadyShareDialog (localId: string, bucketName: string, path: string, dirNames: { dirArrs?: string[], fileArrs?: string[] }) {
+    triggerAlreadyShareDialog (localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean) {
       Dialog.create({
         component: AlreadyShareDialog,
         componentProps: {
           localId,
           bucketName,
-          path,
-          pathObj: dirNames
+          pathObj: dirNames,
+          isOperationStore
         }
       })
     },
     // 文件重命名
-    triggerChangeFolderDialog (localId: string, bucketName: string, objPath: string, dirName: string, isSearch: boolean) {
+    triggerChangeFolderDialog (localId: string, bucketName: string, objPath: string, dirName: string, isOperationStore: boolean) {
       Dialog.create({
         component: FileChangeNameDialog,
         componentProps: {
@@ -619,7 +643,7 @@ export const useStore = defineStore('storage', {
           bucket_name: bucketName,
           objpath: objPath,
           dirName,
-          isSearch
+          isOperationStore
         }
       })
     },
@@ -675,45 +699,6 @@ export const useStore = defineStore('storage', {
           tokenKey
         }
       })
-    },
-    // 切换存储桶web访问权限
-    async toggleBucketAccess (serviceId: string, bucketName: string) {
-      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
-      this.tables.bucketTable.status = 'loading'
-      try {
-        const respPatchAccess = await api.storage.single.patchBucketsIdOrName({
-          base,
-          path: { id_or_name: bucketName },
-          query: {
-            'by-name': true,
-            public: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.access_permission === '私有' ? 1 : 2
-          }
-        })
-        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].access_permission = respPatchAccess.data.public === 1 ? '公有' : '私有'
-        this.tables.bucketTable.status = 'part'
-      } catch (exception) {
-        this.tables.bucketTable.status = 'error'
-        exceptionNotifier(exception)
-      }
-    },
-    // 切换存储桶FTP状态
-    async toggleBucketFtp (serviceId: string, bucketName: string) {
-      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
-      this.tables.bucketTable.status = 'loading'
-      try {
-        const respPatchFtp = await api.storage.single.patchFtpBucketName({
-          base,
-          path: { bucket_name: bucketName },
-          query: {
-            enable: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.ftp_enable !== true
-          }
-        })
-        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].ftp_enable = respPatchFtp.data.data.enable
-        this.tables.bucketTable.status = 'part'
-      } catch (exception) {
-        this.tables.bucketTable.status = 'error'
-        exceptionNotifier(exception)
-      }
     }
   }
 })
