@@ -94,11 +94,6 @@ const clickToCopy = useCopyToClipboard()
 
     <div class="row items-center" style="vertical-align: bottom;">
 
-      <q-btn icon="arrow_back_ios" color="primary" size="md" flat dense
-             @click="navigateToUrl('/my/storage/service/' + props.serviceId)">
-        <q-tooltip> 返回存储桶列表</q-tooltip>
-      </q-btn>
-
       <q-icon name="mdi-database" color="primary" size="md"/>
 
       <div class="col-auto text-h5 text-weight-bold cursor-pointer"
@@ -305,10 +300,10 @@ const clickToCopy = useCopyToClipboard()
 
             <!--            <q-separator vertical/>-->
 
-            <q-card-section v-if="currentBucket?.access_permission === '公有'" class="col-auto">
+            <q-card-section class="col-auto">
               <div class="column">
                 <div class="col text-grey">
-                  存储桶分享地址
+                  Web 访问地址
                 </div>
                 <div class="col row items-center">
                   {{ currentBucketUrl }}
@@ -375,13 +370,7 @@ const clickToCopy = useCopyToClipboard()
 
           <q-separator/>
 
-          <q-card-section v-if="!currentService?.provide_ftp" class="row item-center" horizontal>
-            <q-card-section class="col-3">
-              本服务单位不支持FTP连接
-            </q-card-section>
-          </q-card-section>
-
-          <q-card-section v-else class="row item-center" horizontal>
+          <q-card-section class="row item-center" horizontal>
             <q-card-section class="col-3">
               <div class="column">
                 <div class="col text-grey">
@@ -401,7 +390,7 @@ const clickToCopy = useCopyToClipboard()
 
             <!--            <q-separator vertical/>-->
 
-            <q-card-section v-if="currentBucket?.ftp_enable" class="col-3">
+            <q-card-section class="col-3">
               <div class="column">
                 <div class="col text-grey">
                   FTP 只读密码
@@ -438,7 +427,7 @@ const clickToCopy = useCopyToClipboard()
 
             <!--            <q-separator vertical/>-->
 
-            <q-card-section v-if="currentBucket?.ftp_enable" class="col-3">
+            <q-card-section class="col-3">
               <div class="column">
                 <div class="col text-grey">
                   FTP 读写密码
