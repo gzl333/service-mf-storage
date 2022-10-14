@@ -318,6 +318,9 @@ export const useStore = defineStore('storage', {
         this.tables.serviceTable.status = 'error'
       }
     },
+    // 读取全部服务单元的存储桶，后端分页，条目在vms取，详情在各个服务单元的api取 todo
+    // async loadBucketTable () {
+    // },
     // bucketTable应从vms读取，是粗略的信息
     async addBucketTable (serviceId: string) {
       const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url

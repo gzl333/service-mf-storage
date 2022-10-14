@@ -10,10 +10,11 @@ const routes: RouteRecordRaw[] = [
         path: 'service',
         component: () => import('pages/service/ServiceRoot.vue'),
         props: true,
+        redirect: '/my/storage/service/all',
         children: [
           {
             path: 'all',
-            component: () => import('pages/bucket/BucketList.vue') // todo 全部服务单元的存储桶聚合显示
+            component: () => import('pages/bucket/AllBucketList.vue')
           },
           {
             path: ':serviceId',

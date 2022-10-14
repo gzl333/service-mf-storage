@@ -40,12 +40,6 @@ const clipText70 = useClipText(70)
 
   <div class="row non-selectable">
 
-    <div class="col-auto text-weight-bold">
-      {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }}
-    </div>
-
-    <div class="col-auto q-px-sm text-grey">|</div>
-
     <q-breadcrumbs class="col-auto text-black">
 
       <template v-slot:separator>
@@ -56,13 +50,7 @@ const clipText70 = useClipText(70)
         />
       </template>
 
-      <!--      <q-breadcrumbs-el>-->
-      <!--        <div class="row items-center no-wrap text-black">-->
-      <!--          {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }}-->
-      <!--        </div>-->
-      <!--      </q-breadcrumbs-el>-->
-
-      <q-breadcrumbs-el @click="navigateToUrl('/my/storage/service/' + currentServiceId)">
+      <q-breadcrumbs-el @click="navigateToUrl('/my/storage/service/all')">
         <div class="row items-center no-wrap cursor-pointer">
           <!--            <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>-->
           <div class="col-auto" :class="currentBucketName ? '':'text-bold'">
@@ -70,6 +58,15 @@ const clipText70 = useClipText(70)
           </div>
         </div>
         <q-tooltip>{{ tc('全部存储桶列表') }}</q-tooltip>
+      </q-breadcrumbs-el>
+
+      // 服务单元名称
+      <q-breadcrumbs-el v-if="currentServiceId !== 'all'">
+        <div class="row items-center no-wrap">
+          <div class="col-auto" :class="currentBucketName ? '':'text-bold'">
+            {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }}
+          </div>
+        </div>
       </q-breadcrumbs-el>
 
       // 桶名称
