@@ -5,6 +5,7 @@ import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 import { useStore } from 'stores/store'
 import { i18n } from 'boot/i18n'
 import api from 'src/api/index'
+import emitter from 'boot/mitt'
 import { conversionBase } from 'src/hooks/useEndpointUrl'
 
 const props = defineProps({
@@ -23,6 +24,9 @@ const props = defineProps({
   isOperationStore: {
     type: Boolean,
     required: true
+  },
+  isRefresh: {
+    type: Boolean
   }
 })
 const store = useStore()
@@ -50,6 +54,11 @@ const copyUrl = (url: string) => {
     clickToCopy(url)
   } else {
     clickToCopy(url + '&p=' + shareCode.value)
+  }
+}
+const onDialogHide = () => {
+  if (!props.isOperationStore && props.isRefresh) {
+    emitter.emit('done', true)
   }
 }
 onBeforeMount(async () => {
@@ -89,7 +98,7 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <q-dialog ref="dialogRef">
+  <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin dialog-primary">
       <q-separator/>
       <div class="row justify-end">

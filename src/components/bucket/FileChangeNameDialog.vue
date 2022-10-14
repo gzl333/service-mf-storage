@@ -95,11 +95,12 @@ const onOKClick = async () => {
       } else {
         base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
       }
-      await api.storage.single.postObjPath({ base, path: { bucket_name: props.bucket_name, objpath: props.objpath }, query: { rename: dirName.value } })
+      const renameRes = await api.storage.single.postObjPath({ base, path: { bucket_name: props.bucket_name, objpath: props.objpath }, query: { rename: dirName.value } })
       if (props.isOperationStore) {
         store.tables.pathTable.byLocalId[props.localId].files.forEach((item) => {
           if (item.name === props.dirName) {
-            item.name = dirName.value
+            item.name = renameRes.data.obj.name
+            item.na = renameRes.data.obj.na
           }
         })
       } else {

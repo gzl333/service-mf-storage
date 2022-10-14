@@ -105,7 +105,7 @@ const columns = computed(() => [
   }
 ])
 
-const onItemClick = (na: string, name: string, fod: boolean) => {
+const singleDelete = (na: string, name: string, fod: boolean) => {
   const dataArr = []
   const obj = {
     na: '',
@@ -120,7 +120,7 @@ const onItemClick = (na: string, name: string, fod: boolean) => {
     void store.triggerDeleteFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true)
   }
 }
-const deleteFile = async () => {
+const batchDelete = async () => {
   const dirArr: Record<string, string>[] = []
   const fileArr: Record<string, string>[] = []
   selected.value.forEach((item) => {
@@ -140,7 +140,7 @@ const deleteFile = async () => {
   })
   void store.triggerDeleteFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dirArr, fileArrs: fileArr }, true)
 }
-const shareItemClick = async (na: string, name: string, accessCode: number, fod: boolean) => {
+const singleShare = async (na: string, name: string, accessCode: number, fod: boolean) => {
   const dataArr = []
   const obj = {
     na: '',
@@ -157,13 +157,13 @@ const shareItemClick = async (na: string, name: string, accessCode: number, fod:
     }
   } else {
     if (fod) {
-      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { fileArrs: dataArr }, true)
+      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { fileArrs: dataArr }, true, false)
     } else {
-      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true)
+      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true, false)
     }
   }
 }
-const shareFile = async () => {
+const batchShare = async () => {
   const shareDirArr: Record<string, string>[] = []
   const shareObjArr: Record<string, string>[] = []
   selected.value.forEach((item) => {
@@ -269,12 +269,10 @@ watch(
              @click="store.triggerCreateFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path)"/>
       <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('上传文件')"
              @click="store.triggerUploadDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path)"/>
-      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('删除文件')" @click="deleteFile"
-             :disable="selected.length > 0 ? false : true"/>
-      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="shareFile"
-             :disable="selected.length > 0 ? false : true"/>
-      <!--      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')"-->
-      <!--             @click="navigateToUrl(`/my/storage/bucket/search?bucket=${bucket}`)"/>-->
+      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('删除文件')" @click="batchDelete"
+             :disable="selected.length<=0"/>
+      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="batchShare"
+             :disable="selected.length<=0"/>
     </div>
 
     <div class="row">
@@ -345,11 +343,11 @@ watch(
               </q-td>
 
               <q-td key="operation" :props="props">
-                <q-btn color="primary" unelevated no-caps @click="onItemClick(props.row.na, props.row.name, props.row.fod)">
+                <q-btn color="primary" unelevated no-caps @click="singleDelete(props.row.na, props.row.name, props.row.fod)">
                   {{ tc('删除') }}
                 </q-btn>
                 <q-btn class="q-ml-xs" color="primary" unelevated no-caps
-                       @click="shareItemClick(props.row.na, props.row.name, props.row.access_code, props.row.fod)">{{
+                       @click="singleShare(props.row.na, props.row.name, props.row.access_code, props.row.fod)">{{
                     tc('公开分享')
                   }}
                 </q-btn>

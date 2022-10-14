@@ -623,14 +623,15 @@ export const useStore = defineStore('storage', {
       })
     },
     // 已经分享
-    triggerAlreadyShareDialog (localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean) {
+    triggerAlreadyShareDialog (localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean, isRefresh?: boolean) {
       Dialog.create({
         component: AlreadyShareDialog,
         componentProps: {
           localId,
           bucketName,
           pathObj: dirNames,
-          isOperationStore
+          isOperationStore,
+          isRefresh
         }
       })
     },

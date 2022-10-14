@@ -166,13 +166,15 @@ const share = async () => {
         share: shareQuery.value.share
       })
     } else {
-      emitter.emit('done', true)
+      if (shareQuery.value.share === 0 || props.pathObj.fileArrs.length > 1) {
+        emitter.emit('done', true)
+      }
     }
     onDialogOK()
     if (props.pathObj.dirArrs && !props.pathObj.fileArrs && props.pathObj.dirArrs.length === 1 && shareQuery.value.share !== 0) {
-      void store.triggerAlreadyShareDialog(props.localId, props.bucket_name, { dirArrs: props.pathObj.dirArrs }, props.isOperationStore)
+      void store.triggerAlreadyShareDialog(props.localId, props.bucket_name, { dirArrs: props.pathObj.dirArrs }, props.isOperationStore, false)
     } else if (!props.pathObj.dirArrs && props.pathObj.fileArrs && props.pathObj.fileArrs.length === 1 && shareQuery.value.share !== 0) {
-      void store.triggerAlreadyShareDialog(props.localId, props.bucket_name, { fileArrs: props.pathObj.fileArrs }, props.isOperationStore)
+      void store.triggerAlreadyShareDialog(props.localId, props.bucket_name, { fileArrs: props.pathObj.fileArrs }, props.isOperationStore, true)
     }
   } else {
     Notify.create({

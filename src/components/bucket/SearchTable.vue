@@ -130,7 +130,7 @@ const shareSingleFile = async (na: string, name: string, accessCode: number) => 
   if (accessCode === 0) {
     void store.triggerPublicShareDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: dataArr }, false)
   } else {
-    void store.triggerAlreadyShareDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: dataArr }, false)
+    void store.triggerAlreadyShareDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: dataArr }, false, false)
   }
 }
 // 批量分享
@@ -151,7 +151,7 @@ const batchShareFile = async () => {
 const changeName = (path: string, name: string) => {
   void store.triggerChangeFolderDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, path, name, false)
 }
-const download = async (fileName: string) => {
+const download = async (na: string, fileName: string) => {
   // 创建a标签
   // const a = document.createElement('a')
   // 定义下载名称
@@ -178,7 +178,7 @@ const download = async (fileName: string) => {
     timeout: 5000,
     multiLine: false
   })
-  const objPath = props.pathArr.bucket + '/' + fileName
+  const objPath = props.pathArr.bucket + '/' + na
   const base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.tabArr[Number(tabActive.value) - 1].id]?.service_id]?.endpoint_url
   const downloadRes = await api.storage.single.getObjPath({
     base,
@@ -295,7 +295,7 @@ watch(
                        @click="changeName(props.row.na, props.row.name)">{{ tc('重命名') }}
                 </q-btn>
                 <q-btn class="q-ml-xs" color="primary" unelevated no-caps
-                       @click="download(props.row.name)">{{ tc('下载') }}
+                       @click="download(props.row.na, props.row.name)">{{ tc('下载') }}
                 </q-btn>
                 <q-btn color="primary" flat dense no-caps
                        :label="props.expand ? tc('折叠详情') : tc('展开详情')"
