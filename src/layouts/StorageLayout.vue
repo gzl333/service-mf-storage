@@ -49,11 +49,23 @@ const services = computed(() => Object.values(store.tables.serviceTable.byId))
             </q-item>
 
             <q-item
+              clickable
+              :active="activeItemLabel.includes('all')"
+              @click="navigateToUrl('/my/storage/service/all')"
+              active-class="active-item"
+            >
+              <q-item-section class="column items-center">
+                <q-icon name="las la-server" size="lg"/>
+                <div class="active-text text-center">{{ tc('全部存储桶') }}</div>
+              </q-item-section>
+            </q-item>
+
+            <q-item
               v-for="service in services"
               :id="service.id"
               :key="service.id"
               clickable
-              :active="activeItemLabel === `service${service.id}`"
+              :active="activeItemLabel.includes(service.id)"
               @click="navigateToUrl(`/my/storage/service/${service.id}`)"
               active-class="active-item"
             >
@@ -67,7 +79,7 @@ const services = computed(() => Object.values(store.tables.serviceTable.byId))
 
             <q-item
               clickable
-              :active="activeItemLabel === 'searchundefined'"
+              :active="activeItemLabel.startsWith('search')"
               @click="navigateToUrl('/my/storage/search')"
               active-class="active-item"
             >
@@ -79,7 +91,7 @@ const services = computed(() => Object.values(store.tables.serviceTable.byId))
 
             <q-item
               clickable
-              :active="activeItemLabel === 'instructionsundefined'"
+              :active="activeItemLabel.startsWith('instructions')"
               @click="navigateToUrl('/my/storage/instructions')"
               active-class="active-item"
             >
