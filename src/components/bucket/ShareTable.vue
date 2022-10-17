@@ -18,6 +18,7 @@ const props = defineProps({
 
 const { tc } = i18n.global
 const route = useRoute()
+const serviceId = route.params.serviceId
 // const shareBase = route.query.base as string // string or undefined
 const password = route.query.p as string
 const currentBucket = computed(() => props.pathObj?.share_base)
@@ -29,35 +30,57 @@ const formatSize1024 = useFormatSize(1024)
 // 接收url结构： siteURL/(serviceId/)?base=xxx&sub=xxx&p=xxx
 const columns = computed(() =>
   [
-    { name: 'name', align: 'left', label: (() => tc('文件名称'))(), field: 'name', sortable: true },
-    { name: 'time', align: 'center', label: (() => tc('上传时间'))(), field: 'time', sortable: true },
-    { name: 'size', align: 'center', label: (() => tc('大小'))(), field: 'size' },
-    { name: 'operation', align: 'center', label: (() => tc('操作'))(), field: 'operation' }
+    {
+      name: 'name',
+      align: 'left',
+      label: (() => tc('文件名称'))(),
+      field: 'name',
+      sortable: true
+    },
+    {
+      name: 'time',
+      align: 'center',
+      label: (() => tc('上传时间'))(),
+      field: 'time',
+      sortable: true
+    },
+    {
+      name: 'size',
+      align: 'center',
+      label: (() => tc('大小'))(),
+      field: 'size'
+    },
+    {
+      name: 'operation',
+      align: 'center',
+      label: (() => tc('操作'))(),
+      field: 'operation'
+    }
   ]
 )
 const goNext = async (na: string) => {
   const path = na.slice(na.indexOf('/') + 1)
   if (password) {
-    navigateToUrl('/storage/share/?base=' + route.query.base + '&sub=' + path + '&p=' + password)
+    navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&sub=' + path + '&p=' + password)
   } else {
-    navigateToUrl('/storage/share/?base=' + route.query.base + '&sub=' + path)
+    navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&sub=' + path)
   }
 }
 
 const goBack = async (path: string, index: number) => {
   if (index + 1 !== arrayPaths.value.length) {
     if (password) {
-      navigateToUrl('/storage/share/?base=' + currentBucket.value + '&sub=' + arrayPaths.value.slice(0, (index - arrayPaths.value.length + 1)).reduce((accumulator:string, item:string) => accumulator + '/' + item) + '&p=' + password)
+      navigateToUrl('/storage/share/' + serviceId + '?base=' + currentBucket.value + '&sub=' + arrayPaths.value.slice(0, (index - arrayPaths.value.length + 1)).reduce((accumulator: string, item: string) => accumulator + '/' + item) + '&p=' + password)
     } else {
-      navigateToUrl('/storage/share/?base=' + currentBucket.value + '&sub=' + arrayPaths.value.slice(0, (index - arrayPaths.value.length + 1)).reduce((accumulator:string, item:string) => accumulator + '/' + item))
+      navigateToUrl('/storage/share/' + serviceId + '?base=' + currentBucket.value + '&sub=' + arrayPaths.value.slice(0, (index - arrayPaths.value.length + 1)).reduce((accumulator: string, item: string) => accumulator + '/' + item))
     }
   }
 }
 const goAllFile = async () => {
   if (password) {
-    navigateToUrl('/storage/share/?base=' + route.query.base + '&p=' + password)
+    navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&p=' + password)
   } else {
-    navigateToUrl('/storage/share/?base=' + route.query.base)
+    navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base)
   }
 }
 const batchDownload = () => {

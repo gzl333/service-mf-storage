@@ -2,10 +2,15 @@
 import { ref } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, useDialogPluginComponent } from 'quasar'
-import storage from 'src/api/index'
 import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
+import api from 'src/api/index'
+import { conversionBase } from 'src/hooks/useEndpointUrl'
 const props = defineProps({
+  localId: {
+    type: String,
+    required: true
+  },
   bucket_name: {
     type: String,
     required: true
@@ -14,7 +19,7 @@ const props = defineProps({
     type: Object,
     required: true
   },
-  isSearch: {
+  isOperationStore: {
     type: Boolean,
     required: false
   }
@@ -34,30 +39,34 @@ const onOKClick = async () => {
   const deleteFileArr: string[] = []
   const deleteFailArr: string[] = []
   isDisable.value = true
-  Notify.create({
-    classes: 'notification-positive shadow-15',
-    icon: 'las la-redo-alt',
-    textColor: 'positive',
-    message: `${tc('正在删除中')}`,
-    position: 'bottom',
-    closeBtn: true,
-    timeout: 5000,
-    multiLine: false
-  })
+  const count = props.localId.split('/').length - 1
+  let base
+  if (count > 1) {
+    const str = conversionBase(props.localId, '/', 1)
+    base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
+  } else {
+    base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
+  }
   if (props.dirpath.dirArrs && props.dirpath.dirArrs.length > 0) {
     for (const item of props.dirpath.dirArrs) {
-      await storage.storage.api.deleteDirPath({ path: { dirpath: item, bucket_name: props.bucket_name } }).then(() => {
-        deleteDirArr.push(item)
+      await api.storage.single.deleteDirPath({
+        base,
+        path: {
+          bucket_name: props.bucket_name,
+          dirpath: item.na
+        }
+      }).then(() => {
+        deleteDirArr.push(item.name)
       }).catch((error) => {
-        deleteFailArr.push(item)
+        deleteFailArr.push(item.name)
         console.log(error)
       })
     }
   }
   if (props.dirpath.fileArrs && props.dirpath.fileArrs.length > 0) {
     for (const item of props.dirpath.fileArrs) {
-      await storage.storage.api.deleteObjPath({ path: { objpath: item, bucket_name: props.bucket_name } }).then(() => {
-        deleteFileArr.push(item)
+      await api.storage.single.deleteObjPath({ base, path: { bucket_name: props.bucket_name, objpath: item.na } }).then(() => {
+        deleteFileArr.push(item.name)
       }).catch((error) => {
         console.log(error)
       })
@@ -75,13 +84,15 @@ const onOKClick = async () => {
       multiLine: false
     })
   } else {
-    if (!props.isSearch) {
-      store.deleteFile({
-        item: {
-          bucket_name: props.bucket_name,
-          dirpath: { dirArrs: deleteDirArr, fileArrs: deleteFileArr }
-        }
-      })
+    if (props.isOperationStore) {
+      store.deleteFile(
+        {
+          localId: props.localId,
+          dirpath: {
+            dirArrs: deleteDirArr,
+            fileArrs: deleteFileArr
+          }
+        })
     } else {
       emitter.emit('done', true)
     }
@@ -95,9 +106,9 @@ const onOKClick = async () => {
       timeout: 5000,
       multiLine: false
     })
+    onDialogOK()
+    isDisable.value = false
   }
-  onDialogOK()
-  isDisable.value = false
 }
 const onCancelClick = onDialogCancel
 
@@ -109,7 +120,8 @@ const onCancelClick = onDialogCancel
       <div class="text-center"><h5>{{ tc('确认要删除吗') }}？</h5></div>
       <div class="text-center"><h6>{{ tc('此操作是不可逆的') }}！</h6></div>
       <q-card-actions align="center">
-        <q-btn class="q-ma-sm" color="primary" :label="tc('确认')" no-caps unelevated @click="onOKClick" :disable="isDisable"/>
+        <q-btn class="q-ma-sm" color="primary" :label="tc('确认')" no-caps unelevated @click="onOKClick"
+               :disable="isDisable"/>
         <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>

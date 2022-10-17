@@ -2,12 +2,20 @@
 import { ref } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, QInput, useDialogPluginComponent } from 'quasar'
-import storage from 'src/api/index'
 import { i18n } from 'boot/i18n'
-import axios from 'axios'
+import { conversionBase } from 'src/hooks/useEndpointUrl'
+import api from 'src/api/index'
 
 const props = defineProps({
-  bucket_name: {
+  localId: {
+    type: String,
+    required: true
+  },
+  bucketName: {
+    type: String,
+    required: true
+  },
+  dirPath: {
     type: String,
     required: true
   }
@@ -15,14 +23,12 @@ const props = defineProps({
 const store = useStore()
 const { tc } = i18n.global
 defineEmits([...useDialogPluginComponent.emits])
-
 const {
   dialogRef,
   onDialogHide,
   onDialogOK,
   onDialogCancel
 } = useDialogPluginComponent()
-
 const onOKClick = async () => {
   if (dirName.value === null || dirName.value === '') {
     Notify.create({
@@ -48,9 +54,25 @@ const onOKClick = async () => {
       timeout: 5000,
       multiLine: false
     })
-    try {
-      const respGetDir = await storage.storage.api.postDirPath({ path: { dirpath: dirName.value, bucket_name: props.bucket_name } })
-      await store.storeSingleFileItem({ item: { files: respGetDir.data.dir, bucket_name: props.bucket_name } })
+    // 判断table是几级页面
+    const count = props.localId.split('/').length - 1
+    let base
+    let bucketName
+    if (count > 1) {
+      // 多层
+      const str = conversionBase(props.localId, '/', 1)
+      base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
+    } else {
+      // 第一层
+      base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
+    }
+    if (props.dirPath === '') {
+      bucketName = props.bucketName
+    } else {
+      bucketName = props.bucketName + '/' + props.dirPath
+    }
+    await api.storage.single.postDirPath({ base, path: { dirpath: dirName.value, bucket_name: bucketName } }).then((res) => {
+      store.tables.pathTable.byLocalId[props.localId].files.unshift(res.data.dir)
       Notify.create({
         classes: 'notification-positive shadow-15',
         icon: 'check_circle',
@@ -62,11 +84,10 @@ const onOKClick = async () => {
         multiLine: false
       })
       onDialogOK()
-    } catch (error: unknown) {
-      inputRef.value!.$props.loading = false
-      inputRef.value!.focus()
-      if (axios.isAxiosError(error)) {
-        if (error.response?.data.code === 'KeyAlreadyExists') {
+    }).catch((error) => {
+        inputRef.value!.$props.loading = false
+        inputRef.value!.focus()
+        if (error.response?.data?.code === 'KeyAlreadyExists') {
           Notify.create({
             classes: 'notification-negative shadow-15',
             icon: 'mdi-alert',
@@ -78,21 +99,20 @@ const onOKClick = async () => {
             timeout: 5000,
             multiLine: false
           })
+        } else {
+          Notify.create({
+            classes: 'notification-negative shadow-15',
+            icon: 'mdi-alert',
+            textColor: 'negative',
+            message: `${tc('创建文件夹失败')}`,
+            caption: '请重试',
+            position: 'bottom',
+            closeBtn: true,
+            timeout: 5000,
+            multiLine: false
+          })
         }
-      } else {
-        Notify.create({
-          classes: 'notification-negative shadow-15',
-          icon: 'mdi-alert',
-          textColor: 'negative',
-          message: `${tc('创建文件夹失败')}`,
-          caption: '请重试',
-          position: 'bottom',
-          closeBtn: true,
-          timeout: 5000,
-          multiLine: false
-        })
-      }
-    }
+    })
   }
 }
 const onCancelClick = onDialogCancel

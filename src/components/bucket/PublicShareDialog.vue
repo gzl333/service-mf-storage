@@ -2,12 +2,17 @@
 import { ref, Ref } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, useDialogPluginComponent } from 'quasar'
-import storage from 'src/api/index'
 // import { useRoute } from 'vue-router'
 import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
+import api from 'src/api/index'
+import { conversionBase } from 'src/hooks/useEndpointUrl'
 
 const props = defineProps({
+  localId: {
+    type: String,
+    required: true
+  },
   bucket_name: {
     type: String,
     required: true
@@ -16,7 +21,7 @@ const props = defineProps({
     type: Object,
     required: true
   },
-  isSearch: {
+  isOperationStore: {
     type: Boolean,
     required: false
   }
@@ -79,13 +84,22 @@ const isHavePass = (value: boolean) => {
 
 const share = async () => {
   if (selectModel.value !== null) {
+    const count = props.localId.split('/').length - 1
+    let base
+    if (count > 1) {
+      const str = conversionBase(props.localId, '/', 1)
+      base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
+    } else {
+      base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
+    }
     if (props.pathObj.dirArrs && props.pathObj.dirArrs.length > 0) {
       if (isPass.value === false) {
         for (const item of props.pathObj.dirArrs) {
-          void await storage.storage.api.patchDirPath({
+          void await api.storage.single.patchDirPath({
+            base,
             path: {
               bucket_name: props.bucket_name,
-              dirpath: item
+              dirpath: item.na
             },
             query: {
               share: shareQuery.value.share,
@@ -95,10 +109,11 @@ const share = async () => {
         }
       } else {
         for (const item of props.pathObj.dirArrs) {
-          void await storage.storage.api.patchDirPath({
+          void await api.storage.single.patchDirPath({
+            base,
             path: {
               bucket_name: props.bucket_name,
-              dirpath: item
+              dirpath: item.na
             },
             query: {
               share: shareQuery.value.share,
@@ -112,10 +127,11 @@ const share = async () => {
     if (props.pathObj.fileArrs && props.pathObj.fileArrs.length > 0) {
       if (isPass.value === false) {
         for (const item of props.pathObj.fileArrs) {
-          void await storage.storage.api.patchObjPath({
+          void await api.storage.single.patchObjPath({
+            base,
             path: {
               bucket_name: props.bucket_name,
-              objpath: item
+              objpath: item.na
             },
             query: {
               share: shareQuery.value.share,
@@ -125,10 +141,11 @@ const share = async () => {
         }
       } else {
         for (const item of props.pathObj.fileArrs) {
-          void await storage.storage.api.patchObjPath({
+          void await api.storage.single.patchObjPath({
+            base,
             path: {
               bucket_name: props.bucket_name,
-              objpath: item
+              objpath: item.na
             },
             query: {
               share: shareQuery.value.share,
@@ -139,38 +156,26 @@ const share = async () => {
         }
       }
     }
-    if (!props.isSearch) {
+    if (props.isOperationStore) {
       void store.changeShareStatus({
-        item: {
-          bucket_name: props.bucket_name,
-          dirpath: {
-            dirArrs: props.pathObj.dirArrs,
-            fileArrs: props.pathObj.fileArrs
-          },
-          share: shareQuery.value.share
-        }
+        bucket_name: props.localId,
+        dirpath: {
+          dirArrs: props.pathObj.dirArrs,
+          fileArrs: props.pathObj.fileArrs
+        },
+        share: shareQuery.value.share
       })
     } else {
-      emitter.emit('done', true)
+      if (shareQuery.value.share === 0 || props.pathObj.fileArrs.length > 1) {
+        emitter.emit('done', true)
+      }
     }
     onDialogOK()
     if (props.pathObj.dirArrs && !props.pathObj.fileArrs && props.pathObj.dirArrs.length === 1 && shareQuery.value.share !== 0) {
-      void store.triggerAlreadyShareDialog({
-        localId: props.bucket_name,
-        dirNames: { dirArrs: props.pathObj.dirArrs }
-      })
+      void store.triggerAlreadyShareDialog(props.localId, props.bucket_name, { dirArrs: props.pathObj.dirArrs }, props.isOperationStore, false)
     } else if (!props.pathObj.dirArrs && props.pathObj.fileArrs && props.pathObj.fileArrs.length === 1 && shareQuery.value.share !== 0) {
-      void store.triggerAlreadyShareDialog({
-        localId: props.bucket_name,
-        dirNames: { fileArrs: props.pathObj.fileArrs }
-      })
+      void store.triggerAlreadyShareDialog(props.localId, props.bucket_name, { fileArrs: props.pathObj.fileArrs }, props.isOperationStore, true)
     }
-    // if (shareQuery.value.share !== 0) {
-    //   void store.triggerAlreadyShareDialog({
-    //     localId: props.bucket_name,
-    //     dirNames: { dirArrs: props.pathObj.dirArrs }
-    //   })
-    // }
   } else {
     Notify.create({
       classes: 'notification-negative shadow-15',

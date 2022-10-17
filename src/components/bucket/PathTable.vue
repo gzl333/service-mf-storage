@@ -5,10 +5,11 @@ import { useStore } from 'stores/store'
 // import { useRoute } from 'vue-router'
 import { navigateToUrl } from 'single-spa'
 import { i18n } from 'boot/i18n'
-import storage from 'src/api/index'
 import useClipText from 'src/hooks/useClipText'
 import useFormatSize from 'src/hooks/useFormatSize'
 import { Notify } from 'quasar'
+import api from 'src/api/index'
+import { conversionBase } from 'src/hooks/useEndpointUrl'
 
 const props = defineProps({
   pathObj: {
@@ -21,13 +22,11 @@ const props = defineProps({
 const store = useStore()
 // const route = useRoute()
 const { tc } = i18n.global
-
 const currentBucketName = computed(() => props.pathObj?.bucket_name)
 const currentPath = computed(() => props.pathObj?.dir_path)
 const currentServiceId = computed(() => props.pathObj.localId.split('/')[0])
 // const arrayPaths = computed(() => props.pathObj?.dir_path?.split('/')[0] === '' ? [] : props.pathObj?.dir_path?.split('/'))
 // const upperPath = computed(() => currentPath.value === '' ? '/my/storage/bucket' : `/my/storage/bucket/file?bucket=${currentBucket.value}&path=${currentPath.value?.lastIndexOf('/') === -1 ? '' : currentPath.value?.slice(0, currentPath.value?.lastIndexOf('/'))}`)
-
 // table中选中的对象
 const selected = ref<FileInterface[]>([])
 const fileDetail = ref({})
@@ -44,7 +43,6 @@ const fileDetail = ref({})
 // 把过长的文本缩短
 // const clipText7 = useClipText(7)
 const clipText70 = useClipText(70)
-
 // 格式化size
 const formatSize1024 = useFormatSize(1024)
 const columns = computed(() => [
@@ -107,93 +105,88 @@ const columns = computed(() => [
   }
 ])
 
-const onItemClick = (name: string, fod: boolean) => {
+const singleDelete = (na: string, name: string, fod: boolean) => {
   const dataArr = []
-  dataArr.push(name)
-  if (fod === false) {
-    void store.triggerDeleteFolderDialog({
-      localId: props.pathObj.localId,
-      dirNames: { dirArrs: dataArr }
-    })
+  const obj = {
+    na: '',
+    name: ''
+  }
+  obj.na = na
+  obj.name = name
+  dataArr.push(obj)
+  if (fod) {
+    void store.triggerDeleteFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, { fileArrs: dataArr }, true)
   } else {
-    void store.triggerDeleteFolderDialog({
-      localId: props.pathObj.localId,
-      dirNames: { fileArrs: dataArr }
-    })
+    void store.triggerDeleteFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true)
   }
 }
-const changeName = (name: string) => {
-  void store.triggerChangeFolderDialog({
-    localId: props.pathObj.localId,
-    dirName: name
-  })
-}
-const deleteFile = async () => {
-  const dirArr: string[] = []
-  const fileArr: string[] = []
+const batchDelete = async () => {
+  const dirArr: Record<string, string>[] = []
+  const fileArr: Record<string, string>[] = []
   selected.value.forEach((item) => {
-    if (item.fod === false) {
-      dirArr.push(item.name)
+    const obj = {
+      na: '',
+      name: ''
+    }
+    if (item.fod) {
+      obj.na = item.na
+      obj.name = item.name
+      fileArr.push(obj)
     } else {
-      fileArr.push(item.name)
+      obj.na = item.na
+      obj.name = item.name
+      dirArr.push(obj)
     }
   })
-  void store.triggerDeleteFolderDialog({
-    localId: props.pathObj.localId,
-    dirNames: {
-      dirArrs: dirArr,
-      fileArrs: fileArr
-    }
-  })
+  void store.triggerDeleteFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dirArr, fileArrs: fileArr }, true)
 }
-const shareItemClick = async (name: string, accessCode: number, fod: boolean) => {
+const singleShare = async (na: string, name: string, accessCode: number, fod: boolean) => {
   const dataArr = []
-  dataArr.push(name)
+  const obj = {
+    na: '',
+    name: ''
+  }
+  obj.na = na
+  obj.name = name
+  dataArr.push(obj)
   if (accessCode === 0) {
-    if (fod === false) {
-      void store.triggerPublicShareDialog({
-        localId: props.pathObj.localId,
-        dirNames: { dirArrs: dataArr }
-      })
+    if (fod) {
+      void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { fileArrs: dataArr }, true)
     } else {
-      void store.triggerPublicShareDialog({
-        localId: props.pathObj.localId,
-        dirNames: { fileArrs: dataArr }
-      })
+      void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true)
     }
   } else {
-    if (fod === false) {
-      void store.triggerAlreadyShareDialog({
-        localId: props.pathObj.localId,
-        dirNames: { dirArrs: dataArr }
-      })
+    if (fod) {
+      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { fileArrs: dataArr }, true, false)
     } else {
-      void store.triggerAlreadyShareDialog({
-        localId: props.pathObj.localId,
-        dirNames: { fileArrs: dataArr }
-      })
+      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true, false)
     }
   }
 }
-const shareFile = async () => {
-  const shareDirArr: string[] = []
-  const shareObjArr: string[] = []
+const batchShare = async () => {
+  const shareDirArr: Record<string, string>[] = []
+  const shareObjArr: Record<string, string>[] = []
   selected.value.forEach((item) => {
+    const obj = {
+      na: '',
+      name: ''
+    }
     if (item.fod === false) {
-      shareDirArr.push(item.name)
+      obj.na = item.na
+      obj.name = item.name
+      shareDirArr.push(obj)
     } else {
-      shareObjArr.push(item.name)
+      obj.na = item.na
+      obj.name = item.name
+      shareObjArr.push(obj)
     }
   })
-  void store.triggerPublicShareDialog({
-    localId: props.pathObj.localId,
-    dirNames: {
-      dirArrs: shareDirArr,
-      fileArrs: shareObjArr
-    }
-  })
+  void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: shareDirArr, fileArrs: shareObjArr }, true)
 }
-const download = async (fileName: string) => {
+const changeName = (path: string, name: string) => {
+  void store.triggerChangeFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, path, name, true)
+}
+const download = async (fileName: string, na: string) => {
   // 创建a标签
   // const a = document.createElement('a')
   // 定义下载名称
@@ -218,8 +211,16 @@ const download = async (fileName: string) => {
     timeout: 5000,
     multiLine: false
   })
-  const objPath = props.pathObj.localId + '/' + fileName
-  const res = await storage.storage.api.getObjPath({ path: { objpath: objPath } })
+  const count = props.pathObj.localId.split('/').length - 1
+  let base
+  if (count > 1) {
+    const str = conversionBase(props.pathObj.localId, '/', 1)
+    base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
+  } else {
+    base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.pathObj.localId]?.service_id]?.endpoint_url
+  }
+  const objPath = props.pathObj.bucket_name + '/' + na
+  const res = await api.storage.single.getObjPath({ base, path: { objpath: objPath } })
   const url = window.URL.createObjectURL(new Blob([res.data]))
   const link = document.createElement('a')
   link.style.display = 'none'
@@ -265,15 +266,13 @@ watch(
   <div class="PathTable">
     <div class="row q-gutter-x-md">
       <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('创建文件夹')"
-             @click="store.triggerCreateFolderDialog({ dirName: props.pathObj.localId })"/>
+             @click="store.triggerCreateFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path)"/>
       <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('上传文件')"
-             @click="store.triggerUploadDialog({ bucket_name: props.pathObj.localId })"/>
-      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('删除文件')" @click="deleteFile"
-             :disable="selected.length > 0 ? false : true"/>
-      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="shareFile"
-             :disable="selected.length > 0 ? false : true"/>
-      <!--      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('检索对象')"-->
-      <!--             @click="navigateToUrl(`/my/storage/bucket/search?bucket=${bucket}`)"/>-->
+             @click="store.triggerUploadDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path)"/>
+      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('删除文件')" @click="batchDelete"
+             :disable="selected.length<=0"/>
+      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="batchShare"
+             :disable="selected.length<=0"/>
     </div>
 
     <div class="row">
@@ -344,19 +343,19 @@ watch(
               </q-td>
 
               <q-td key="operation" :props="props">
-                <q-btn color="primary" unelevated no-caps @click="onItemClick(props.row.name, props.row.fod)">
+                <q-btn color="primary" unelevated no-caps @click="singleDelete(props.row.na, props.row.name, props.row.fod)">
                   {{ tc('删除') }}
                 </q-btn>
                 <q-btn class="q-ml-xs" color="primary" unelevated no-caps
-                       @click="shareItemClick(props.row.name, props.row.access_code, props.row.fod)">{{
+                       @click="singleShare(props.row.na, props.row.name, props.row.access_code, props.row.fod)">{{
                     tc('公开分享')
                   }}
                 </q-btn>
                 <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps
-                       @click="changeName(props.row.name)">{{ tc('重命名') }}
+                       @click="changeName(props.row.na, props.row.name)">{{ tc('重命名') }}
                 </q-btn>
                 <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps
-                       @click="download(props.row.name)">{{ tc('下载') }}
+                       @click="download(props.row.name, props.row.na)">{{ tc('下载') }}
                 </q-btn>
                 <!--                <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">{{ tc('下载') }}</q-btn>-->
                 <q-btn v-if="props.row.fod === true" color="primary" flat dense no-caps

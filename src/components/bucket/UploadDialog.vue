@@ -1,17 +1,26 @@
 <script lang="ts" setup>
-import { computed, Ref, ref } from 'vue'
+import { computed, ComputedRef, Ref, ref } from 'vue'
 import { useStore } from 'stores/store'
 import { useRoute } from 'vue-router'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import { axiosStorage } from 'boot/axios'
 import axios from 'axios'
 import { FloatSub } from 'src/hooks/handleFloat'
-import storage from 'src/api'
+import api from 'src/api/index'
 import { i18n } from 'boot/i18n'
+import { conversionBase } from 'src/hooks/useEndpointUrl'
 // import SparkMD5 from 'spark-md5'
 
 const props = defineProps({
+  localId: {
+    type: String,
+    required: true
+  },
   bucket_name: {
+    type: String,
+    required: true
+  },
+  dirPath: {
     type: String,
     required: true
   }
@@ -22,11 +31,20 @@ const $route = useRoute()
 const store = useStore()
 const { tc } = i18n.global
 defineEmits([...useDialogPluginComponent.emits])
-
 const path = $route.query.path as string
-const currentBucket = computed(() => store.tables.bucketTable.byLocalId[props.bucket_name])
+const count = props.localId.split('/').length - 1
+let base: string
+let currentBucket: ComputedRef
+if (count > 1) {
+  const str = conversionBase(props.localId, '/', 1)
+  base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
+  currentBucket = computed(() => store.tables.bucketTable.byLocalId[str])
+} else {
+  base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
+  currentBucket = computed(() => store.tables.bucketTable.byLocalId[props.localId])
+}
+// const currentBucket = computed(() => store.tables.bucketTable.byLocalId[props.localId])
 const currentService = computed(() => store.tables.serviceTable.byId[currentBucket?.value.service_id])
-
 const {
   dialogRef,
   onDialogHide,
@@ -220,13 +238,12 @@ const calcSpeedTime = (event: ProgressEvent, size?: number) => {
 //     }
 //   })
 // }
-
 // 上传完整文件不切片
 const putObjPath = async (payload: { path: { objpath: string, bucket_name: string }, body: { file: File }, index: number }) => {
   const formData = new FormData()
   formData.append('file', payload.body.file)
   return axiosStorage({
-    url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`, // todo 改成服务单元对应api
+    url: base + `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`, // todo 改成服务单元对应api
     method: 'put',
     cancelToken: source.token,
     data: formData,
@@ -282,7 +299,7 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
       formData.append('chunk_size', (blobFile.size).toString())
       if (i === 0) {
         await axiosStorage({
-          url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
+          url: base + `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
           method: 'post',
           data: formData,
           params: config,
@@ -298,7 +315,7 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
         })
       } else {
         await axiosStorage({
-          url: `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
+          url: base + `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
           method: 'post',
           data: formData,
           onUploadProgress: function (progressEvent) {
@@ -317,12 +334,19 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
     }
   }
   // 取消需要删除碎片文件
+  let objpath
+  if (props.dirPath === '') {
+    objpath = fileName
+  } else {
+    objpath = props.dirPath + '/' + fileName
+  }
   if (start < fileSize) {
     isCancel.value = true
-    await storage.storage.api.deleteObjPath({
+    await api.storage.single.deleteObjPath({
+      base,
       path: {
         bucket_name: props.bucket_name,
-        objpath: fileName
+        objpath
       }
     })
     void await store.addPathTable(
@@ -337,11 +361,17 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
 
 const factoryFn = async (files: File, index: number) => {
   // await getMD5(files, index)
+  let bucketName
+  if (props.dirPath === '') {
+    bucketName = props.bucket_name
+  } else {
+    bucketName = props.bucket_name + '/' + props.dirPath
+  }
   if (files.size / 1024 / 1024 > 500) {
     await postObjPath({
       path: {
-        objpath: files.name,
-        bucket_name: props.bucket_name
+        bucket_name: bucketName,
+        objpath: files.name
       },
       query: { reset: true },
       body: { file: files },
@@ -351,7 +381,7 @@ const factoryFn = async (files: File, index: number) => {
     await putObjPath({
       path: {
         objpath: files.name,
-        bucket_name: props.bucket_name
+        bucket_name: bucketName
       },
       body: { file: files },
       index
@@ -366,6 +396,7 @@ const upload = async () => {
     }
     isUploading.value = true
     for (let index = 0; index < fileArr.value.length; index++) {
+      // 开始上传
       void await factoryFn(fileArr.value[index], index)
     }
     if (isCancel.value === false) {

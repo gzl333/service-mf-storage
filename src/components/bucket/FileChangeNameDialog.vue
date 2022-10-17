@@ -2,11 +2,16 @@
 import { ref } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, QInput, useDialogPluginComponent } from 'quasar'
-import storage from 'src/api/index'
 import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
+import api from 'src/api'
+import { conversionBase } from 'src/hooks/useEndpointUrl'
 
 const props = defineProps({
+  localId: {
+    type: String,
+    required: true
+  },
   bucket_name: {
     type: String,
     required: true
@@ -15,15 +20,20 @@ const props = defineProps({
     type: String,
     required: true
   },
-  isSearch: {
+  dirName: {
+    type: String,
+    required: true
+  },
+  isOperationStore: {
     type: Boolean,
     required: false
   }
 })
 const store = useStore()
 const { tc } = i18n.global
+const dirName = ref(props.dirName)
+const inputRef = ref<QInput>()
 defineEmits([...useDialogPluginComponent.emits])
-
 const {
   dialogRef,
   onDialogHide,
@@ -77,13 +87,20 @@ const onOKClick = async () => {
       multiLine: false
     })
     try {
-      const respGetDir = await storage.storage.api.postObjPath({ path: { objpath: props.objpath, bucket_name: props.bucket_name }, query: { rename: dirName.value } })
-      if (!props.isSearch) {
-        await store.changeObjName({
-          item: {
-            bucket_name: props.bucket_name,
-            dirName: props.objpath,
-            newName: respGetDir.data.obj.name
+      const count = props.localId.split('/').length - 1
+      let base
+      if (count > 1) {
+        const str = conversionBase(props.localId, '/', 1)
+        base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
+      } else {
+        base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
+      }
+      const renameRes = await api.storage.single.postObjPath({ base, path: { bucket_name: props.bucket_name, objpath: props.objpath }, query: { rename: dirName.value } })
+      if (props.isOperationStore) {
+        store.tables.pathTable.byLocalId[props.localId].files.forEach((item) => {
+          if (item.name === props.dirName) {
+            item.name = renameRes.data.obj.name
+            item.na = renameRes.data.obj.na
           }
         })
       } else {
@@ -107,8 +124,6 @@ const onOKClick = async () => {
   }
 }
 const onCancelClick = onDialogCancel
-const dirName = ref(props.objpath)
-const inputRef = ref<QInput>()
 </script>
 
 <template>

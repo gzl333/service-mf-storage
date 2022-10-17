@@ -1,10 +1,8 @@
 import { defineStore } from 'pinia'
 import { normalize, schema } from 'normalizr'
 import { Dialog } from 'quasar'
-
 import api from 'src/api/index'
 import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
-
 import BucketCreateDialog from 'components/bucket/BucketCreateDialog.vue'
 import BucketDeleteDialog from 'components/bucket/BucketDeleteDialog.vue'
 import BucketFtpPasswordEditDialog from 'components/bucket/BucketFtpPasswordEditDialog.vue'
@@ -148,7 +146,7 @@ export interface FileObjInterface {
 
 // 删除文件需要的参数类型
 export interface deleteInterface {
-  bucket_name: string
+  localId: string
   dirpath: {
     dirArrs: string[]
     fileArrs: string[]
@@ -159,8 +157,8 @@ export interface deleteInterface {
 export interface shareInterface {
   bucket_name: string
   dirpath: {
-    dirArrs: string[]
-    fileArrs: string[]
+    dirArrs: Record<string, string>[]
+    fileArrs: Record<string, string>[]
   }
   share: number
 }
@@ -180,6 +178,11 @@ export interface tokenInterface {
   created: string
   key: string
   permission: string
+}
+
+export interface StatusInterface {
+  na: string,
+  name: string
 }
 
 /* table的类型 */
@@ -234,7 +237,9 @@ export const useStore = defineStore('storage', {
     items: {
       // 实时记录用户所在app局部路径位置
       // 例如'/my/server/personal/list' -> ['personal', 'list'], 供二级三级导航栏在刷新时保持选择使用
-      currentPath: [] as string[]
+      currentPath: [] as string[],
+      // 分享链接所用的服务单元信息
+      shareService: {} as ServiceInterface
     },
     tables: {
       serviceTable: {
@@ -285,6 +290,34 @@ export const useStore = defineStore('storage', {
       let bucketName = ''
       bucketName = state.tables.bucketTable.allLocalIds[0]
       return bucketName
+    },
+    getIntegratedSearchOptions (state): Record<string, string>[] {
+      const bucketOptions = []
+      let obj: Record<string, string> = {}
+      for (const objElement of state.tables.bucketTable.allLocalIds) {
+        obj = {}
+        obj.id = state.tables.bucketTable.byLocalId[objElement]?.service_id + '/' + state.tables.bucketTable.byLocalId[objElement].local_id
+        // obj.id = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
+        obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
+        bucketOptions.push(obj)
+      }
+      return bucketOptions
+    },
+    getFirstsIntegratedSearchOptionName (state): string {
+      let name = ''
+      name = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id]?.name + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.name
+      return name
+    },
+    getFirstsIntegratedSearchOptionId (state): string {
+      let localId = ''
+      localId = state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.local_id
+      return localId
+    },
+    getFirstIntrgratedSearchOptions (state): Record<string, string> {
+      const obj: Record<string, string> = {}
+      obj.id = state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.local_id
+      obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id]?.name + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.name
+      return obj
     }
   },
   actions: {
@@ -462,60 +495,79 @@ export const useStore = defineStore('storage', {
         this.tables.pathTable.status = 'error'
       }
     },
-    // 修改桶备注
-    async storeBucketNote (payload: { id: string, value: string }) {
-      this.tables.bucketTable.byLocalId[payload.id].remarks = payload.value
-    },
-    // 新建token
-    async storeBucketToken (payload: { id: string, value: tokenInterface[] }) {
-      this.tables.bucketTokenTable.byLocalId[payload.id].tokens = payload.value
-    },
-    // 添加文件
-    storeSingleFileItem (payload: { item: addFileInterface }) {
-      this.tables.pathTable.byLocalId[payload.item.bucket_name].files.unshift(payload.item.files)
-    },
-    // 文件重命名
-    changeObjName (payload: { item: Record<string, string> }) {
-      this.tables.pathTable.byLocalId[payload.item.bucket_name].files.forEach((item) => {
-        if (item.name === payload.item.dirName) {
-          item.name = payload.item.newName
-        }
-      })
-    },
     // 文件更改分享状态
-    changeShareStatus (payload: { item: shareInterface }) {
-      if (payload.item.dirpath.dirArrs !== undefined && payload.item.dirpath.dirArrs.length > 0) {
-        payload.item.dirpath.dirArrs.forEach((dir: string) => {
-          const index = this.tables.pathTable.byLocalId[payload.item.bucket_name].files.findIndex(item => item.name === dir)
-          if (payload.item.share === 0) {
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_code = 0
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_permission = '私有'
+    changeShareStatus (fileStatus: shareInterface) {
+      if (fileStatus.dirpath.dirArrs !== undefined && fileStatus.dirpath.dirArrs.length > 0) {
+        fileStatus.dirpath.dirArrs.forEach(dir => {
+          const index = this.tables.pathTable.byLocalId[fileStatus.bucket_name].files.findIndex(item => item.name === dir.name)
+          if (fileStatus.share === 0) {
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_code = 0
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_permission = '私有'
           } else {
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_code = 1
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_permission = '公有'
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_code = 1
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_permission = '公有'
           }
         })
       }
-      if (payload.item.dirpath.fileArrs !== undefined && payload.item.dirpath.fileArrs.length > 0) {
-        payload.item.dirpath.fileArrs.forEach((file: string) => {
-          const index = this.tables.pathTable.byLocalId[payload.item.bucket_name].files.findIndex(item => item.name === file)
-          if (payload.item.share === 0) {
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_code = 0
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_permission = '私有'
+      if (fileStatus.dirpath.fileArrs !== undefined && fileStatus.dirpath.fileArrs.length > 0) {
+        fileStatus.dirpath.fileArrs.forEach(file => {
+          const index = this.tables.pathTable.byLocalId[fileStatus.bucket_name].files.findIndex(item => item.name === file.name)
+          if (fileStatus.share === 0) {
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_code = 0
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_permission = '私有'
           } else {
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_code = 1
-            this.tables.pathTable.byLocalId[payload.item.bucket_name].files[index].access_permission = '公有'
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_code = 1
+            this.tables.pathTable.byLocalId[fileStatus.bucket_name].files[index].access_permission = '公有'
           }
         })
       }
     },
     // 删除文件
-    deleteFile (payload: { item: deleteInterface }) {
-      if (payload.item.dirpath.dirArrs.length > 0) {
-        this.tables.pathTable.byLocalId[payload.item.bucket_name].files = this.tables.pathTable.byLocalId[payload.item.bucket_name].files.filter((item) => !payload.item.dirpath.dirArrs.includes(item.name))
+    deleteFile (deleteItem: deleteInterface) {
+      if (deleteItem.dirpath.dirArrs.length > 0) {
+        this.tables.pathTable.byLocalId[deleteItem.localId].files = this.tables.pathTable.byLocalId[deleteItem.localId].files.filter((item) => !deleteItem.dirpath.dirArrs.includes(item.name))
       }
-      if (payload.item.dirpath.fileArrs.length > 0) {
-        this.tables.pathTable.byLocalId[payload.item.bucket_name].files = this.tables.pathTable.byLocalId[payload.item.bucket_name].files.filter((item) => !payload.item.dirpath.fileArrs.includes(item.name))
+      if (deleteItem.dirpath.fileArrs.length > 0) {
+        this.tables.pathTable.byLocalId[deleteItem.localId].files = this.tables.pathTable.byLocalId[deleteItem.localId].files.filter((item) => !deleteItem.dirpath.fileArrs.includes(item.name))
+      }
+    },
+    // 切换存储桶web访问权限
+    async toggleBucketAccess (serviceId: string, bucketName: string) {
+      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
+      this.tables.bucketTable.status = 'loading'
+      try {
+        const respPatchAccess = await api.storage.single.patchBucketsIdOrName({
+          base,
+          path: { id_or_name: bucketName },
+          query: {
+            'by-name': true,
+            public: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.access_permission === '私有' ? 1 : 2
+          }
+        })
+        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].access_permission = respPatchAccess.data.public === 1 ? '公有' : '私有'
+        this.tables.bucketTable.status = 'part'
+      } catch (exception) {
+        this.tables.bucketTable.status = 'error'
+        exceptionNotifier(exception)
+      }
+    },
+    // 切换存储桶FTP状态
+    async toggleBucketFtp (serviceId: string, bucketName: string) {
+      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
+      this.tables.bucketTable.status = 'loading'
+      try {
+        const respPatchFtp = await api.storage.single.patchFtpBucketName({
+          base,
+          path: { bucket_name: bucketName },
+          query: {
+            enable: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.ftp_enable !== true
+          }
+        })
+        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].ftp_enable = respPatchFtp.data.data.enable
+        this.tables.bucketTable.status = 'part'
+      } catch (exception) {
+        this.tables.bucketTable.status = 'error'
+        exceptionNotifier(exception)
       }
     },
     /* dialogs */
@@ -539,63 +591,74 @@ export const useStore = defineStore('storage', {
       })
     },
     // 新建文件夹
-    triggerCreateFolderDialog (payload: { dirName: string }) {
+    triggerCreateFolderDialog (localId: string, bucketName: string, dirPath: string) {
       Dialog.create({
         component: FolderCreateDialog,
         componentProps: {
-          bucket_name: payload.dirName
+          localId,
+          bucketName,
+          dirPath
         }
       })
     },
     // 删除文件夹
-    triggerDeleteFolderDialog (payload: { localId: string, dirNames: { dirArrs?: string[], fileArrs?: string[] }, isSearch?: boolean }) {
+    triggerDeleteFolderDialog (localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean) {
       Dialog.create({
         component: FolderDeleteDialog,
         componentProps: {
-          bucket_name: payload.localId,
-          dirpath: payload.dirNames,
-          isSearch: payload.isSearch
+          localId,
+          bucket_name: bucketName,
+          dirpath: dirNames,
+          isOperationStore
         }
       })
     },
     // 公开分享
-    triggerPublicShareDialog (payload: { localId: string, dirNames: { dirArrs?: string[], fileArrs?: string[] }, isSearch?: boolean }) {
+    triggerPublicShareDialog (localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean) {
       Dialog.create({
         component: PublicShareDialog,
         componentProps: {
-          bucket_name: payload.localId,
-          pathObj: payload.dirNames,
-          isSearch: payload.isSearch
+          localId,
+          bucket_name: bucketName,
+          pathObj: dirNames,
+          isOperationStore
         }
       })
     },
     // 已经分享
-    triggerAlreadyShareDialog (payload: { localId: string, dirNames: { dirArrs?: string[], fileArrs?: string[] } }) {
+    triggerAlreadyShareDialog (localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean, isRefresh?: boolean) {
       Dialog.create({
         component: AlreadyShareDialog,
         componentProps: {
-          bucket_name: payload.localId,
-          pathObj: payload.dirNames
+          localId,
+          bucketName,
+          pathObj: dirNames,
+          isOperationStore,
+          isRefresh
         }
       })
     },
     // 文件重命名
-    triggerChangeFolderDialog (payload: { localId: string, dirName: string, isSearch?: boolean }) {
+    triggerChangeFolderDialog (localId: string, bucketName: string, objPath: string, dirName: string, isOperationStore: boolean) {
       Dialog.create({
         component: FileChangeNameDialog,
         componentProps: {
-          bucket_name: payload.localId,
-          objpath: payload.dirName,
-          isSearch: payload.isSearch
+          localId,
+          bucket_name: bucketName,
+          objpath: objPath,
+          dirName,
+          isOperationStore
         }
       })
     },
     // 上传文件
-    triggerUploadDialog (payload: { bucket_name: string }) {
+    triggerUploadDialog (localId: string, bucketName: string, dirPath: string) {
       Dialog.create({
         component: UploadDialog,
         componentProps: {
-          bucket_name: payload.bucket_name
+          localId,
+          bucket_name: bucketName,
+          dirPath
         }
       })
     },
@@ -640,45 +703,6 @@ export const useStore = defineStore('storage', {
           tokenKey
         }
       })
-    },
-    // 切换存储桶web访问权限
-    async toggleBucketAccess (serviceId: string, bucketName: string) {
-      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
-      this.tables.bucketTable.status = 'loading'
-      try {
-        const respPatchAccess = await api.storage.single.patchBucketsIdOrName({
-          base,
-          path: { id_or_name: bucketName },
-          query: {
-            'by-name': true,
-            public: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.access_permission === '私有' ? 1 : 2
-          }
-        })
-        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].access_permission = respPatchAccess.data.public === 1 ? '公有' : '私有'
-        this.tables.bucketTable.status = 'part'
-      } catch (exception) {
-        this.tables.bucketTable.status = 'error'
-        exceptionNotifier(exception)
-      }
-    },
-    // 切换存储桶FTP状态
-    async toggleBucketFtp (serviceId: string, bucketName: string) {
-      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
-      this.tables.bucketTable.status = 'loading'
-      try {
-        const respPatchFtp = await api.storage.single.patchFtpBucketName({
-          base,
-          path: { bucket_name: bucketName },
-          query: {
-            enable: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.ftp_enable !== true
-          }
-        })
-        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].ftp_enable = respPatchFtp.data.data.enable
-        this.tables.bucketTable.status = 'part'
-      } catch (exception) {
-        this.tables.bucketTable.status = 'error'
-        exceptionNotifier(exception)
-      }
     }
   }
 })
