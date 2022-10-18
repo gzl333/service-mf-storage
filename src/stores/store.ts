@@ -40,20 +40,72 @@ export interface ServiceInterface {
   }
 }
 
-// 桶对象简介类型, 从vms获取，暂定，待vms完善
+/*
+*   {
+      "id": "5afe3b8e-4deb-11ed-9be2-c8009fe2eb03",
+      "name": "fe-1",
+      "creation_time": "2022-10-17T07:14:35.760980Z",
+      "user_id": "6",
+      "username": "zlguo@cnic.cn",
+      "service": {
+        "id": "da7ca81e-46de-11ed-af9d-c8009fe2eb03",
+        "name": "运维大数据平台对象存储",
+        "name_en": "运维大数据平台obs"
+      }
+    }
+    *  */
+
+// 桶简介对象类型, 从vms获取
 export interface BucketBriefInterface {
-  id: number
-  name: string
+  id: string // 存储桶在vms中的id
+  name: string // 存储桶在vms中的name， 与具体服务中一致
+  creation_time: string
+  user_id: string
+  username: string
+  service: {
+    id: string
+    name: string
+    name_en: string
+  }
+}
+
+/*
+*
+* {
+      "id": 60089,
+      "name": "fe-1",
+      "user": {
+        "id": 90001,
+        "username": "zlguo@cnic.cn"
+      },
+      "created_time": "2022-10-17T15:14:27.934308+08:00",
+      "access_permission": "私有",
+      "ftp_enable": false,
+      "ftp_password": "fc5b5af529",
+      "ftp_ro_password": "7d4aed9f27",
+      "remarks": ""
+    }
+    * */
+
+// 桶详情对象类型，从具体服务获取
+export interface BucketDetailInterface {
+  id: number // 存储桶在各个具体服务中的id
+  name: string // 存储桶在具体服务中的name，与vms中一致
   user: {
     id: number
     username: string
   },
   created_time: string
+  access_permission: string
+  ftp_enable: boolean
+  ftp_password: string
+  ftp_ro_password: string
   remarks: string
+}
 
-  // 自己补充定义
-  local_id: string // 应取name字段
-  service_id: string
+// 完整桶对象类型，包含brief和detail
+export interface BucketTotalInterface extends BucketBriefInterface {
+  detail: BucketDetailInterface
 }
 
 // 桶对象类型，从具体服务获取
@@ -135,6 +187,38 @@ export interface PathInterface {
 
   // 自己定义的localId，来自serviceId bucket_name dir_path 三者的拼接 'serviceId/bucketName' or 'serviceId/bucketName/path1/path2/path3...'
   localId: string
+}
+
+// 代金券对象类型
+export interface CouponInterface {
+  id: string
+  face_value: string
+  creation_time: string
+  effective_time: string
+  expiration_time: string
+  balance: string
+  status: 'wait' | 'available' | 'cancelled' | 'deleted'
+  granted_time?: string
+  owner_type?: 'user' | 'vo'
+  app_service?: {
+    id: string
+    name: string
+    name_en: string
+    category: 'vms-server' | 'vms-object' | 'high-cloud' | 'hpc' | 'other'
+    service_id: string | null
+  },
+  user?: {
+    id: string
+    username: string
+  }
+  vo?: {
+    id: string
+    name: string
+  }
+  activity?: {
+    id: string
+    name: string
+  }
 }
 
 // 文件对象类型

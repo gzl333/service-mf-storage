@@ -33,6 +33,10 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/bucket/IntegratedSearch.vue')
       },
       {
+        path: 'backup',
+        component: () => import('pages/backup/BucketBackup.vue')
+      },
+      {
         path: 'instructions',
         component: () => import('pages/Instructions.vue')
       }

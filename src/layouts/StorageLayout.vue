@@ -55,27 +55,27 @@ const services = computed(() => Object.values(store.tables.serviceTable.byId))
               active-class="active-item"
             >
               <q-item-section class="column items-center">
-                <q-icon name="las la-server" size="lg"/>
+                <q-icon name="mdi-database" size="lg"/>
                 <div class="active-text text-center">{{ tc('全部存储桶') }}</div>
               </q-item-section>
             </q-item>
 
-            <q-item
-              v-for="service in services"
-              :id="service.id"
-              :key="service.id"
-              clickable
-              :active="activeItemLabel.includes(service.id)"
-              @click="navigateToUrl(`/my/storage/service/${service.id}`)"
-              active-class="active-item"
-            >
-              <q-item-section class="column items-center">
-                <q-icon name="las la-server" size="lg"/>
-                <div class="active-text text-center">
-                  {{ i18n.global.locale === 'zh' ? service.name : service.name_en }}
-                </div>
-              </q-item-section>
-            </q-item>
+<!--            <q-item-->
+<!--              v-for="service in services"-->
+<!--              :id="service.id"-->
+<!--              :key="service.id"-->
+<!--              clickable-->
+<!--              :active="activeItemLabel.includes(service.id)"-->
+<!--              @click="navigateToUrl(`/my/storage/service/${service.id}`)"-->
+<!--              active-class="active-item"-->
+<!--            >-->
+<!--              <q-item-section class="column items-center">-->
+<!--                <q-icon name="las la-server" size="lg"/>-->
+<!--                <div class="active-text text-center">-->
+<!--                  {{ i18n.global.locale === 'zh' ? service.name : service.name_en }}-->
+<!--                </div>-->
+<!--              </q-item-section>-->
+<!--            </q-item>-->
 
             <q-item
               clickable
@@ -86,6 +86,18 @@ const services = computed(() => Object.values(store.tables.serviceTable.byId))
               <q-item-section class="column items-center">
                 <q-icon name="search" size="lg"/>
                 <div class="active-text text-center">{{ tc('综合检索') }}</div>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              clickable
+              :active="activeItemLabel.startsWith('backup')"
+              @click="navigateToUrl('/my/storage/backup')"
+              active-class="active-item"
+            >
+              <q-item-section class="column items-center">
+                <q-icon name="backup" size="lg"/>
+                <div class="active-text text-center">{{ tc('数据备份') }}</div>
               </q-item-section>
             </q-item>
 

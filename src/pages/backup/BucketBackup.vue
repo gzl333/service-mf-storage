@@ -22,12 +22,12 @@
 </script>
 
 <template>
-  <div class="AllBucketList">
-    tables
+  <div class="BucketBackup">
+    this is BucketBackup
   </div>
 </template>
 
 <style lang="scss" scoped>
-.AllBucketList {
+.BucketBackup {
 }
 </style>
