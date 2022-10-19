@@ -53,17 +53,17 @@ export interface ServiceInterface {
         "name_en": "运维大数据平台obs"
       }
     }
-    *  */
+* */
 
 // 桶简介对象类型, 从vms获取
 export interface BucketBriefInterface {
   id: string // 存储桶在vms中的id
   name: string // 存储桶在vms中的name， 与具体服务中一致
-  creation_time: string
-  user_id: string
-  username: string
+  creation_time: string // vms得知创建成功的时间
+  user_id: string // vms中的userId
+  username: string // vms中的username
   service: {
-    id: string
+    id: string // vms中注册的serviceId
     name: string
     name_en: string
   }
@@ -85,17 +85,17 @@ export interface BucketBriefInterface {
       "ftp_ro_password": "7d4aed9f27",
       "remarks": ""
     }
-    * */
+* */
 
 // 桶详情对象类型，从具体服务获取
 export interface BucketDetailInterface {
   id: number // 存储桶在各个具体服务中的id
   name: string // 存储桶在具体服务中的name，与vms中一致
-  user: {
+  user: { // 具体服务中的user
     id: number
     username: string
   },
-  created_time: string
+  created_time: string // 存储桶在具体服务中创建成功的时间
   access_permission: string
   ftp_enable: boolean
   ftp_password: string
@@ -103,12 +103,12 @@ export interface BucketDetailInterface {
   remarks: string
 }
 
-// 完整桶对象类型，包含brief和detail
-export interface BucketTotalInterface extends BucketBriefInterface {
+// 完整桶对象类型，主体为brief，内含detail
+export interface BucketInterface extends BucketBriefInterface {
   detail: BucketDetailInterface
 }
 
-// 桶对象类型，从具体服务获取
+/* DEPRECATED  // 桶对象类型，从具体服务获取
 export interface BucketInterface {
   id: number
   name: string
@@ -127,7 +127,7 @@ export interface BucketInterface {
   // 自己补充定义
   local_id: string // 应取name字段
   service_id: string
-}
+} */
 
 // 桶统计信息对象类型
 export interface BucketStatInterface {
@@ -299,9 +299,6 @@ export interface localIdTable<T> {
 export interface ServiceTableInterface extends totalTable, idTable<ServiceInterface> {
 }
 
-export interface BucketBriefTableInterface extends partTable, localIdTable<BucketBriefInterface> {
-}
-
 export interface BucketTableInterface extends partTable, localIdTable<BucketInterface> {
 }
 
@@ -331,11 +328,6 @@ export const useStore = defineStore('storage', {
         allIds: [],
         byId: {}
       } as ServiceTableInterface,
-      bucketBriefTable: {
-        status: 'init',
-        allLocalIds: [],
-        byLocalId: {}
-      } as BucketBriefTableInterface,
       bucketTable: {
         status: 'init',
         allLocalIds: [],
@@ -359,6 +351,23 @@ export const useStore = defineStore('storage', {
     }
   }),
   getters: {
+    // 获取全部服务单元选项
+    getServiceOptions: state => {
+      const services = (state.tables.serviceTable.allIds).map(serviceId => {
+        const currentService = state.tables.serviceTable.byId[serviceId]
+        return {
+          value: currentService?.id,
+          label: currentService?.name,
+          labelEn: currentService?.name_en
+        }
+      })
+      services.unshift({
+        value: 'all',
+        label: '全部服务单元',
+        labelEn: 'All Service Units'
+      })
+      return services
+    },
     getBuckets (state): Record<string, string>[] {
       const bucketOptions = []
       let obj: Record<string, string> = {}
@@ -380,27 +389,27 @@ export const useStore = defineStore('storage', {
       let obj: Record<string, string> = {}
       for (const objElement of state.tables.bucketTable.allLocalIds) {
         obj = {}
-        obj.id = state.tables.bucketTable.byLocalId[objElement]?.service_id + '/' + state.tables.bucketTable.byLocalId[objElement].local_id
+        obj.id = state.tables.bucketTable.byLocalId[objElement]?.service.id + '/' + state.tables.bucketTable.byLocalId[objElement].name
         // obj.id = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
-        obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
+        obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service.id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
         bucketOptions.push(obj)
       }
       return bucketOptions
     },
     getFirstsIntegratedSearchOptionName (state): string {
       let name = ''
-      name = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id]?.name + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.name
+      name = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service.id]?.name + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.name
       return name
     },
     getFirstsIntegratedSearchOptionId (state): string {
       let localId = ''
-      localId = state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.local_id
+      localId = state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service.id + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.name
       return localId
     },
     getFirstIntrgratedSearchOptions (state): Record<string, string> {
       const obj: Record<string, string> = {}
-      obj.id = state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.local_id
-      obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service_id]?.name + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.name
+      obj.id = state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service.id + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.name
+      obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.service.id]?.name + '/' + state.tables.bucketTable.byLocalId[state.tables.bucketTable.allLocalIds[0]]?.name
       return obj
     }
   },
@@ -410,10 +419,10 @@ export const useStore = defineStore('storage', {
       if (this.tables.serviceTable.status === 'init') {
         // 加载serviceTable
         void await this.loadServiceTable()
-        // 加载全部bucketTable
-        this.tables.serviceTable.allIds.forEach((serviceId) => {
-          void this.addBucketTable(serviceId)
-        })
+        // // 加载全部bucketTable
+        // this.tables.serviceTable.allIds.forEach((serviceId) => {
+        //   void this.addBucketTable(serviceId)
+        // })
       }
     },
     async loadServiceTable () {
@@ -436,8 +445,44 @@ export const useStore = defineStore('storage', {
       }
     },
     // 读取全部服务单元的存储桶，后端分页，条目在vms取，详情在各个服务单元的api取 todo
-    // async loadBucketTable () {
-    // },
+    async loadBucketTable (page: number, pageSize: number, serviceId?: string) {
+      // status
+      this.tables.bucketTable.status = 'loading'
+      // clear table
+      this.tables.bucketTable.allLocalIds = []
+      this.tables.bucketTable.byLocalId = {}
+      // requests
+      try {
+        const respVmsBucketList = await api.vms.storage.getStorageBucket({
+          query: {
+            page,
+            page_size: pageSize,
+            ...(serviceId && { service_id: serviceId })
+          }
+        })
+        for (const bucketBrief of respVmsBucketList.data.results) {
+          // 请求bucket具体信息
+          const base = this.tables.serviceTable.byId[bucketBrief.service.id]?.endpoint_url
+          const respGetBuckets = await api.storage.single.getBucketsIdOrName({
+            base,
+            path: { id_or_name: bucketBrief.name },
+            query: { 'by-name': true }
+          })
+          // 保存对象
+          Object.assign(this.tables.bucketTable.byLocalId, {
+            [bucketBrief.service.id + '/' + bucketBrief.name]: Object.assign(bucketBrief, {
+              detail: respGetBuckets.data.bucket
+            })
+          })
+          this.tables.bucketTable.allLocalIds.unshift(bucketBrief.service.id + '/' + bucketBrief.name)
+          this.tables.bucketTable.allLocalIds = [...new Set(this.tables.bucketTable.allLocalIds)]
+        }
+        this.tables.bucketTable.status = 'part'
+      } catch (exception) {
+        exceptionNotifier(exception)
+        this.tables.bucketTable.status = 'error'
+      }
+    },
     // bucketTable应从vms读取，是粗略的信息
     async addBucketTable (serviceId: string) {
       const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
@@ -625,10 +670,10 @@ export const useStore = defineStore('storage', {
           path: { id_or_name: bucketName },
           query: {
             'by-name': true,
-            public: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.access_permission === '私有' ? 1 : 2
+            public: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.detail.access_permission === '私有' ? 1 : 2
           }
         })
-        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].access_permission = respPatchAccess.data.public === 1 ? '公有' : '私有'
+        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].detail.access_permission = respPatchAccess.data.public === 1 ? '公有' : '私有'
         this.tables.bucketTable.status = 'part'
       } catch (exception) {
         this.tables.bucketTable.status = 'error'
@@ -644,10 +689,10 @@ export const useStore = defineStore('storage', {
           base,
           path: { bucket_name: bucketName },
           query: {
-            enable: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.ftp_enable !== true
+            enable: this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName]?.detail.ftp_enable !== true
           }
         })
-        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].ftp_enable = respPatchFtp.data.data.enable
+        this.tables.bucketTable.byLocalId[serviceId + '/' + bucketName].detail.ftp_enable = respPatchFtp.data.data.enable
         this.tables.bucketTable.status = 'part'
       } catch (exception) {
         this.tables.bucketTable.status = 'error'

@@ -14,13 +14,13 @@ const routes: RouteRecordRaw[] = [
         children: [
           {
             path: 'all',
-            component: () => import('pages/bucket/AllBucketList.vue')
+            component: () => import('pages/bucket/BucketList.vue')
           },
-          {
-            path: ':serviceId',
-            component: () => import('pages/bucket/BucketList.vue'),
-            props: true // 组件直接接收url中的params，无需用$route对象承接
-          },
+          // {
+          //   path: ':serviceId',
+          //   component: () => import('pages/bucket/DEPRECATED-BucketList.vue'),
+          //   props: true // 组件直接接收url中的params，无需用$route对象承接
+          // },
           {
             path: ':serviceId?/bucket/:bucketName/:tabId?', // 加了:为参数，传进去由页面处理；未加为path，由路由处理
             component: () => import('pages/bucket/BucketDetail.vue'),

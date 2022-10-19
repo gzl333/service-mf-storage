@@ -29,7 +29,7 @@ const activeItemLabel = computed(() => store.items.currentPath[0] + store.items.
 
 const releaseTime = process.env.releaseTime
 
-const services = computed(() => Object.values(store.tables.serviceTable.byId))
+// const services = computed(() => Object.values(store.tables.serviceTable.byId))
 </script>
 
 <template>

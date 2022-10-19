@@ -60,14 +60,14 @@ const clipText70 = useClipText(70)
         <q-tooltip>{{ tc('全部存储桶列表') }}</q-tooltip>
       </q-breadcrumbs-el>
 
-      // 服务单元名称
-      <q-breadcrumbs-el v-if="currentServiceId !== 'all'">
-        <div class="row items-center no-wrap">
-          <div class="col-auto" :class="currentBucketName ? '':'text-bold'">
-            {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }}
-          </div>
-        </div>
-      </q-breadcrumbs-el>
+<!--      // 服务单元名称-->
+<!--      <q-breadcrumbs-el v-if="currentServiceId !== 'all'">-->
+<!--        <div class="row items-center no-wrap">-->
+<!--          <div class="col-auto" :class="currentBucketName ? '':'text-bold'">-->
+<!--            {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }}-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </q-breadcrumbs-el>-->
 
       // 桶名称
       <q-breadcrumbs-el v-if="currentBucketName"
@@ -75,7 +75,7 @@ const clipText70 = useClipText(70)
         <div class="row items-center no-wrap cursor-pointer">
           <q-icon class="col-auto" size="xs" color="primary" name="mdi-database"/>
           <div class="col-auto" :class="path ? '':'text-bold'">
-            {{ currentBucketName }}
+            {{ currentBucketName }}({{i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }})
           </div>
         </div>
       </q-breadcrumbs-el>

@@ -7,22 +7,22 @@ import { useStore } from 'stores/store'
 
 import GlobalBreadcrumbs from 'components/ui/GlobalBreadcrumbs.vue'
 
-const props = defineProps({
-  serviceId: {
-    type: String,
-    required: false,
-    default: ''
-  },
-  bucketName: {
-    type: String,
-    required: false,
-    default: ''
-  }
-})
+// const props = defineProps({
+//   serviceId: {
+//     type: String,
+//     required: false,
+//     default: ''
+//   },
+//   bucketName: {
+//     type: String,
+//     required: false,
+//     default: ''
+//   }
+// })
 // const emits = defineEmits(['change', 'delete'])
 
 // const { tc } = i18n.global
-const store = useStore()
+// const store = useStore()
 // const route = useRoute()
 // const router = useRouter()
 
@@ -46,24 +46,24 @@ const store = useStore()
 //   })
 // }
 
-const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
+// const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
 
-/* load single bucket table */
-// setup时调用一次
-if (currentService.value?.endpoint_url) {
-  void store.addBucketTable(currentService.value.id)
-}
-
-// 刷新页面时，等待有效的service信息，再调用
-const unwatch = watch(currentService, () => {
-  if (currentService.value?.endpoint_url) {
-    // serviceTable已经加载，可以load bucketTable
-    void store.addBucketTable(currentService.value.id)
-    // watcher已完成任务，注销
-    unwatch()
-  }
-})
-/* load single bucket table */
+// /* load single bucket table */
+// // setup时调用一次
+// if (currentService.value?.endpoint_url) {
+//   void store.addBucketTable(currentService.value.id)
+// }
+//
+// // 刷新页面时，等待有效的service信息，再调用
+// const unwatch = watch(currentService, () => {
+//   if (currentService.value?.endpoint_url) {
+//     // serviceTable已经加载，可以load bucketTable
+//     void store.addBucketTable(currentService.value.id)
+//     // watcher已完成任务，注销
+//     unwatch()
+//   }
+// })
+// /* load single bucket table */
 
 // /* load all bucket table */
 //

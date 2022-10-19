@@ -94,6 +94,20 @@ export default {
       const data = payload.body
       return axiosSingle.post(payload.base + '/api/v1/buckets/', data)
     },
+    getBucketsIdOrName (payload: {
+      base: string
+      path: {
+        id_or_name: string
+      }
+      query?: {
+        'by-name': boolean
+      }
+    }) {
+      const config = {
+        params: payload?.query
+      }
+      return axiosSingle.get(payload.base + '/api/v1/buckets/' + payload.path.id_or_name + '/', config)
+    },
     // 新建文件夹
     postDirPath (payload: {
       base: string
