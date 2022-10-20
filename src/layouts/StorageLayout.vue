@@ -51,12 +51,12 @@ const releaseTime = process.env.releaseTime
             <q-item
               clickable
               :active="activeItemLabel.includes('all')"
-              @click="navigateToUrl('/my/storage/service/all')"
+              @click="navigateToUrl('/my/storage/bucket/all')"
               active-class="active-item"
             >
               <q-item-section class="column items-center">
                 <q-icon name="mdi-database" size="lg"/>
-                <div class="active-text text-center">{{ tc('全部存储桶') }}</div>
+                <div class="active-text text-center">{{ tc('存储桶') }}</div>
               </q-item-section>
             </q-item>
 

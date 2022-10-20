@@ -22,6 +22,7 @@ const props = defineProps({
 const store = useStore()
 // const route = useRoute()
 const { tc } = i18n.global
+
 const currentBucketName = computed(() => props.pathObj?.bucket_name)
 const currentPath = computed(() => props.pathObj?.dir_path)
 const currentServiceId = computed(() => props.pathObj.localId.split('/')[0])
@@ -310,7 +311,7 @@ watch(
 
               <q-td key="name" :props="props">
                 <q-btn v-if="!props.row.fod" flat no-caps padding="none"
-                       @click="navigateToUrl('/my/storage/service/' + currentServiceId +'/bucket/' + currentBucketName + '/object' +'?path=' + (currentPath? currentPath + '/' : '') + props.row.name)">
+                       @click="navigateToUrl('/my/storage/bucket/' + currentServiceId +'/bucket/' + currentBucketName + '/object' +'?path=' + (currentPath? currentPath + '/' : '') + props.row.name)">
                   <div class="row items-center no-wrap">
                     <q-icon class="col-auto" color="yellow-8" name="folder"/>
                     <div class="col-auto text-black"> {{ clipText70(props.row.name) }}</div>

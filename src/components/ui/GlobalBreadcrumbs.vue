@@ -21,10 +21,8 @@ const route = useRoute()
 // const router = useRouter()
 const { tc } = i18n.global
 
-// const currentServiceId = route.path.split('/')[route.path.split('/').indexOf('service') + 1]
-// const currentBucketName = route.path.split('/')[route.path.split('/').indexOf('bucket') + 1]
 const currentServiceId = store.items.currentPath[1]
-const currentBucketName = store.items.currentPath[3]
+const currentBucketName = store.items.currentPath[2]
 const currentService = computed(() => store.tables.serviceTable.byId[currentServiceId])
 
 const path = route.query.path as string
@@ -57,25 +55,28 @@ const clipText70 = useClipText(70)
             {{ tc('全部存储桶') }}
           </div>
         </div>
-        <q-tooltip>{{ tc('全部存储桶列表') }}</q-tooltip>
+        <!--        <q-tooltip>{{ tc('全部存储桶列表') }}</q-tooltip>-->
       </q-breadcrumbs-el>
 
-<!--      // 服务单元名称-->
-<!--      <q-breadcrumbs-el v-if="currentServiceId !== 'all'">-->
-<!--        <div class="row items-center no-wrap">-->
-<!--          <div class="col-auto" :class="currentBucketName ? '':'text-bold'">-->
-<!--            {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }}-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </q-breadcrumbs-el>-->
+      <!--      // 服务单元名称-->
+      <!--      <q-breadcrumbs-el v-if="currentServiceId !== 'all'">-->
+      <!--        <div class="row items-center no-wrap">-->
+      <!--          <div class="col-auto" :class="currentBucketName ? '':'text-bold'">-->
+      <!--            {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }}-->
+      <!--          </div>-->
+      <!--        </div>-->
+      <!--      </q-breadcrumbs-el>-->
 
       // 桶名称
       <q-breadcrumbs-el v-if="currentBucketName"
                         @click="navigateToUrl('/my/storage/service/' + currentServiceId +'/bucket/' + currentBucketName)">
-        <div class="row items-center no-wrap cursor-pointer">
+        <div class="row items-center no-wrap cursor-pointer" :class="path ? '':'text-bold'">
+          <div class="col-auto ">
+            {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }} -
+          </div>
           <q-icon class="col-auto" size="xs" color="primary" name="mdi-database"/>
-          <div class="col-auto" :class="path ? '':'text-bold'">
-            {{ currentBucketName }}({{i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }})
+          <div class="col-auto">
+            {{ currentBucketName }}
           </div>
         </div>
       </q-breadcrumbs-el>

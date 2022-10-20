@@ -9,19 +9,15 @@ import TokenDetail from 'components/bucket/TokenDetail.vue'
 import PasswordToggle from 'components/ui/PasswordToggle.vue'
 import AccessStatus from 'components/ui/AccessStatus.vue'
 import PathTable from 'components/bucket/PathTable.vue'
+import GlobalBreadcrumbs from 'components/ui/GlobalBreadcrumbs.vue'
 
 import useFormatSize from 'src/hooks/useFormatSize'
 import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 
 const props = defineProps({
-  serviceId: {
+  bucketId: {
     type: String,
-    required: false,
-    default: ''
-  },
-  bucketName: {
-    type: String,
-    required: false,
+    required: true,
     default: ''
   },
   tabId: {
@@ -39,30 +35,30 @@ const route = useRoute()
 const tab = computed(() => props.tabId)
 
 // 如果没传tab，则跳转到tab=object
-if (!store.items.currentPath[4]) {
+if (!store.items.currentPath[2]) {
   navigateToUrl(route.path.endsWith('/') ? route.path + 'object' : route.path + '/object')
 }
 
-const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
-const currentBucket = computed(() => store.tables.bucketTable.byLocalId[props.serviceId + '/' + props.bucketName])
-const currentBucketStat = computed(() => store.tables.bucketStatTable.byLocalId[props.serviceId + '/' + props.bucketName])
-const currentBucketTokenSet = computed(() => store.tables.bucketTokenTable.byLocalId[props.serviceId + '/' + props.bucketName])
+const currentBucket = computed(() => store.tables.bucketTable.byId[props.bucketId])
+const currentService = computed(() => store.tables.serviceTable.byId[currentBucket.value?.service?.id])
+const currentBucketStat = computed(() => store.tables.bucketStatTable.byLocalId[currentService.value?.id + '/' + currentBucket.value?.name])
+const currentBucketTokenSet = computed(() => store.tables.bucketTokenTable.byLocalId[currentService.value?.id + '/' + currentBucket.value?.name])
 
 // todo 待设计分享url结构后更新
-const currentBucketUrl = computed(() => location.origin + `/storage/share/?base=${props.bucketName}`)
+const currentBucketUrl = computed(() => location.origin + `/storage/share/?base=${currentBucket.value?.name}`)
 /* 获取相关table对象 */
 
 const loadTables = () => {
   // 当前bucket统计对象
-  void store.addBucketStatTable(currentService.value?.id, props.bucketName)
+  void store.addBucketStatTable(currentService.value?.id, currentBucket.value?.name)
 
   // 当前bucket token对象
-  void store.addBucketTokenTable(currentService.value?.id, props.bucketName)
+  void store.addBucketTokenTable(currentService.value?.id, currentBucket.value?.name)
 
   // 当前path对象
   void store.addPathTable(
-    props.serviceId,
-    props.bucketName,
+    currentService.value?.id,
+    currentBucket.value?.name,
     route.query.path as string
   )
 }
@@ -83,7 +79,8 @@ const unwatch = watch(currentService, () => {
 })
 /* 获取相关table对象 */
 const path = route.query.path as string
-const currentPath = computed(() => store.tables.pathTable.byLocalId[props.serviceId + '/' + props.bucketName + (path ? ('/' + path) : '')])
+// todo 改格式：bucketId/path
+const currentPath = computed(() => store.tables.pathTable.byLocalId[currentService.value?.id + '/' + currentBucket.value?.name + (path ? ('/' + path) : '')])
 
 const formatSize = useFormatSize(1024)
 const clickToCopy = useCopyToClipboard()
@@ -92,14 +89,16 @@ const clickToCopy = useCopyToClipboard()
 <template>
   <div class="BucketDetail">
 
+    <div class="row items-center text-black q-pb-md">
+      <GlobalBreadcrumbs/>
+    </div>
+
     <div class="row items-center" style="vertical-align: bottom;">
 
       <q-icon name="mdi-database" color="primary" size="md"/>
 
-      <div class="col-auto text-h5 text-weight-bold cursor-pointer"
-           @click="navigateToUrl('/my/storage/service/' + props.serviceId + '/bucket/' + props.bucketName + '/object')">
+      <div class="col-auto text-h5 text-weight-bold cursor-pointer">
         {{ currentBucket?.name }}
-        <q-tooltip> {{ tc('进入存储桶根目录') }}</q-tooltip>
       </div>
 
       <AccessStatus class="col-auto" :is-private="currentBucket?.access_permission === '私有'"/>
@@ -118,15 +117,15 @@ const clickToCopy = useCopyToClipboard()
       inline-label
     >
       <q-tab name="object"
-             @click="navigateToUrl('/my/storage/service/' + props.serviceId + '/bucket/' + props.bucketName + '/object')">
+             @click="navigateToUrl('/my/storage/bucket/' + props.bucketId + '/object')">
         对象列表
       </q-tab>
       <q-tab name="property"
-             @click="navigateToUrl('/my/storage/service/' + props.serviceId + '/bucket/' + props.bucketName + '/property')">
+             @click="navigateToUrl('/my/storage/bucket/' + props.bucketId + '/property')">
         存储桶属性
       </q-tab>
       <q-tab name="connection"
-             @click="navigateToUrl('/my/storage/service/' + props.serviceId + '/bucket/' + props.bucketName + '/connection')">
+             @click="navigateToUrl('/my/storage/bucket/' + props.bucketId + '/connection')">
         连接信息
       </q-tab>
     </q-tabs>

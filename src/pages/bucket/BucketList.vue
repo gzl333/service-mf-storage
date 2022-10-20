@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, PropType, onMounted, watch } from 'vue'
+import { ref, computed, /* PropType, onMounted, */ watch } from 'vue'
 import { navigateToUrl } from 'single-spa'
 import { BucketInterface, useStore } from 'stores/store'
 // import { useRoute, useRouter } from 'vue-router'
 import { i18n } from 'boot/i18n'
 
+import AccessStatus from 'components/ui/AccessStatus.vue'
+import GlobalBreadcrumbs from 'components/ui/GlobalBreadcrumbs.vue'
+
 import useClipText from 'src/hooks/useClipText'
-import useFormatSize from 'src/hooks/useFormatSize'
 import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 
 // const props = defineProps({
@@ -23,14 +25,19 @@ const store = useStore()
 // const route = useRoute()
 // const router = useRouter()
 
-// 服务单元筛选
+// 存储桶筛选
+const bucketFilter = ref('')
+
+// 服务单元
 const serviceSelection = ref('all')
-const serviceOptions = computed(() => store.getServiceOptions)
+const serviceOptions = computed(() => store.getAllServiceOptions)
 
 // 存储桶选择集合
 const bucketSelection = ref<BucketInterface[]>([])
 
-const buckets = computed(() => Object.values(store.tables.bucketTable.byLocalId))
+const buckets = computed(() => Object.values(store.tables.bucketTable.byId)
+  .filter((bucket: BucketInterface) => bucket.id.includes(bucketFilter.value) || bucket.name.includes(bucketFilter.value) || bucket.detail.remarks.includes(bucketFilter.value))
+  .filter((bucket: BucketInterface) => serviceSelection.value === 'all' ? true : bucket.service.id === serviceSelection.value))
 
 // table row hover
 const hoverRow = ref('')
@@ -43,13 +50,12 @@ const onMouseLeaveRow = () => {
 
 const clipText80 = useClipText(80)
 const clipText20 = useClipText(20)
-const formatSize = useFormatSize(1024)
 const clickToCopy = useCopyToClipboard()
 
 const columns = computed(() => [
   {
     name: 'name',
-    label: (() => tc('存储桶'))(),
+    label: (() => tc('存储桶名称'))(),
     field: 'name',
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
@@ -57,19 +63,28 @@ const columns = computed(() => [
     classes: ''
   },
   {
+    name: 'serviceUnit',
+    label: (() => tc('服务单元'))(),
+    field: 'serviceUnit',
+    align: 'center',
+    classes: 'ellipsis',
+    style: 'padding: 15px 0px; min-width: 150px; max-width: 200px;  word-break: break-all; word-wrap: break-word; white-space: normal;',
+    headerStyle: 'padding: 0 2px'
+  },
+  {
     name: 'creation',
     label: (() => tc('创建时间'))(),
     field: 'creation',
-    align: 'left',
+    align: 'center',
     headerStyle: 'padding: 0 0 0 1px',
     style: 'padding: 15px 0px',
     classes: ''
   },
   {
     name: 'access',
-    label: (() => tc('访问权限'))(),
+    label: (() => tc('Web访问权限'))(),
     field: 'access',
-    align: 'left',
+    align: 'center',
     headerStyle: 'padding: 0 0 0 1px',
     style: 'padding: 15px 0px',
     classes: ''
@@ -78,29 +93,11 @@ const columns = computed(() => [
     name: 'ftp',
     label: (() => tc('FTP状态'))(),
     field: 'ftp',
-    align: 'left',
+    align: 'center',
     headerStyle: 'padding: 0 0 0 1px',
     style: 'padding: 15px 0px',
     classes: ''
   },
-  // {
-  //   name: 'write',
-  //   label: (() => tc('读写密码'))(),
-  //   field: 'write',
-  //   align: 'left',
-  //   headerStyle: 'padding: 0 0 0 1px',
-  //   style: 'padding: 15px 0px; max-width: 200px;',
-  //   classes: ''
-  // },
-  // {
-  //   name: 'read',
-  //   label: (() => tc('只读密码'))(),
-  //   field: 'read',
-  //   align: 'left',
-  //   headerStyle: 'padding: 0 0 0 1px',
-  //   style: 'padding: 15px 0px; max-width: 200px;',
-  //   classes: ''
-  // },
   {
     name: 'note',
     label: (() => tc('备注'))(),
@@ -121,21 +118,16 @@ const columns = computed(() => [
   }
 ])
 
-// 根据当前分页条件loadBucketTable
-const loadBucketTable = () => {
-  store.loadBucketTable(1, 999)
-}
-
 /* load bucket table */
 // setup时调用一次
 if (store.tables.serviceTable.status === 'total') {
-  loadBucketTable()
+  store.loadBucketTable()
 }
 // 刷新页面时，等待有效的service信息，再调用
 const unwatch = watch(store.tables.serviceTable, () => {
   if (store.tables.serviceTable.status === 'total') {
     // serviceTable已经加载，可以load bucketTable
-    loadBucketTable()
+    store.loadBucketTable()
     // watcher已完成任务，注销
     unwatch()
   }
@@ -147,17 +139,38 @@ const unwatch = watch(store.tables.serviceTable, () => {
 <template>
   <div class="AllBucketList">
 
+    <div class="row items-center text-black q-pb-md">
+      <GlobalBreadcrumbs/>
+    </div>
+
     <div class="row items-center justify-between">
 
       <div class="col-auto row items-center q-gutter-x-md">
-        <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('新建存储桶')"/>
+        <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('新建存储桶')" @click="store.triggerCreateBucketDialog()"/>
         <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('删除存储桶')"
                :disable="bucketSelection.length === 0"/>
       </div>
 
-      <div class="col-3 row items-center justify-end">
+      <div class="col-5 row items-center justify-end q-gutter-x-md">
+
+        <q-input
+          class="col-5"
+          dense
+          outlined
+          stack-label
+          :label="tc('筛选存储桶')"
+          v-model="bucketFilter"
+        >
+          <template v-slot:prepend>
+            <q-icon name="search"/>
+          </template>
+          <template v-slot:append v-if="bucketFilter">
+            <q-icon name="close" @click="bucketFilter = ''" class="cursor-pointer"/>
+          </template>
+        </q-input>
+
         <q-select
-          class="col"
+          class="col-5"
           outlined
           dense
           stack-label
@@ -179,13 +192,9 @@ const unwatch = watch(store.tables.serviceTable, () => {
 
     </div>
 
-    <pre>
-      {{ buckets }}
-    </pre>
-
-    <div class="row">
+    <div class="row q-py-md">
       <q-table
-        class=""
+        class="col"
         flat
         square
         table-header-class="bg-grey-1 text-grey"
@@ -216,7 +225,7 @@ const unwatch = watch(store.tables.serviceTable, () => {
             <q-td key="name" :props="props">
 
               <q-btn flat padding="none" no-caps
-                     @click="navigateToUrl(`/my/storage/service/${props.row.service.id}/bucket/${props.row.name}`)">
+                     @click="navigateToUrl(`/my/storage/bucket/${props.row.id}`)">
 
                 <div class="row items-center no-wrap">
                   <q-icon class="col-auto" size="sm" color="primary" name="mdi-database"/>
@@ -225,7 +234,7 @@ const unwatch = watch(store.tables.serviceTable, () => {
 
                 <!--创建时间距离当下小于1小时则打上new标记-->
                 <q-badge style="top:-10px;"
-                         v-if="(new Date() - new Date(props.row.created_time)) < 1000 * 60 * 60 * 1 "
+                         v-if="(new Date() - new Date(props.row.detail.created_time)) < 1000 * 60 * 60 * 1 "
                          color="light-green" floating transparent rounded align="middle">
                   new
                 </q-badge>
@@ -245,38 +254,38 @@ const unwatch = watch(store.tables.serviceTable, () => {
 
             </q-td>
 
+            <q-td key="serviceUnit" :props="props">
+
+              <div>
+                {{
+                  i18n.global.locale === 'zh' ? props.row.service.name : props.row.service.name_en
+                }}
+              </div>
+
+              <!--              <div>-->
+              <!--                {{-->
+              <!--                  i18n.global.locale === 'zh' ? store.tables.dataCenterTable.byId[store.tables.serviceTable.byId[props.row.service.id]?.data_center]?.name :-->
+              <!--                    store.tables.dataCenterTable.byId[store.tables.serviceTable.byId[props.row.service.id]?.data_center]?.name_en-->
+              <!--                }}-->
+              <!--              </div>-->
+
+              <!--              <CloudPlatformLogo :platform-name="props.row.service.service_type"/>-->
+
+            </q-td>
+
             <q-td key="creation" :props="props">
-              {{ new Date(props.row.created_time).toLocaleString(i18n.global.locale) }}
+              {{ new Date(props.row.detail.created_time).toLocaleString(i18n.global.locale) }}
             </q-td>
 
             <q-td key="access" :props="props">
-              <!--                <q-toggle-->
-              <!--                  :model-value="props.row.access_permission === '私有'"-->
-              <!--                  icon="lock"-->
-              <!--                  color="primary"-->
-              <!--                  keep-color-->
-              <!--                  @click="store.toggleBucketAccess({bucketName: props.row.name})"-->
-              <!--                />-->
-              <AccessStatus :is-private="props.row.access_permission === '私有'"/>
+              <AccessStatus :is-private="props.row.detail.access_permission === '私有'"/>
             </q-td>
 
             <q-td key="ftp" :props="props">
               <FtpStatus v-if="store.tables.serviceTable.byId[props.row.service.id]?.provide_ftp"
-                         :is-enable="props.row.ftp_enable"/>
-              <div v-else>本服务单元不支持FTP连接</div>
+                         :is-enable="props.row.detail.ftp_enable"/>
+              <div v-else>不支持FTP连接</div>
             </q-td>
-
-            <!--              <q-td key="write" :props="props">-->
-            <!--                <PasswordInput :password="props.row.ftp_password" :is-show-btn="hoverRow === props.row.name"-->
-            <!--                               :edit-action="'triggerEditBucketFtpPasswordDialog'"-->
-            <!--                               :edit-action-parameter="{bucketName: props.row.name, isRo: false}"/>-->
-            <!--              </q-td>-->
-
-            <!--              <q-td key="read" :props="props">-->
-            <!--                <PasswordInput :password="props.row.ftp_ro_password" :is-show-btn="hoverRow === props.row.name"-->
-            <!--                               :edit-action="'triggerEditBucketFtpPasswordDialog'"-->
-            <!--                               :edit-action-parameter="{bucketName: props.row.name, isRo: true}"/>-->
-            <!--              </q-td>-->
 
             <q-td key="note" :props="props">
               {{ clipText20(props.row.detail.remarks) || tc('无备注') }}
@@ -292,13 +301,6 @@ const unwatch = watch(store.tables.serviceTable, () => {
             </q-td>
 
             <q-td key="operation" :props="props">
-              <!--                <div class="column q-gutter-y-xs" style="width: 127px;">-->
-              <!--                  <q-btn unelevated dense color="primary" no-caps @click="toggleExpansion(props)"-->
-              <!--                         :icon="props.expand ? 'expand_less' : 'expand_more'">-->
-              <!--                    <div v-if="props.expand">{{ tc('折叠详情') }}</div>-->
-              <!--                    <div v-else>{{ tc('展开详情') }}</div>-->
-              <!--                  </q-btn>-->
-              <!--                </div>-->
 
               <q-btn unelevated dense color="primary" no-caps
                      @click="navigateToUrl(`/my/storage/service/${props.row.service.id}/bucket/${props.row.name}`)">

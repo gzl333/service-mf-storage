@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, QBtn, QInput, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
@@ -7,18 +7,17 @@ import api from 'src/api/index'
 
 import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
 
-const props = defineProps({
-  serviceId: {
-    type: String,
-    required: true,
-    default: ''
-  }
-})
+// const props = defineProps({
+//   serviceId: {
+//     type: String,
+//     required: true,
+//     default: ''
+//   }
+// })
 defineEmits([...useDialogPluginComponent.emits])
 
 const store = useStore()
 const { tc } = i18n.global
-// code starts...
 
 const {
   dialogRef,
@@ -28,15 +27,31 @@ const {
 } = useDialogPluginComponent()
 const onCancelClick = onDialogCancel
 
-const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
+// const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
 const exceptionNotifier = useExceptionNotifier()
+
+// 服务单元
+const serviceSelection = ref('')
+const serviceOptions = computed(() => store.getServiceOptions)
+
+/* 默认服务单元选择第一项 */
+const firstService = computed(() => store.tables.serviceTable.allIds[0])
+
+if (store.tables.serviceTable.status === 'total') {
+  serviceSelection.value = firstService.value
+}
+
+watch(firstService, () => {
+  serviceSelection.value = firstService.value
+})
+/* 默认服务单元选择第一项 */
 
 const bucketName = ref('')
 const isLoading = ref(false)
 const inputRef = ref<QInput>()
 
 const onOKClick = async () => {
-  // validate bucket name, todo refine reg exp
+  // validate bucket name, refine reg exp
   if (bucketName.value.length < 3 || bucketName.value.length > 64) {
     inputRef.value!.focus()
     Notify.create({
@@ -65,20 +80,33 @@ const onOKClick = async () => {
     // submit creation
     try {
       // req
-      const respPostBuckets = await api.storage.single.postBuckets({
-        base: currentService.value?.endpoint_url,
-        body: { name: bucketName.value }
+      const respPostStorageBucket = await api.vms.storage.postStorageBucket({
+        body: {
+          service_id: serviceSelection.value,
+          name: bucketName.value
+        }
       })
+      const newBucket = respPostStorageBucket.data
 
-      // store new bucket in table
-      Object.assign(store.tables.bucketTable.byLocalId, {
-        [props.serviceId + '/' + respPostBuckets.data.bucket.name]: Object.assign(respPostBuckets.data.bucket, {
-          local_id: respPostBuckets.data.bucket.name,
-          service_id: props.serviceId
+      // 请求bucket具体信息
+      const base = store.tables.serviceTable.byId[newBucket.service.id]?.endpoint_url
+      const respGetBuckets = await api.storage.single.getBucketsIdOrName({
+        base,
+        path: { id_or_name: newBucket.name },
+        query: { 'by-name': true }
+      })
+      // status
+      store.tables.bucketTable.status = 'loading'
+      // 保存对象
+      Object.assign(store.tables.bucketTable.byId, {
+        [newBucket.id]: Object.assign(newBucket, {
+          detail: respGetBuckets.data.bucket
         })
       })
-      store.tables.bucketTable.allLocalIds.unshift(props.serviceId + '/' + respPostBuckets.data.bucket.name)
-      store.tables.bucketTable.allLocalIds = [...new Set(store.tables.bucketTable.allLocalIds)]
+      store.tables.bucketTable.allIds.push(newBucket.id)
+      store.tables.bucketTable.allIds = [...new Set(store.tables.bucketTable.allIds)]
+      // status
+      store.tables.bucketTable.status = 'part'
 
       // close working notification
       dismissWorking()
@@ -125,6 +153,31 @@ const onOKClick = async () => {
       <q-separator/>
 
       <q-card-section>
+
+        <div class="row q-pb-lg  items-center">
+          <div class="col-2 text-grey-7">
+            {{ tc('服务单元') }}
+          </div>
+          <div class="col">
+            <q-select
+              class="col-5"
+              outlined
+              dense
+              v-model="serviceSelection"
+              :options="serviceOptions"
+              emit-value
+              map-options
+              option-value="value"
+              :option-label="i18n.global.locale ==='zh'? 'label':'labelEn'">
+              <!--当前选项的内容插槽-->
+              <template v-slot:selected-item="scope">
+                <span :class="serviceSelection===scope.opt.value ? 'text-primary' : 'text-black'">
+                  {{ i18n.global.locale === 'zh' ? scope.opt.label : scope.opt.labelEn }}
+                </span>
+              </template>
+            </q-select>
+          </div>
+        </div>
 
         <div class="row q-pb-lg  items-center">
           <div class="col-2 text-grey-7">
