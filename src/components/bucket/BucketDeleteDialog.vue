@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { PropType, ref, computed } from 'vue'
-import { useStore } from 'stores/store'
+import { BucketInterface, useStore } from 'stores/store'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import api from 'src/api/index'
 import { i18n } from 'boot/i18n'
@@ -8,12 +8,8 @@ import { i18n } from 'boot/i18n'
 import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
 
 const props = defineProps({
-  serviceId: {
-    type: String,
-    required: true
-  },
-  bucketNames: {
-    type: Array as PropType<string[]>,
+  buckets: {
+    type: Array as PropType<BucketInterface[]>,
     required: true
   }
 })
@@ -31,12 +27,14 @@ const {
 } = useDialogPluginComponent()
 const onCancelClick = onDialogCancel
 
-const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
+// const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
 const exceptionNotifier = useExceptionNotifier()
 
 const check1 = ref(false)
-const bucketIds = props.bucketNames.map((bucketName: string) => store.tables.bucketTable.byLocalId[props.serviceId + '/' + bucketName]?.id)
+// const bucketIds = props.bucketNames.map((bucketName: string) => store.tables.bucketTable.byLocalId[props.serviceId + '/' + bucketName]?.id)
 const isLoading = ref(false)
+
+const buckets = computed(() => props.buckets)
 
 const onOKClick = async () => {
   isLoading.value = true
@@ -52,23 +50,16 @@ const onOKClick = async () => {
   })
   try {
     // req
-    await api.storage.single.deleteBucketsIdOrName({
-      base: currentService.value.endpoint_url,
-      path: {
-        id_or_name: bucketIds[0].toString()
-      },
-      query: {
-        'by-name': false,
-        ids: bucketIds.slice(1)
-      }
-    })
-
-    // delete bucket in table
-    props.bucketNames.forEach((bucketName: string) => {
-      const currentLocalId = props.serviceId + '/' + bucketName
-      store.tables.bucketTable.allLocalIds = store.tables.bucketTable.allLocalIds.filter((localId: string) => localId !== currentLocalId)
-      delete store.tables.bucketTable.byLocalId[currentLocalId]
-    })
+    for (const bucket of buckets.value) {
+      await api.vms.storage.deleteStorageBucket({
+        path: {
+          bucket_name: bucket.name,
+          service_id: bucket.service.id
+        }
+      })
+    }
+    // reload bucket table
+    void await store.loadBucketTable()
 
     // close working notification
     dismissWorking()
@@ -120,15 +111,24 @@ const onOKClick = async () => {
           </div>
         </div>
 
-        <div v-for="bucketName in props.bucketNames" :key="bucketName"
-             class="row q-mb-xs q-pa-md items-center bg-grey-2">
+        <div v-for="bucket in buckets" :key="bucket.id"
+             class="column q-mb-xs q-pa-md items-start bg-grey-2">
+
+          <div class="col row items-center">
+            <div class="col-auto text-grey-7">
+              {{ tc('服务单元') }}：
+            </div>
+            <div class="col">
+              {{ store.tables.serviceTable.byId[bucket?.service.id].name }}
+            </div>
+          </div>
 
           <div class="col row items-center">
             <div class="col-auto text-grey-7">
               {{ tc('存储桶名称') }}：
             </div>
             <div class="col">
-              {{ bucketName }}
+              {{ bucket.name }}
             </div>
           </div>
 

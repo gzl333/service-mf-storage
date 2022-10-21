@@ -21,9 +21,9 @@ const route = useRoute()
 // const router = useRouter()
 const { tc } = i18n.global
 
-const currentServiceId = store.items.currentPath[1]
-const currentBucketName = store.items.currentPath[2]
-const currentService = computed(() => store.tables.serviceTable.byId[currentServiceId])
+const currentBucketId = store.items.currentPath[1]
+const currentBucket = computed(() => store.tables.bucketTable.byId[currentBucketId])
+const currentService = computed(() => store.tables.serviceTable.byId[currentBucket.value.service.id])
 
 const path = route.query.path as string
 const arrayPaths = computed(() => path?.split('/')[0] === '' ? [] : path?.split('/'))
@@ -48,42 +48,31 @@ const clipText70 = useClipText(70)
         />
       </template>
 
-      <q-breadcrumbs-el @click="navigateToUrl('/my/storage/service/all')">
+      <q-breadcrumbs-el @click="navigateToUrl('/my/storage/bucket/all')">
         <div class="row items-center no-wrap cursor-pointer">
-          <!--            <q-icon class="col-auto" size="xs" color="yellow-8" name="mdi-database"/>-->
-          <div class="col-auto" :class="currentBucketName ? '':'text-bold'">
+          <div class="col-auto" :class="currentBucketId === 'all' ? 'text-bold':''">
             {{ tc('全部存储桶') }}
           </div>
         </div>
-        <!--        <q-tooltip>{{ tc('全部存储桶列表') }}</q-tooltip>-->
       </q-breadcrumbs-el>
 
-      <!--      // 服务单元名称-->
-      <!--      <q-breadcrumbs-el v-if="currentServiceId !== 'all'">-->
-      <!--        <div class="row items-center no-wrap">-->
-      <!--          <div class="col-auto" :class="currentBucketName ? '':'text-bold'">-->
-      <!--            {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }}-->
-      <!--          </div>-->
-      <!--        </div>-->
-      <!--      </q-breadcrumbs-el>-->
-
       // 桶名称
-      <q-breadcrumbs-el v-if="currentBucketName"
-                        @click="navigateToUrl('/my/storage/service/' + currentServiceId +'/bucket/' + currentBucketName)">
+      <q-breadcrumbs-el v-if="currentBucket"
+                        @click="navigateToUrl('/my/storage/bucket/' + currentBucket.id)">
         <div class="row items-center no-wrap cursor-pointer" :class="path ? '':'text-bold'">
           <div class="col-auto ">
             {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }} -
           </div>
           <q-icon class="col-auto" size="xs" color="primary" name="mdi-database"/>
           <div class="col-auto">
-            {{ currentBucketName }}
+            {{ currentBucket.name }}
           </div>
         </div>
       </q-breadcrumbs-el>
 
       // 文件夹部分，除了最后一个
       <q-breadcrumbs-el v-for="(path, index) in arrayPaths?.slice(0, -1)" :key="path"
-                        @click="navigateToUrl('/my/storage/service/' + currentServiceId +'/bucket/' + currentBucketName + '/object' +'?path=' + arrayPaths.slice(0, (index - arrayPaths.length + 1)).reduce((accumulator, item) => accumulator + '/' + item))">
+                        @click="navigateToUrl('/my/storage/bucket/' + currentBucket.id + '/object' +'?path=' + arrayPaths.slice(0, (index - arrayPaths.length + 1)).reduce((accumulator, item) => accumulator + '/' + item))">
         <div class="row items-center no-wrap cursor-pointer">
           <q-icon class="col-auto" size="xs" color="yellow-8" name="folder"/>
           <div class="col-auto"> {{ clipText7(path) }}</div>

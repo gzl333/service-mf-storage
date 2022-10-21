@@ -23,9 +23,13 @@ const store = useStore()
 // const route = useRoute()
 const { tc } = i18n.global
 
-const currentBucketName = computed(() => props.pathObj?.bucket_name)
+const currentBucket = computed(() => store.tables.bucketTable.byId[props.pathObj.bucketId])
+
+const filter = ref('')
 const currentPath = computed(() => props.pathObj?.dir_path)
-const currentServiceId = computed(() => props.pathObj.localId.split('/')[0])
+const currentFiles = computed(() => props.pathObj?.files.filter((file: FileInterface) => file.name.toLowerCase().includes(filter.value)))
+
+// const currentServiceId = computed(() => props.pathObj.localId.split('/')[0])
 // const arrayPaths = computed(() => props.pathObj?.dir_path?.split('/')[0] === '' ? [] : props.pathObj?.dir_path?.split('/'))
 // const upperPath = computed(() => currentPath.value === '' ? '/my/storage/bucket' : `/my/storage/bucket/file?bucket=${currentBucket.value}&path=${currentPath.value?.lastIndexOf('/') === -1 ? '' : currentPath.value?.slice(0, currentPath.value?.lastIndexOf('/'))}`)
 // table中选中的对象
@@ -139,7 +143,10 @@ const batchDelete = async () => {
       dirArr.push(obj)
     }
   })
-  void store.triggerDeleteFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dirArr, fileArrs: fileArr }, true)
+  void store.triggerDeleteFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, {
+    dirArrs: dirArr,
+    fileArrs: fileArr
+  }, true)
 }
 const singleShare = async (na: string, name: string, accessCode: number, fod: boolean) => {
   const dataArr = []
@@ -182,7 +189,10 @@ const batchShare = async () => {
       shareObjArr.push(obj)
     }
   })
-  void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: shareDirArr, fileArrs: shareObjArr }, true)
+  void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, {
+    dirArrs: shareDirArr,
+    fileArrs: shareObjArr
+  }, true)
 }
 const changeName = (path: string, name: string) => {
   void store.triggerChangeFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, path, name, true)
@@ -216,12 +226,15 @@ const download = async (fileName: string, na: string) => {
   let base
   if (count > 1) {
     const str = conversionBase(props.pathObj.localId, '/', 1)
-    base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
+    base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[str]?.service.id]?.endpoint_url
   } else {
-    base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.pathObj.localId]?.service_id]?.endpoint_url
+    base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.localId]?.service.id]?.endpoint_url
   }
   const objPath = props.pathObj.bucket_name + '/' + na
-  const res = await api.storage.single.getObjPath({ base, path: { objpath: objPath } })
+  const res = await api.storage.single.getObjPath({
+    base,
+    path: { objpath: objPath }
+  })
   const url = window.URL.createObjectURL(new Blob([res.data]))
   const link = document.createElement('a')
   link.style.display = 'none'
@@ -265,15 +278,34 @@ watch(
 
 <template>
   <div class="PathTable">
-    <div class="row q-gutter-x-md">
-      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('创建文件夹')"
-             @click="store.triggerCreateFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path)"/>
-      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('上传文件')"
-             @click="store.triggerUploadDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path)"/>
-      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('删除文件')" @click="batchDelete"
-             :disable="selected.length<=0"/>
-      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="batchShare"
-             :disable="selected.length<=0"/>
+    <div class="row items-center justify-between q-pb-md">
+      <div class="col q-gutter-x-md">
+        <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('创建文件夹')"
+               @click="store.triggerCreateFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path)"/>
+        <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('上传文件')"
+               @click="store.triggerUploadDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path)"/>
+        <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('删除文件')" @click="batchDelete"
+               :disable="selected.length<=0"/>
+        <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="batchShare"
+               :disable="selected.length<=0"/>
+      </div>
+
+      <q-input
+        class="col-2"
+        dense
+        outlined
+        stack-label
+        :label="tc('筛选对象')"
+        v-model="filter"
+      >
+        <template v-slot:prepend>
+          <q-icon name="search"/>
+        </template>
+        <template v-slot:append v-if="filter">
+          <q-icon name="close" @click="filter = ''" class="cursor-pointer"/>
+        </template>
+      </q-input>
+
     </div>
 
     <div class="row">
@@ -284,7 +316,7 @@ watch(
           flat
           square
           table-header-class="bg-grey-1 text-grey"
-          :rows="props.pathObj?.files"
+          :rows="currentFiles"
           :columns="columns"
           row-key="name"
           hide-pagination
@@ -310,15 +342,16 @@ watch(
               </q-td>
 
               <q-td key="name" :props="props">
-                <q-btn v-if="!props.row.fod" flat no-caps padding="none"
-                       @click="navigateToUrl('/my/storage/bucket/' + currentServiceId +'/bucket/' + currentBucketName + '/object' +'?path=' + (currentPath? currentPath + '/' : '') + props.row.name)">
+
+                <q-btn class="q-mr-md" v-if="!props.row.fod" flat no-caps padding="none"
+                       @click="navigateToUrl('/my/storage/bucket/' + currentBucket?.id + '/object' +'?path=' + (currentPath? currentPath + '/' : '') + props.row.name)">
                   <div class="row items-center no-wrap">
                     <q-icon class="col-auto" color="yellow-8" name="folder"/>
                     <div class="col-auto text-black"> {{ clipText70(props.row.name) }}</div>
                   </div>
                 </q-btn>
 
-                <q-btn v-if="props.row.fod" flat no-caps color="black" padding="none" :ripple="false"
+                <q-btn class="q-mr-md" v-if="props.row.fod" flat no-caps color="black" padding="none" :ripple="false"
                        @click="toggleExpansion(props)">
                   <div class="row items-center no-wrap">
                     <q-icon class="col-auto" color="grey" name="insert_drive_file"/>
@@ -344,7 +377,8 @@ watch(
               </q-td>
 
               <q-td key="operation" :props="props">
-                <q-btn color="primary" unelevated no-caps @click="singleDelete(props.row.na, props.row.name, props.row.fod)">
+                <q-btn color="primary" unelevated no-caps
+                       @click="singleDelete(props.row.na, props.row.name, props.row.fod)">
                   {{ tc('删除') }}
                 </q-btn>
                 <q-btn class="q-ml-xs" color="primary" unelevated no-caps

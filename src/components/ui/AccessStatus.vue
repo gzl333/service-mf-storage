@@ -23,11 +23,11 @@
 
 <template>
 
-  <q-chip v-if="isPrivate" color="primary" text-color="white" size="sm" icon="mdi-lock">
+  <q-chip v-if="isPrivate" class="non-selectable" color="primary" text-color="white" size="sm" icon="mdi-lock">
     私有访问
   </q-chip>
 
-  <q-chip v-else color="green" text-color="white" size="sm" icon="mdi-lock-open-variant">
+  <q-chip v-else class="non-selectable" color="green" text-color="white" size="sm" icon="mdi-lock-open-variant">
     公有访问
   </q-chip>
 

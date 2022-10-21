@@ -57,8 +57,7 @@ const loadTables = () => {
 
   // 当前path对象
   void store.addPathTable(
-    currentService.value?.id,
-    currentBucket.value?.name,
+    currentBucket.value.id,
     route.query.path as string
   )
 }
@@ -77,10 +76,10 @@ const unwatch = watch(currentService, () => {
     unwatch()
   }
 })
+
 /* 获取相关table对象 */
 const path = route.query.path as string
-// todo 改格式：bucketId/path
-const currentPath = computed(() => store.tables.pathTable.byLocalId[currentService.value?.id + '/' + currentBucket.value?.name + (path ? ('/' + path) : '')])
+const currentPath = computed(() => store.tables.pathTable.byLocalId[currentBucket.value?.id + (path ? ('/' + path) : '')])
 
 const formatSize = useFormatSize(1024)
 const clickToCopy = useCopyToClipboard()
@@ -97,16 +96,16 @@ const clickToCopy = useCopyToClipboard()
 
       <q-icon name="mdi-database" color="primary" size="md"/>
 
-      <div class="col-auto text-h5 text-weight-bold cursor-pointer">
+      <div class="col-auto text-h5 text-weight-bold non-selectable">
         {{ currentBucket?.name }}
       </div>
 
-      <AccessStatus class="col-auto" :is-private="currentBucket?.access_permission === '私有'"/>
+      <AccessStatus class="col-auto" :is-private="currentBucket?.detail.access_permission === '私有'"/>
 
     </div>
 
     <div class="row">
-      <div class="col-auto text-caption">{{ currentBucket?.remarks }}</div>
+      <div class="col-auto text-caption">{{ currentBucket?.detail.remarks }}</div>
     </div>
 
     <q-tabs
@@ -183,7 +182,7 @@ const clickToCopy = useCopyToClipboard()
                 创建时间
               </div>
               <div class="col">
-                {{ new Date(currentBucket?.created_time).toLocaleString(i18n.global.locale) }}
+                {{ new Date(currentBucket?.detail.created_time).toLocaleString(i18n.global.locale) }}
               </div>
             </q-card-section>
 
@@ -195,7 +194,7 @@ const clickToCopy = useCopyToClipboard()
               </div>
               <div class="col"
                    style="max-width: 300px; word-break: break-all; word-wrap: break-word; white-space: normal;">
-                {{ currentBucket?.remarks || tc('无备注') }}
+                {{ currentBucket?.detail.remarks || tc('无备注') }}
                 <q-btn icon="edit"
                        dense
                        flat
@@ -285,13 +284,13 @@ const clickToCopy = useCopyToClipboard()
                 </div>
                 <div class="col row items-center">
                   <q-toggle
-                    :model-value="currentBucket?.access_permission === '公有'"
-                    :icon="currentBucket?.access_permission === '私有' ? 'mdi-lock' : 'mdi-lock-open-variant'"
-                    :color="currentBucket?.access_permission === '私有' ? 'primary' : 'green'"
+                    :model-value="currentBucket?.detail.access_permission === '公有'"
+                    :icon="currentBucket?.detail.access_permission === '私有' ? 'mdi-lock' : 'mdi-lock-open-variant'"
+                    :color="currentBucket?.detail.access_permission === '私有' ? 'primary' : 'green'"
                     keep-color
                     @click="store.toggleBucketAccess(props.serviceId, props.bucketName)"
                   />
-                  <div>{{ currentBucket?.access_permission }}</div>
+                  <div>{{ currentBucket?.detail.access_permission }}</div>
                 </div>
               </div>
 
@@ -377,12 +376,12 @@ const clickToCopy = useCopyToClipboard()
                 </div>
                 <div class="col row items-center">
                   <q-toggle
-                    :model-value="currentBucket?.ftp_enable"
-                    :icon="currentBucket?.ftp_enable ? 'check' : 'close'"
+                    :model-value="currentBucket?.detail.ftp_enable"
+                    :icon="currentBucket?.detail.ftp_enable ? 'check' : 'close'"
                     color="green"
                     @click="store.toggleBucketFtp(props.serviceId, props.bucketName)"
                   />
-                  {{ currentBucket?.ftp_enable ? '开启' : '关闭' }}
+                  {{ currentBucket?.detail.ftp_enable ? '开启' : '关闭' }}
                 </div>
               </div>
             </q-card-section>
@@ -395,14 +394,14 @@ const clickToCopy = useCopyToClipboard()
                   FTP 只读密码
                 </div>
                 <div class="col row items-center">
-                  <PasswordToggle :text="currentBucket?.ftp_ro_password"/>
+                  <PasswordToggle :text="currentBucket?.detail.ftp_ro_password"/>
 
                   <q-btn class="q-px-xs"
                          flat
                          color="primary"
                          icon="content_copy"
                          size="sm"
-                         @click="clickToCopy(currentBucket?.ftp_ro_password, true)">
+                         @click="clickToCopy(currentBucket?.detail.ftp_ro_password, true)">
                     <q-tooltip>
                       {{ tc('复制') }}
                     </q-tooltip>
@@ -432,14 +431,14 @@ const clickToCopy = useCopyToClipboard()
                   FTP 读写密码
                 </div>
                 <div class="col row items-center">
-                  <PasswordToggle :text="currentBucket?.ftp_password"/>
+                  <PasswordToggle :text="currentBucket?.detail.ftp_password"/>
 
                   <q-btn class="q-px-xs"
                          flat
                          color="primary"
                          icon="content_copy"
                          size="sm"
-                         @click="clickToCopy(currentBucket?.ftp_password, true)">
+                         @click="clickToCopy(currentBucket?.detail.ftp_password, true)">
                     <q-tooltip>
                       {{ tc('复制') }}
                     </q-tooltip>

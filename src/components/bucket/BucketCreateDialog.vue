@@ -74,7 +74,7 @@ const onOKClick = async () => {
       message: `${tc('正在创建存储桶')}  ${bucketName.value}`,
       position: 'bottom',
       // closeBtn: true,
-      // timeout: 5000,
+      timeout: 10000,
       multiLine: true
     })
     // submit creation
@@ -103,7 +103,7 @@ const onOKClick = async () => {
           detail: respGetBuckets.data.bucket
         })
       })
-      store.tables.bucketTable.allIds.push(newBucket.id)
+      store.tables.bucketTable.allIds.unshift(newBucket.id)
       store.tables.bucketTable.allIds = [...new Set(store.tables.bucketTable.allIds)]
       // status
       store.tables.bucketTable.status = 'part'

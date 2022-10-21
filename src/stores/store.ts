@@ -185,8 +185,9 @@ export interface PathInterface {
   dir_path: string
   files: FileInterface[]
 
-  // 自己定义的localId，来自serviceId bucket_name dir_path 三者的拼接 'serviceId/bucketName' or 'serviceId/bucketName/path1/path2/path3...'
+  // 自己定义的localId，来自bucketId dir_path 两者的拼接 'bucketId' or 'bucketId/path1/path2/path3...'
   localId: string
+  bucketId: string
 }
 
 // 代金券对象类型
@@ -577,9 +578,10 @@ export const useStore = defineStore('storage', {
         this.tables.bucketTokenTable.status = 'error'
       }
     },
-    // PathTable: 累积加载，localId (serviceId-bucketName/path1/path2)
-    async addPathTable (serviceId: string, bucketName: string, path?: string) {
-      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
+    // PathTable: 累积加载，localId (bucketId/path1/path2)
+    async addPathTable (bucketId: string, path?: string) {
+      const bucket = this.tables.bucketTable.byId[bucketId]
+      const base = this.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
       // 1. status改为loading
       this.tables.pathTable.status = 'loading'
       try {
@@ -589,31 +591,32 @@ export const useStore = defineStore('storage', {
         if (!path) { // 桶的根目录
           const respGetDirBucket = await api.storage.single.getDirBucketName({
             base,
-            path: { bucket_name: bucketName }
+            path: { bucket_name: bucket.name }
           })
           const item = {
-            [serviceId + '/' + bucketName]: Object.assign({}, {
-              localId: serviceId + '/' + bucketName,
+            [bucket.id]: Object.assign({}, {
+              bucketId: bucket.id,
+              localId: bucket.id,
               bucket_name: respGetDirBucket.data.bucket_name,
               dir_path: respGetDirBucket.data.dir_path,
               files: respGetDirBucket.data.files
             })
           }
           Object.assign(this.tables.pathTable.byLocalId, item)
-          // this.tables.pathTable.allLocalIds.unshift(Object.keys(item)[0])
-          this.tables.pathTable.allLocalIds.unshift(serviceId + '/' + bucketName)
+          this.tables.pathTable.allLocalIds.unshift(bucket.id)
           this.tables.pathTable.allLocalIds = [...new Set(this.tables.pathTable.allLocalIds)]
         } else { // 次级目录
           const respGetDirPath = await api.storage.single.getDirBucketNameDirPath({
-            base: this.tables.serviceTable.byId[serviceId].endpoint_url,
+            base,
             path: {
-              bucket_name: bucketName,
+              bucket_name: bucket.name,
               dirpath: path
             }
           })
           const item = {
-            [serviceId + '/' + bucketName + '/' + path]: Object.assign({}, {
-              localId: serviceId + '/' + bucketName + '/' + respGetDirPath.data.dir_path,
+            [bucket.id + '/' + path]: Object.assign({}, {
+              bucketId: bucket.id,
+              localId: bucket.id + '/' + respGetDirPath.data.dir_path,
               bucket_name: respGetDirPath.data.bucket_name,
               dir_path: respGetDirPath.data.dir_path,
               files: respGetDirPath.data.files
@@ -621,7 +624,7 @@ export const useStore = defineStore('storage', {
           }
           Object.assign(this.tables.pathTable.byLocalId, item)
           // this.tables.pathTable.allLocalIds.unshift(Object.keys(item)[0])
-          this.tables.pathTable.allLocalIds.unshift(serviceId + '/' + bucketName + '/' + path)
+          this.tables.pathTable.allLocalIds.unshift(bucket.id + '/' + path)
           this.tables.pathTable.allLocalIds = [...new Set(this.tables.pathTable.allLocalIds)]
         }
         // }
@@ -715,12 +718,11 @@ export const useStore = defineStore('storage', {
       })
     },
     // 触发删除存储桶对话框
-    triggerDeleteBucketDialog (serviceId: string, bucketNames: string[]) {
+    triggerDeleteBucketDialog (buckets: BucketInterface[]) {
       Dialog.create({
         component: BucketDeleteDialog,
         componentProps: {
-          serviceId,
-          bucketNames
+          buckets
         }
       })
     },

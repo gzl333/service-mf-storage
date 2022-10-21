@@ -36,7 +36,7 @@ const serviceOptions = computed(() => store.getAllServiceOptions)
 const bucketSelection = ref<BucketInterface[]>([])
 
 const buckets = computed(() => Object.values(store.tables.bucketTable.byId)
-  .filter((bucket: BucketInterface) => bucket.id.includes(bucketFilter.value) || bucket.name.includes(bucketFilter.value) || bucket.detail.remarks.includes(bucketFilter.value))
+  .filter((bucket: BucketInterface) => bucket.id.includes(bucketFilter.value) || bucket.name.toLowerCase().includes(bucketFilter.value) || bucket.detail.remarks.toLowerCase().includes(bucketFilter.value))
   .filter((bucket: BucketInterface) => serviceSelection.value === 'all' ? true : bucket.service.id === serviceSelection.value))
 
 // table row hover
@@ -146,9 +146,12 @@ const unwatch = watch(store.tables.serviceTable, () => {
     <div class="row items-center justify-between">
 
       <div class="col-auto row items-center q-gutter-x-md">
-        <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('新建存储桶')" @click="store.triggerCreateBucketDialog()"/>
+        <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('新建存储桶')"
+               @click="store.triggerCreateBucketDialog()"/>
         <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('删除存储桶')"
-               :disable="bucketSelection.length === 0"/>
+               :disable="bucketSelection.length === 0"
+               @click="store.triggerDeleteBucketDialog(bucketSelection);bucketSelection=[]"
+        />
       </div>
 
       <div class="col-5 row items-center justify-end q-gutter-x-md">
