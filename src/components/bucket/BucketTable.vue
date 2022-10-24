@@ -252,7 +252,7 @@ const columns = computed(() => [
 
                 <q-btn :class="hoverRow === props.row.name ? '':'invisible'" icon="edit" size="sm" dense flat
                        color="primary"
-                       @click="store.triggerEditBucketNoteDialog(currentService?.id, props.row.name)">
+                       @click="store.triggerEditBucketNoteDialog(props.row.id)">
                   <q-tooltip>
                     {{ tc('修改') }}
                   </q-tooltip>

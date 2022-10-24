@@ -8,12 +8,7 @@ import api from 'src/api/index'
 import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
 
 const props = defineProps({
-  serviceId: {
-    type: String,
-    required: true,
-    default: ''
-  },
-  bucketName: {
+  bucketId: {
     type: String,
     required: true,
     default: ''
@@ -34,13 +29,15 @@ const {
 
 const MAX_LENGTH = 50
 
-const onCancelClick = onDialogCancel
-const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
-const note = ref<string>(store.tables.bucketTable.byLocalId[props.serviceId + '/' + props.bucketName]?.remarks || '')
+const currentBucket = computed(() => store.tables.bucketTable.byId[props.bucketId])
+const currentService = computed(() => store.tables.serviceTable.byId[currentBucket.value?.service.id])
+
+const note = ref<string>(currentBucket.value?.detail.remarks || '')
 const exceptionNotifier = useExceptionNotifier()
 const isLoading = ref(false)
 const inputRef = ref<QInput>()
 
+const onCancelClick = onDialogCancel
 const onOKClick = async () => {
   if (note.value?.length < 1 || note.value?.length > MAX_LENGTH) {
     inputRef.value!.focus()
@@ -73,7 +70,7 @@ const onOKClick = async () => {
       // req
       void await api.storage.single.patchBucketsIdOrNameRemark({
         base: currentService.value?.endpoint_url,
-        path: { id_or_name: props.bucketName },
+        path: { id_or_name: currentBucket.value.name },
         query: {
           'by-name': true,
           remarks: note.value
@@ -81,7 +78,7 @@ const onOKClick = async () => {
       })
 
       // update note
-      store.tables.bucketTable.byLocalId[props.serviceId + '/' + props.bucketName].remarks = note.value
+      currentBucket.value.detail.remarks = note.value
 
       // close working notification
       dismissWorking()
@@ -132,7 +129,7 @@ const onOKClick = async () => {
             {{ tc('存储桶') }}
           </div>
           <div class="col">
-            {{ bucketName }}
+            {{ currentBucket.name }}
           </div>
         </div>
 

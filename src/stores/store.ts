@@ -138,8 +138,8 @@ export interface BucketStatInterface {
   }
   stats_time: string
 
-  // 自己定义的localId: 取name字段
-  localId: string
+  // bucketId
+  id: string
 }
 
 // 桶token对象类型
@@ -157,8 +157,8 @@ export interface BucketTokenInterface {
 export interface BucketTokenSetInterface {
   tokens: BucketTokenInterface[]
 
-  // 自己定义的localId: 取name字段
-  localId: string
+  // bucketId
+  id: string
   // 自己添加字段，方便识别
   bucket_name: string
 }
@@ -303,10 +303,10 @@ export interface ServiceTableInterface extends totalTable, idTable<ServiceInterf
 export interface BucketTableInterface extends partTable, idTable<BucketInterface> {
 }
 
-export interface BucketStatTableInterface extends partTable, localIdTable<BucketStatInterface> {
+export interface BucketStatTableInterface extends partTable, idTable<BucketStatInterface> {
 }
 
-export interface BucketTokenSetTableInterface extends partTable, localIdTable<BucketTokenSetInterface> {
+export interface BucketTokenSetTableInterface extends partTable, idTable<BucketTokenSetInterface> {
 }
 
 export interface PathTableInterface extends partTable, localIdTable<PathInterface> {
@@ -336,13 +336,13 @@ export const useStore = defineStore('storage', {
       } as BucketTableInterface,
       bucketStatTable: {
         status: 'init',
-        allLocalIds: [],
-        byLocalId: {}
+        allIds: [],
+        byId: {}
       } as BucketStatTableInterface,
       bucketTokenTable: {
         status: 'init',
-        allLocalIds: [],
-        byLocalId: {}
+        allIds: [],
+        byId: {}
       } as BucketTokenSetTableInterface,
       pathTable: {
         status: 'init',
@@ -432,7 +432,7 @@ export const useStore = defineStore('storage', {
       if (this.tables.serviceTable.status === 'init') {
         // 加载serviceTable
         void await this.loadServiceTable()
-        // 加载全部bucketTable
+        // 加载bucketTable
         void await this.loadBucketTable()
       }
     },
@@ -455,7 +455,7 @@ export const useStore = defineStore('storage', {
         this.tables.serviceTable.status = 'error'
       }
     },
-    // 读取全部服务单元的存储桶，条目在vms取，详情在各个服务单元的api取
+    // 读取全部服务单元的存储桶，条目在vms取，detail字段在各个服务单元的api取
     async loadBucketTable () {
       // status
       this.tables.bucketTable.status = 'loading'
@@ -519,28 +519,28 @@ export const useStore = defineStore('storage', {
     //   }
     // },
     // bucketStatTable: 累积加载，localId
-    async addBucketStatTable (serviceId: string, bucketName: string) {
-      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
+    async addBucketStatTable (bucketId: string) {
+      const bucket = this.tables.bucketTable.byId[bucketId]
+      const base = this.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
       // 1. status改为loading
       this.tables.bucketStatTable.status = 'loading'
       try {
         // 2. 发送网络请求，格式化数据，保存对象
         const respGetStatsBucket = await api.storage.single.getStatsBucket({
           base,
-          path: { bucket_name: bucketName }
+          path: { bucket_name: bucket.name }
         })
         const item = {
-          [serviceId + '/' + bucketName]: Object.assign({}, {
-            localId: respGetStatsBucket.data.bucket_name,
+          [bucket.id]: {
+            id: bucket.id,
             bucket_name: respGetStatsBucket.data.bucket_name,
             stats: respGetStatsBucket.data.stats,
             stats_time: respGetStatsBucket.data.stats_time
-          })
+          }
         }
-        Object.assign(this.tables.bucketStatTable.byLocalId, item)
-        // this.tables.bucketStatTable.allLocalIds.unshift(Object.keys(item)[0])
-        this.tables.bucketStatTable.allLocalIds.unshift(serviceId + '/' + bucketName)
-        this.tables.bucketStatTable.allLocalIds = [...new Set(this.tables.bucketStatTable.allLocalIds)]
+        Object.assign(this.tables.bucketStatTable.byId, item)
+        this.tables.bucketStatTable.allIds.unshift(bucket.id)
+        this.tables.bucketStatTable.allIds = [...new Set(this.tables.bucketStatTable.allIds)]
         // 3. status改为part
         this.tables.bucketStatTable.status = 'part'
       } catch (exception) {
@@ -548,9 +548,10 @@ export const useStore = defineStore('storage', {
         this.tables.bucketStatTable.status = 'error'
       }
     },
-    // bucketTokenTable: 累积加载，localId
-    async addBucketTokenTable (serviceId: string, bucketName: string) {
-      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
+    // bucketTokenTable: 累积加载，bucketId
+    async addBucketTokenTable (bucketId: string) {
+      const bucket = this.tables.bucketTable.byId[bucketId]
+      const base = this.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
       // 1. status改为loading
       this.tables.bucketTokenTable.status = 'loading'
       try {
@@ -558,19 +559,18 @@ export const useStore = defineStore('storage', {
         const respGetBucketTokenList = await api.storage.single.getBucketsIdOrNameTokenList({
           base,
           query: { 'by-name': true },
-          path: { id_or_name: bucketName }
+          path: { id_or_name: bucket.name }
         })
         const item = {
-          [serviceId + '/' + bucketName]: Object.assign({}, {
-            localId: bucketName,
-            bucket_name: bucketName,
+          [bucket.id]: {
+            id: bucket.id,
+            bucket_name: bucket.name,
             tokens: respGetBucketTokenList.data.tokens
-          })
+          }
         }
-        Object.assign(this.tables.bucketTokenTable.byLocalId, item)
-        // this.tables.bucketTokenTable.allLocalIds.unshift(Object.keys(item)[0])
-        this.tables.bucketTokenTable.allLocalIds.unshift(serviceId + '/' + bucketName)
-        this.tables.bucketTokenTable.allLocalIds = [...new Set(this.tables.bucketTokenTable.allLocalIds)]
+        Object.assign(this.tables.bucketTokenTable.byId, item)
+        this.tables.bucketTokenTable.allIds.unshift(bucket.id)
+        this.tables.bucketTokenTable.allIds = [...new Set(this.tables.bucketTokenTable.allIds)]
         // 3. status改为part
         this.tables.bucketTokenTable.status = 'part'
       } catch (exception) {
@@ -672,19 +672,20 @@ export const useStore = defineStore('storage', {
       }
     },
     // 切换存储桶web访问权限
-    async toggleBucketAccess (serviceId: string, bucketName: string) {
-      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
+    async toggleBucketAccess (bucketId: string) {
+      const bucket = this.tables.bucketTable.byId[bucketId]
+      const base = this.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
       this.tables.bucketTable.status = 'loading'
       try {
         const respPatchAccess = await api.storage.single.patchBucketsIdOrName({
           base,
-          path: { id_or_name: bucketName },
+          path: { id_or_name: bucket.name },
           query: {
             'by-name': true,
-            public: this.tables.bucketTable.byId[serviceId + '/' + bucketName]?.detail.access_permission === '私有' ? 1 : 2
+            public: bucket.detail.access_permission === '私有' ? 1 : 2
           }
         })
-        this.tables.bucketTable.byId[serviceId + '/' + bucketName].detail.access_permission = respPatchAccess.data.public === 1 ? '公有' : '私有'
+        bucket.detail.access_permission = respPatchAccess.data.public === 1 ? '公有' : '私有'
         this.tables.bucketTable.status = 'part'
       } catch (exception) {
         this.tables.bucketTable.status = 'error'
@@ -692,18 +693,19 @@ export const useStore = defineStore('storage', {
       }
     },
     // 切换存储桶FTP状态
-    async toggleBucketFtp (serviceId: string, bucketName: string) {
-      const base = this.tables.serviceTable.byId[serviceId]?.endpoint_url
+    async toggleBucketFtp (bucketId: string) {
+      const bucket = this.tables.bucketTable.byId[bucketId]
+      const base = this.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
       this.tables.bucketTable.status = 'loading'
       try {
         const respPatchFtp = await api.storage.single.patchFtpBucketName({
           base,
-          path: { bucket_name: bucketName },
+          path: { bucket_name: bucket.name },
           query: {
-            enable: this.tables.bucketTable.byId[serviceId + '/' + bucketName]?.detail.ftp_enable !== true
+            enable: !bucket.detail.ftp_enable
           }
         })
-        this.tables.bucketTable.byId[serviceId + '/' + bucketName].detail.ftp_enable = respPatchFtp.data.data.enable
+        bucket.detail.ftp_enable = respPatchFtp.data.data.enable
         this.tables.bucketTable.status = 'part'
       } catch (exception) {
         this.tables.bucketTable.status = 'error'
@@ -799,43 +801,39 @@ export const useStore = defineStore('storage', {
       })
     },
     // 修改存储桶ftp密码
-    triggerEditBucketFtpPasswordDialog (serviceId: string, bucketName: string, isRo: boolean) {
+    triggerEditBucketFtpPasswordDialog (bucketId: string, isRo: boolean) {
       Dialog.create({
         component: BucketFtpPasswordEditDialog,
         componentProps: {
-          serviceId,
-          bucketName,
+          bucketId,
           isRo
         }
       })
     },
     // 修改存储桶备注
-    triggerEditBucketNoteDialog (serviceId: string, bucketName: string) {
+    triggerEditBucketNoteDialog (bucketId: string) {
       Dialog.create({
         component: BucketNoteEditDialog,
         componentProps: {
-          serviceId,
-          bucketName
+          bucketId
         }
       })
     },
     // 创建存储桶token
-    triggerAddBucketTokenDialog (serviceId: string, bucketName: string) {
+    triggerAddBucketTokenDialog (bucketId: string) {
       Dialog.create({
         component: BucketTokenAddDialog,
         componentProps: {
-          serviceId,
-          bucketName
+          bucketId
         }
       })
     },
     // 删除存储桶的token
-    triggerDeleteBucketTokenDialog (serviceId: string, bucketName: string, tokenKey: string) {
+    triggerDeleteBucketTokenDialog (bucketId: string, tokenKey: string) {
       Dialog.create({
         component: BucketTokenDeleteDialog,
         componentProps: {
-          serviceId,
-          bucketName,
+          bucketId,
           tokenKey
         }
       })

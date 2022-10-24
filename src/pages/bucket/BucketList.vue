@@ -60,7 +60,8 @@ const columns = computed(() => [
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
     style: 'max-width: 1200px;padding: 15px 0px',
-    classes: ''
+    classes: '',
+    sortable: true
   },
   {
     name: 'serviceUnit',
@@ -78,7 +79,8 @@ const columns = computed(() => [
     align: 'center',
     headerStyle: 'padding: 0 0 0 1px',
     style: 'padding: 15px 0px',
-    classes: ''
+    classes: '',
+    sortable: true
   },
   {
     name: 'access',
@@ -105,7 +107,8 @@ const columns = computed(() => [
     align: 'left',
     headerStyle: 'padding: 0 0 0 1px',
     style: 'padding: 15px 0px',
-    classes: ''
+    classes: '',
+    sortable: true
   },
   {
     name: 'operation',
@@ -295,7 +298,7 @@ const unwatch = watch(store.tables.serviceTable, () => {
 
               <q-btn :class="hoverRow === props.row.name ? '':'invisible'" icon="edit" size="sm" dense flat
                      color="primary"
-                     @click="store.triggerEditBucketNoteDialog(props.row.service.id, props.row.name)">
+                     @click="store.triggerEditBucketNoteDialog(props.row.id)">
                 <q-tooltip>
                   {{ tc('修改') }}
                 </q-tooltip>
@@ -306,7 +309,7 @@ const unwatch = watch(store.tables.serviceTable, () => {
             <q-td key="operation" :props="props">
 
               <q-btn unelevated dense color="primary" no-caps
-                     @click="navigateToUrl(`/my/storage/service/${props.row.service.id}/bucket/${props.row.name}`)">
+                     @click="navigateToUrl(`/my/storage/bucket/${props.row.id}`)">
                 查看详情
               </q-btn>
             </q-td>

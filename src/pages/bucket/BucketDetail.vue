@@ -41,19 +41,19 @@ if (!store.items.currentPath[2]) {
 
 const currentBucket = computed(() => store.tables.bucketTable.byId[props.bucketId])
 const currentService = computed(() => store.tables.serviceTable.byId[currentBucket.value?.service?.id])
-const currentBucketStat = computed(() => store.tables.bucketStatTable.byLocalId[currentService.value?.id + '/' + currentBucket.value?.name])
-const currentBucketTokenSet = computed(() => store.tables.bucketTokenTable.byLocalId[currentService.value?.id + '/' + currentBucket.value?.name])
+const currentBucketStat = computed(() => store.tables.bucketStatTable.byId[props.bucketId])
+const currentBucketTokenSet = computed(() => store.tables.bucketTokenTable.byId[props.bucketId])
 
 // todo 待设计分享url结构后更新
 const currentBucketUrl = computed(() => location.origin + `/storage/share/?base=${currentBucket.value?.name}`)
 /* 获取相关table对象 */
 
-const loadTables = () => {
+const loadNeededTables = () => {
   // 当前bucket统计对象
-  void store.addBucketStatTable(currentService.value?.id, currentBucket.value?.name)
+  void store.addBucketStatTable(props.bucketId)
 
   // 当前bucket token对象
-  void store.addBucketTokenTable(currentService.value?.id, currentBucket.value?.name)
+  void store.addBucketTokenTable(props.bucketId)
 
   // 当前path对象
   void store.addPathTable(
@@ -62,16 +62,16 @@ const loadTables = () => {
   )
 }
 
-// setup时调用一次
+// setup时调用一次 已经在layout调用了
 if (currentService.value?.endpoint_url) {
-  void loadTables()
+  void loadNeededTables()
 }
 
 // 刷新页面时，等待有效的service信息，再调用
 const unwatch = watch(currentService, () => {
   if (currentService.value?.endpoint_url) {
     // serviceTable已经加载，可以发送请求
-    void loadTables()
+    void loadNeededTables()
     // watcher已完成任务，注销
     unwatch()
   }
@@ -200,7 +200,7 @@ const clickToCopy = useCopyToClipboard()
                        flat
                        no-caps
                        color="primary"
-                       @click="store.triggerEditBucketNoteDialog(serviceId, bucketName)">
+                       @click="store.triggerEditBucketNoteDialog(bucketId)">
                   {{ tc('修改备注') }}
                 </q-btn>
               </div>
@@ -288,7 +288,7 @@ const clickToCopy = useCopyToClipboard()
                     :icon="currentBucket?.detail.access_permission === '私有' ? 'mdi-lock' : 'mdi-lock-open-variant'"
                     :color="currentBucket?.detail.access_permission === '私有' ? 'primary' : 'green'"
                     keep-color
-                    @click="store.toggleBucketAccess(props.serviceId, props.bucketName)"
+                    @click="store.toggleBucketAccess(bucketId)"
                   />
                   <div>{{ currentBucket?.detail.access_permission }}</div>
                 </div>
@@ -298,7 +298,7 @@ const clickToCopy = useCopyToClipboard()
 
             <!--            <q-separator vertical/>-->
 
-            <q-card-section class="col-auto">
+            <q-card-section v-if="currentBucket?.detail.access_permission === '公有'" class="col-auto">
               <div class="column">
                 <div class="col text-grey">
                   Web 访问地址
@@ -337,7 +337,7 @@ const clickToCopy = useCopyToClipboard()
                     {{ tc('存储桶token') }}
                   </div>
                   <q-btn class="col-auto" flat dense no-caps padding="none" color="primary" icon="add_circle"
-                         @click="store.triggerAddBucketTokenDialog(serviceId, bucketName)">
+                         @click="store.triggerAddBucketTokenDialog(bucketId)">
                     {{ `${tc('创建')} token` }}
                   </q-btn>
                 </div>
@@ -349,8 +349,7 @@ const clickToCopy = useCopyToClipboard()
                                :key="token.key"
                                :token="token"
                                :index="index"
-                               :service-id="serviceId"
-                               :bucket-name="bucketName"/>
+                               :bucket-id="bucketId"/>
                 </div>
               </div>
 
@@ -369,7 +368,12 @@ const clickToCopy = useCopyToClipboard()
           <q-separator/>
 
           <q-card-section class="row item-center" horizontal>
-            <q-card-section class="col-3">
+
+            <q-card-section v-if="!currentService?.provide_ftp" class="col-3">
+              不支持FTP连接
+            </q-card-section>
+
+            <q-card-section v-if="currentService?.provide_ftp" class="col-3">
               <div class="column">
                 <div class="col text-grey">
                   FTP 状态
@@ -379,7 +383,7 @@ const clickToCopy = useCopyToClipboard()
                     :model-value="currentBucket?.detail.ftp_enable"
                     :icon="currentBucket?.detail.ftp_enable ? 'check' : 'close'"
                     color="green"
-                    @click="store.toggleBucketFtp(props.serviceId, props.bucketName)"
+                    @click="store.toggleBucketFtp(bucketId)"
                   />
                   {{ currentBucket?.detail.ftp_enable ? '开启' : '关闭' }}
                 </div>
@@ -388,7 +392,7 @@ const clickToCopy = useCopyToClipboard()
 
             <!--            <q-separator vertical/>-->
 
-            <q-card-section class="col-3">
+            <q-card-section v-if="currentService?.provide_ftp" class="col-3">
               <div class="column">
                 <div class="col text-grey">
                   FTP 只读密码
@@ -412,7 +416,7 @@ const clickToCopy = useCopyToClipboard()
                          dense
                          flat
                          color="primary"
-                         @click="store.triggerEditBucketFtpPasswordDialog(props.serviceId, props.bucketName, true)">
+                         @click="store.triggerEditBucketFtpPasswordDialog(bucketId, true)">
                     <q-tooltip>
                       {{ tc('修改') }}
                     </q-tooltip>
@@ -425,7 +429,7 @@ const clickToCopy = useCopyToClipboard()
 
             <!--            <q-separator vertical/>-->
 
-            <q-card-section class="col-3">
+            <q-card-section v-if="currentService?.provide_ftp" class="col-3">
               <div class="column">
                 <div class="col text-grey">
                   FTP 读写密码
@@ -449,7 +453,7 @@ const clickToCopy = useCopyToClipboard()
                          dense
                          flat
                          color="primary"
-                         @click="store.triggerEditBucketFtpPasswordDialog(props.serviceId, props.bucketName, false)">
+                         @click="store.triggerEditBucketFtpPasswordDialog(bucketId, false)">
                     <q-tooltip>
                       {{ tc('修改') }}
                     </q-tooltip>
@@ -460,9 +464,8 @@ const clickToCopy = useCopyToClipboard()
 
             </q-card-section>
 
-            <!--            <q-separator vertical/>-->
-
           </q-card-section>
+
         </q-card>
 
       </q-tab-panel>

@@ -9,12 +9,7 @@ import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 
 /* const props =  */
 defineProps({
-  serviceId: {
-    type: String,
-    required: true,
-    default: ''
-  },
-  bucketName: {
+  bucketId: {
     type: String,
     required: true,
     default: ''
@@ -107,7 +102,7 @@ const clickToCopy = useCopyToClipboard()
                     {{ new Date(token.created).toLocaleString(i18n.global.locale) }}
                   </div>
                   <q-btn flat padding="none" color="primary" icon="cancel" no-caps
-                         @click="store.triggerDeleteBucketTokenDialog(serviceId, bucketName, token.key)">
+                         @click="store.triggerDeleteBucketTokenDialog(bucketId, token.key)">
                     {{ tc('删除token') }}
                   </q-btn>
                 </div>

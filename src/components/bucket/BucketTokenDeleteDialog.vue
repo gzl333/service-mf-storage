@@ -8,12 +8,7 @@ import api from 'src/api/index'
 import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
 
 const props = defineProps({
-  serviceId: {
-    type: String,
-    required: true,
-    default: ''
-  },
-  bucketName: {
+  bucketId: {
     type: String,
     required: true,
     default: ''
@@ -43,7 +38,8 @@ const {
   onDialogCancel
 } = useDialogPluginComponent()
 
-const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
+const currentBucket = computed(() => store.tables.bucketTable.byId[props.bucketId])
+const currentService = computed(() => store.tables.serviceTable.byId[currentBucket.value?.service.id])
 const exceptionNotifier = useExceptionNotifier()
 const onCancelClick = onDialogCancel
 const check = ref(false)
@@ -71,8 +67,8 @@ const onOKClick = async () => {
     })
 
     // update tokens
-    store.tables.bucketTokenTable.byLocalId[props.serviceId + '/' + props.bucketName].tokens =
-      store.tables.bucketTokenTable.byLocalId[props.serviceId + '/' + props.bucketName].tokens.filter(token => token.key !== props.tokenKey)
+    store.tables.bucketTokenTable.byId[props.bucketId].tokens =
+      store.tables.bucketTokenTable.byId[props.bucketId].tokens.filter(token => token.key !== props.tokenKey)
 
     // close working notification
     dismissWorking()
@@ -120,7 +116,7 @@ const onOKClick = async () => {
             {{ tc('所属服务单元') }}：
           </div>
           <div class="col">
-            {{ i18n.global.locale === 'zh' ? currentService.name : currentService.name_en }}
+            {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }}
           </div>
         </div>
 
@@ -129,7 +125,7 @@ const onOKClick = async () => {
             {{ tc('所属存储桶') }}：
           </div>
           <div class="col">
-            {{ bucketName }}
+            {{ currentBucket?.name }}
           </div>
         </div>
 

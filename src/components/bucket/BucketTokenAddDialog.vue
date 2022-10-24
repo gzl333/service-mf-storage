@@ -8,12 +8,7 @@ import api from 'src/api/index'
 import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
 
 const props = defineProps({
-  serviceId: {
-    type: String,
-    required: true,
-    default: ''
-  },
-  bucketName: {
+  bucketId: {
     type: String,
     required: true,
     default: ''
@@ -23,15 +18,6 @@ defineEmits([...useDialogPluginComponent.emits])
 
 const store = useStore()
 const { tc } = i18n.global
-// code starts...
-
-// top level await: https://stackoverflow.com/questions/69183835/vue-script-setup-top-level-await-causing-template-not-to-render
-// onBeforeMount(async () => {
-//   // 判断bucketToken表里有没有这项，没有就增加这项
-//   if (!store.tables.bucketTokenTable.allLocalIds.includes(props.bucketName)) {
-//     // await store.addBucketTokenTable({ bucket: props.bucketName }) todo 修改为新的
-//   }
-// })
 
 const {
   dialogRef,
@@ -40,8 +26,9 @@ const {
   onDialogCancel
 } = useDialogPluginComponent()
 
-const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
-const currentTokenSet = computed(() => store.tables.bucketTokenTable.byLocalId[props.serviceId + '/' + props.bucketName])
+const currentBucket = computed(() => store.tables.bucketTable.byId[props.bucketId])
+const currentService = computed(() => store.tables.serviceTable.byId[currentBucket.value.service.id])
+const currentTokenSet = computed(() => store.tables.bucketTokenTable.byId[props.bucketId])
 const exceptionNotifier = useExceptionNotifier()
 const onCancelClick = onDialogCancel
 const isLoading = ref(false)
@@ -64,7 +51,7 @@ const onOKClick = async (permission: 'readwrite' | 'readonly') => {
     // req
     const respPostBucketTokenCreate = await api.storage.single.postBucketsIdOrNameTokenCreate({
       base: currentService.value?.endpoint_url,
-      path: { id_or_name: props.bucketName },
+      path: { id_or_name: currentBucket.value.name },
       query: {
         'by-name': true,
         permission
@@ -82,8 +69,8 @@ const onOKClick = async (permission: 'readwrite' | 'readonly') => {
     // }
 
     // update tokens
-    store.tables.bucketTokenTable.byLocalId[props.serviceId + '/' + props.bucketName].tokens =
-      [...store.tables.bucketTokenTable.byLocalId[props.serviceId + '/' + props.bucketName].tokens, respPostBucketTokenCreate.data]
+    store.tables.bucketTokenTable.byId[props.bucketId].tokens =
+      [...store.tables.bucketTokenTable.byId[props.bucketId].tokens, respPostBucketTokenCreate.data]
 
     // close working notification
     dismissWorking()
@@ -142,7 +129,7 @@ const onOKClick = async (permission: 'readwrite' | 'readonly') => {
             {{ tc('存储桶') }}
           </div>
           <div class="col">
-            {{ bucketName }}
+            {{ currentBucket.name }}
           </div>
         </div>
 

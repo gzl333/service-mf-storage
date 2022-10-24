@@ -8,13 +8,10 @@ import storage from 'src/api/index'
 import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
 
 const props = defineProps({
-  serviceId: {
+  bucketId: {
     type: String,
-    required: true
-  },
-  bucketName: {
-    type: String,
-    required: true
+    required: true,
+    default: ''
   },
   isRo: {
     type: Boolean,
@@ -35,14 +32,14 @@ const {
   onDialogCancel
 } = useDialogPluginComponent()
 
-const onCancelClick = onDialogCancel
-
-const currentService = computed(() => store.tables.serviceTable.byId[props.serviceId])
-const password = ref(store.tables.bucketTable.byLocalId[props.serviceId + '/' + props.bucketName][props.isRo ? 'ftp_ro_password' : 'ftp_password'] || '')
+const currentBucket = computed(() => store.tables.bucketTable.byId[props.bucketId])
+const currentService = computed(() => store.tables.serviceTable.byId[currentBucket.value?.service.id])
+const password = ref(currentBucket.value.detail[props.isRo ? 'ftp_ro_password' : 'ftp_password'] || '')
 const inputRef = ref<QInput>()
 const isLoading = ref(false)
 const exceptionNotifier = useExceptionNotifier()
 
+const onCancelClick = onDialogCancel
 const onOKClick = async () => {
   if (password.value.length < 6 || password.value.length > 20) {
     inputRef.value!.focus()
@@ -72,15 +69,15 @@ const onOKClick = async () => {
       // req
       const respPatchFtpPassword = await storage.storage.single.patchFtpBucketName({
         base: currentService?.value.endpoint_url,
-        path: { bucket_name: props.bucketName },
+        path: { bucket_name: currentBucket.value.name },
         query: props.isRo ? { ro_password: password.value } : { password: password.value }
       })
 
       // store new password in table
       if (props.isRo) {
-        store.tables.bucketTable.byLocalId[props.serviceId + '/' + props.bucketName].ftp_ro_password = respPatchFtpPassword.data.data.ro_password
+        currentBucket.value.detail.ftp_ro_password = respPatchFtpPassword.data.data.ro_password
       } else {
-        store.tables.bucketTable.byLocalId[props.serviceId + '/' + props.bucketName].ftp_password = respPatchFtpPassword.data.data.password
+        currentBucket.value.detail.ftp_password = respPatchFtpPassword.data.data.password
       }
 
       // close working notification
@@ -118,9 +115,8 @@ const onOKClick = async () => {
 
       <q-card-section class="row items-center justify-center q-pb-md">
         <!--        <div class="text-primary">{{ '修改' + props.bucketName + '的FTP密码' }}</div>-->
-        <div class="text-primary">{{
-            props.bucketName
-          }}-{{ props.isRo ? tc('修改FTP只读密码') : tc('修改FTP密码') }}
+        <div class="text-primary">
+          {{ currentBucket.name }}-{{ props.isRo ? tc('修改FTP只读密码') : tc('修改FTP密码') }}
         </div>
         <q-space/>
         <q-btn icon="close" flat dense size="sm" v-close-popup/>
