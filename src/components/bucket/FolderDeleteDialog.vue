@@ -5,8 +5,12 @@ import { Notify, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
 import api from 'src/api/index'
-import { conversionBase } from 'src/hooks/useEndpointUrl'
+
 const props = defineProps({
+  bucketId: {
+    type: String,
+    required: true
+  },
   localId: {
     type: String,
     required: true
@@ -24,6 +28,7 @@ const props = defineProps({
     required: false
   }
 })
+console.log(props)
 const store = useStore()
 const { tc } = i18n.global
 defineEmits([...useDialogPluginComponent.emits])
@@ -39,14 +44,7 @@ const onOKClick = async () => {
   const deleteFileArr: string[] = []
   const deleteFailArr: string[] = []
   isDisable.value = true
-  const count = props.localId.split('/').length - 1
-  let base
-  if (count > 1) {
-    const str = conversionBase(props.localId, '/', 1)
-    base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
-  } else {
-    base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
-  }
+  const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service.id]?.endpoint_url
   if (props.dirpath.dirArrs && props.dirpath.dirArrs.length > 0) {
     for (const item of props.dirpath.dirArrs) {
       await api.storage.single.deleteDirPath({

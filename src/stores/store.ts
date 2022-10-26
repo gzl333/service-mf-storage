@@ -381,50 +381,66 @@ export const useStore = defineStore('storage', {
       })
       return services
     },
-    getBuckets (state): Record<string, string>[] {
-      const bucketOptions = []
-      let obj: Record<string, string> = {}
-      for (const objElement of state.tables.bucketTable.allIds) {
-        obj = {}
-        obj.id = objElement
-        obj.desc = objElement
-        bucketOptions.push(obj)
-      }
-      return bucketOptions
-    },
-    getFirstsBucket (state): string {
-      let bucketName = ''
-      bucketName = state.tables.bucketTable.allIds[0]
-      return bucketName
-    },
+    // getBuckets (state): Record<string, string>[] {
+    //   const bucketOptions = []
+    //   let obj: Record<string, string> = {}
+    //   for (const objElement of state.tables.bucketTable.allIds) {
+    //     obj = {}
+    //     obj.id = objElement
+    //     obj.desc = objElement
+    //     bucketOptions.push(obj)
+    //   }
+    //   return bucketOptions
+    // },
     getIntegratedSearchOptions (state): Record<string, string>[] {
       const bucketOptions = []
       let obj: Record<string, string> = {}
       for (const objElement of state.tables.bucketTable.allIds) {
         obj = {}
-        obj.id = state.tables.bucketTable.byId[objElement]?.service.id + '/' + state.tables.bucketTable.byId[objElement].name
+        obj.bucketId = objElement
+        obj.serviceId = state.tables.bucketTable.byId[objElement]?.service.id
+        obj.optionId = state.tables.bucketTable.byId[objElement]?.service.id + '/' + state.tables.bucketTable.byId[objElement].name
         // obj.id = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
         obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byId[objElement].service.id].name + '/' + state.tables.bucketTable.byId[objElement].name
         bucketOptions.push(obj)
       }
       return bucketOptions
-    },
-    getFirstsIntegratedSearchOptionName (state): string {
-      let name = ''
-      name = state.tables.serviceTable.byId[state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id]?.name + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
-      return name
-    },
-    getFirstsIntegratedSearchOptionId (state): string {
-      let localId = ''
-      localId = state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
-      return localId
-    },
-    getFirstIntrgratedSearchOptions (state): Record<string, string> {
-      const obj: Record<string, string> = {}
-      obj.id = state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
-      obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id]?.name + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
-      return obj
     }
+    // getFirstsBucket (state): string {
+    //   let bucketName = ''
+    //   bucketName = state.tables.bucketTable.allIds[0]
+    //   return bucketName
+    // },
+    // getFirstsIntegratedSearchOption (state): Record<string, string> {
+    //   const obj = {}
+    //   obj.buckerId = state.tables.bucketTable.allIds[0]
+    //   obj.serviceId = state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id
+    //   obj.optionId = state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
+    //   // obj.id = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
+    //   obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id]?.name + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
+    //   // name = state.tables.serviceTable.byId[state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id]?.name + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
+    //   return obj
+    // },
+    // getFirstsIntegratedSearchOptionName (state): string {
+    //   let name = ''
+    //   name = state.tables.serviceTable.byId[state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id]?.name + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
+    //   return name
+    // },
+    // getFirstsIntegratedSearchOptionId (state): string {
+    //   let localId = ''
+    //   localId = state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
+    //   return localId
+    // },
+    // getFirstsIntegratedSearchOptionBucketId (state): string {
+    //   let name = ''
+    //   name = state.tables.bucketTable.allIds[0]
+    //   return name
+    // },
+    // getFirstsIntegratedSearchOptionServiceId (state): string {
+    //   let name = ''
+    //   name = state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id
+    //   return name
+    // }
   },
   actions: {
     // loadAllItems () {},
@@ -729,21 +745,35 @@ export const useStore = defineStore('storage', {
       })
     },
     // 新建文件夹
-    triggerCreateFolderDialog (localId: string, bucketName: string, dirPath: string) {
+    triggerCreateFolderDialog (bucketId: string, localId: string, bucketName: string, dirPath: string) {
       Dialog.create({
         component: FolderCreateDialog,
         componentProps: {
+          bucketId,
           localId,
           bucketName,
           dirPath
         }
       })
     },
+    // 上传文件
+    triggerUploadDialog (bucketId: string, localId: string, bucketName: string, dirPath: string) {
+      Dialog.create({
+        component: UploadDialog,
+        componentProps: {
+          bucketId,
+          localId,
+          bucket_name: bucketName,
+          dirPath
+        }
+      })
+    },
     // 删除文件夹
-    triggerDeleteFolderDialog (localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean) {
+    triggerDeleteFolderDialog (bucketId: string, localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean) {
       Dialog.create({
         component: FolderDeleteDialog,
         componentProps: {
+          bucketId,
           localId,
           bucket_name: bucketName,
           dirpath: dirNames,
@@ -752,10 +782,11 @@ export const useStore = defineStore('storage', {
       })
     },
     // 公开分享
-    triggerPublicShareDialog (localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean) {
+    triggerPublicShareDialog (bucketId: string, localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean) {
       Dialog.create({
         component: PublicShareDialog,
         componentProps: {
+          bucketId,
           localId,
           bucket_name: bucketName,
           pathObj: dirNames,
@@ -764,10 +795,11 @@ export const useStore = defineStore('storage', {
       })
     },
     // 已经分享
-    triggerAlreadyShareDialog (localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean, isRefresh?: boolean) {
+    triggerAlreadyShareDialog (bucketId: string, localId: string, bucketName: string, dirNames: { dirArrs?: Record<string, string>[], fileArrs?: Record<string, string>[] }, isOperationStore: boolean, isRefresh?: boolean) {
       Dialog.create({
         component: AlreadyShareDialog,
         componentProps: {
+          bucketId,
           localId,
           bucketName,
           pathObj: dirNames,
@@ -777,26 +809,16 @@ export const useStore = defineStore('storage', {
       })
     },
     // 文件重命名
-    triggerChangeFolderDialog (localId: string, bucketName: string, objPath: string, dirName: string, isOperationStore: boolean) {
+    triggerChangeFolderDialog (bucketId: string, localId: string, bucketName: string, objPath: string, dirName: string, isOperationStore: boolean) {
       Dialog.create({
         component: FileChangeNameDialog,
         componentProps: {
+          bucketId,
           localId,
           bucket_name: bucketName,
           objpath: objPath,
           dirName,
           isOperationStore
-        }
-      })
-    },
-    // 上传文件
-    triggerUploadDialog (localId: string, bucketName: string, dirPath: string) {
-      Dialog.create({
-        component: UploadDialog,
-        componentProps: {
-          localId,
-          bucket_name: bucketName,
-          dirPath
         }
       })
     },

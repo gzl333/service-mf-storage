@@ -3,10 +3,13 @@ import { ref } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, QInput, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
-import { conversionBase } from 'src/hooks/useEndpointUrl'
 import api from 'src/api/index'
 
 const props = defineProps({
+  bucketId: {
+    type: String,
+    required: true
+  },
   localId: {
     type: String,
     required: true
@@ -55,23 +58,24 @@ const onOKClick = async () => {
       multiLine: false
     })
     // 判断table是几级页面
-    const count = props.localId.split('/').length - 1
-    let base
-    let bucketName
-    if (count > 1) {
-      // 多层
-      const str = conversionBase(props.localId, '/', 1)
-      base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
-    } else {
-      // 第一层
-      base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
-    }
+    // const count = props.localId.split('/').length
+    // let base
+    let dirpath
+    // if (count > 1) {
+    // 多层
+    // const str = conversionBase(props.localId, '/', 1)
+    // base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[str]?.service?.id]?.endpoint_url
+    // } else {
+    // 第一层
+    // base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service?.id]?.endpoint_url
+    // }
+    const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service?.id]?.endpoint_url
     if (props.dirPath === '') {
-      bucketName = props.bucketName
+      dirpath = dirName.value
     } else {
-      bucketName = props.bucketName + '/' + props.dirPath
+      dirpath = props.dirPath + '/' + dirName.value
     }
-    await api.storage.single.postDirPath({ base, path: { dirpath: dirName.value, bucket_name: bucketName } }).then((res) => {
+    await api.storage.single.postDirPath({ base, path: { bucket_name: props.bucketName, dirpath } }).then((res) => {
       store.tables.pathTable.byLocalId[props.localId].files.unshift(res.data.dir)
       Notify.create({
         classes: 'notification-positive shadow-15',

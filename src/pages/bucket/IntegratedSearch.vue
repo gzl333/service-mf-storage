@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, Ref, onBeforeUnmount } from 'vue'
+import { ref, computed, Ref, onBeforeUnmount, watch } from 'vue'
 import { useStore } from 'stores/store'
 // import { useRoute/* , useRouter */ } from 'vue-router'
 import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
+import api from 'src/api'
 import emitter from 'boot/mitt'
 import SearchTable from 'components/bucket/SearchTable.vue'
-import api from 'src/api'
 
 // const props = defineProps({
 //   foo: {
@@ -19,11 +19,6 @@ import api from 'src/api'
 
 // 获取所有服务选项
 const searchOptions = computed(() => store.getIntegratedSearchOptions)
-// 获取第一个服务 用于默认值
-const firstSearchOptions = computed(() => store.getFirstsIntegratedSearchOptionName)
-// 获取第一个服务 用于默认值
-const firstSearchOptionsId = computed(() => store.getFirstsIntegratedSearchOptionId)
-
 const { tc } = i18n.global
 const store = useStore()
 // const route = useRoute()
@@ -33,21 +28,22 @@ const tabActive: Ref<string> = ref('1')
 const serviceModel: Ref = ref([])
 const pathArr: Ref = ref([])
 const keyword = ref('')
-const defaultModel = {
-  id: firstSearchOptionsId,
-  desc: firstSearchOptions
+const chooseTabService = () => {
+  // 添加第一个值作为默认值
+  serviceModel.value[0] = searchOptions.value[0]
+  pathArr.value[0] = {
+    tab: {
+      optionId: searchOptions.value[0]?.optionId,
+      desc: searchOptions.value[0]?.desc,
+      bucketId: searchOptions.value[0]?.bucketId,
+      serviceId: searchOptions.value[0]?.serviceId,
+      index: '1'
+    },
+    // 第一次进页面数据默认为空
+    results: []
+  }
 }
-// 添加第一个值作为默认值
-serviceModel.value.push(defaultModel)
-pathArr.value.push({
-  tab: {
-    id: firstSearchOptionsId,
-    desc: firstSearchOptions,
-    index: '1'
-  },
-  // 第一次进页面数据默认为空
-  results: []
-})
+chooseTabService()
 const getSearchDate = async () => {
   pathArr.value = []
   let index = 0
@@ -62,8 +58,8 @@ const getSearchDate = async () => {
       // results为搜索数据
       results: []
     }
-    const base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[service.id]?.service_id]?.endpoint_url
-    const bucketName = store.tables.bucketTable.byLocalId[service.id]?.name
+    const base = store.tables.serviceTable.byId[service.serviceId]?.endpoint_url
+    const bucketName = store.tables.bucketTable.byId[service.bucketId]?.name
     const respGetBuckets = await api.storage.single.getSearchObject({
       base,
       query: {
@@ -107,6 +103,7 @@ const search = async () => {
     await getSearchDate()
   }
 }
+watch(searchOptions, chooseTabService)
 // 接受子组件操作完成emitter，更新数据
 emitter.on('done', async (value) => {
   if (value) {
@@ -127,7 +124,7 @@ onBeforeUnmount(() => {
           outlined
           multiple
           v-model="serviceModel"
-          option-value="id"
+          option-value="optionId"
           option-label="desc"
           option-disable="inactive"
           mit-value

@@ -1,17 +1,20 @@
 <script lang="ts" setup>
-import { computed, ComputedRef, Ref, ref } from 'vue'
+import { computed, Ref, ref } from 'vue'
 import { useStore } from 'stores/store'
 import { useRoute } from 'vue-router'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import { axiosStorage } from 'boot/axios'
 import axios from 'axios'
-import { FloatSub } from 'src/hooks/handleFloat'
 import api from 'src/api/index'
+import { FloatSub } from 'src/hooks/handleFloat'
 import { i18n } from 'boot/i18n'
-import { conversionBase } from 'src/hooks/useEndpointUrl'
 // import SparkMD5 from 'spark-md5'
 
 const props = defineProps({
+  bucketId: {
+    type: String,
+    required: true
+  },
   localId: {
     type: String,
     required: true
@@ -27,24 +30,12 @@ const props = defineProps({
 })
 const CancelToken = axios.CancelToken
 const source = CancelToken.source()
-const $route = useRoute()
+const route = useRoute()
 const store = useStore()
 const { tc } = i18n.global
 defineEmits([...useDialogPluginComponent.emits])
-const path = $route.query.path as string
-const count = props.localId.split('/').length - 1
-let base: string
-let currentBucket: ComputedRef
-if (count > 1) {
-  const str = conversionBase(props.localId, '/', 1)
-  base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
-  currentBucket = computed(() => store.tables.bucketTable.byLocalId[str])
-} else {
-  base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
-  currentBucket = computed(() => store.tables.bucketTable.byLocalId[props.localId])
-}
-// const currentBucket = computed(() => store.tables.bucketTable.byLocalId[props.localId])
-const currentService = computed(() => store.tables.serviceTable.byId[currentBucket?.value.service_id])
+const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service?.id]?.endpoint_url
+const currentBucket = computed(() => store.tables.bucketTable.byId[props.bucketId])
 const {
   dialogRef,
   onDialogHide,
@@ -239,7 +230,7 @@ const calcSpeedTime = (event: ProgressEvent, size?: number) => {
 //   })
 // }
 // 上传完整文件不切片
-const putObjPath = async (payload: { path: { objpath: string, bucket_name: string }, body: { file: File }, index: number }) => {
+const putObjPath = async (payload: { path: { bucket_name: string, objpath: string }, body: { file: File }, index: number }) => {
   const formData = new FormData()
   formData.append('file', payload.body.file)
   return axiosStorage({
@@ -257,9 +248,8 @@ const putObjPath = async (payload: { path: { objpath: string, bucket_name: strin
           // 取消正在发的请求
           cancelUpload()
           void await store.addPathTable(
-            currentService.value.id,
-            props.bucket_name,
-            path
+            currentBucket.value.id,
+            route.query.path as string
           )
         }
       }
@@ -350,9 +340,8 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
       }
     })
     void await store.addPathTable(
-      currentService.value.id,
-      props.bucket_name,
-      path
+      currentBucket.value.id,
+      route.query.path as string
     )
     fileArr.value = []
     isUploading.value = false
@@ -361,17 +350,17 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
 
 const factoryFn = async (files: File, index: number) => {
   // await getMD5(files, index)
-  let bucketName
+  let objpath
   if (props.dirPath === '') {
-    bucketName = props.bucket_name
+    objpath = files.name
   } else {
-    bucketName = props.bucket_name + '/' + props.dirPath
+    objpath = props.dirPath + '/' + files.name
   }
   if (files.size / 1024 / 1024 > 500) {
     await postObjPath({
       path: {
-        bucket_name: bucketName,
-        objpath: files.name
+        bucket_name: props.bucket_name,
+        objpath
       },
       query: { reset: true },
       body: { file: files },
@@ -380,8 +369,8 @@ const factoryFn = async (files: File, index: number) => {
   } else {
     await putObjPath({
       path: {
-        objpath: files.name,
-        bucket_name: bucketName
+        bucket_name: props.bucket_name,
+        objpath
       },
       body: { file: files },
       index
@@ -423,10 +412,10 @@ const upload = async () => {
       })
     }
     onDialogOK()
+    // 当前path对象
     void await store.addPathTable(
-      currentService.value.id,
-      props.bucket_name,
-      path
+      currentBucket.value.id,
+      route.query.path as string
     )
     fileArr.value = []
     isUploading.value = false

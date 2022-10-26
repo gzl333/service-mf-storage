@@ -9,7 +9,6 @@ import useClipText from 'src/hooks/useClipText'
 import useFormatSize from 'src/hooks/useFormatSize'
 import { Notify } from 'quasar'
 import api from 'src/api/index'
-import { conversionBase } from 'src/hooks/useEndpointUrl'
 
 const props = defineProps({
   pathObj: {
@@ -22,6 +21,8 @@ const props = defineProps({
 const store = useStore()
 // const route = useRoute()
 const { tc } = i18n.global
+
+console.log(props)
 
 const currentBucket = computed(() => store.tables.bucketTable.byId[props.pathObj.bucketId])
 
@@ -120,9 +121,9 @@ const singleDelete = (na: string, name: string, fod: boolean) => {
   obj.name = name
   dataArr.push(obj)
   if (fod) {
-    void store.triggerDeleteFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, { fileArrs: dataArr }, true)
+    void store.triggerDeleteFolderDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, { fileArrs: dataArr }, true)
   } else {
-    void store.triggerDeleteFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true)
+    void store.triggerDeleteFolderDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true)
   }
 }
 const batchDelete = async () => {
@@ -143,7 +144,7 @@ const batchDelete = async () => {
       dirArr.push(obj)
     }
   })
-  void store.triggerDeleteFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, {
+  void store.triggerDeleteFolderDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, {
     dirArrs: dirArr,
     fileArrs: fileArr
   }, true)
@@ -159,15 +160,15 @@ const singleShare = async (na: string, name: string, accessCode: number, fod: bo
   dataArr.push(obj)
   if (accessCode === 0) {
     if (fod) {
-      void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { fileArrs: dataArr }, true)
+      void store.triggerPublicShareDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, { fileArrs: dataArr }, true)
     } else {
-      void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true)
+      void store.triggerPublicShareDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true)
     }
   } else {
     if (fod) {
-      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { fileArrs: dataArr }, true, false)
+      void store.triggerAlreadyShareDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, { fileArrs: dataArr }, true, false)
     } else {
-      void store.triggerAlreadyShareDialog(props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true, false)
+      void store.triggerAlreadyShareDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, { dirArrs: dataArr }, true, false)
     }
   }
 }
@@ -189,13 +190,13 @@ const batchShare = async () => {
       shareObjArr.push(obj)
     }
   })
-  void store.triggerPublicShareDialog(props.pathObj.localId, props.pathObj.bucket_name, {
+  void store.triggerPublicShareDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, {
     dirArrs: shareDirArr,
     fileArrs: shareObjArr
   }, true)
 }
 const changeName = (path: string, name: string) => {
-  void store.triggerChangeFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, path, name, true)
+  void store.triggerChangeFolderDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, path, name, true)
 }
 const download = async (fileName: string, na: string) => {
   // 创建a标签
@@ -222,14 +223,8 @@ const download = async (fileName: string, na: string) => {
     timeout: 5000,
     multiLine: false
   })
-  const count = props.pathObj.localId.split('/').length - 1
-  let base
-  if (count > 1) {
-    const str = conversionBase(props.pathObj.localId, '/', 1)
-    base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[str]?.service.id]?.endpoint_url
-  } else {
-    base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.localId]?.service.id]?.endpoint_url
-  }
+  const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
+  console.log(props.pathObj.localId)
   const objPath = props.pathObj.bucket_name + '/' + na
   const res = await api.storage.single.getObjPath({
     base,
@@ -281,9 +276,9 @@ watch(
     <div class="row items-center justify-between q-pb-md">
       <div class="col q-gutter-x-md">
         <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('创建文件夹')"
-               @click="store.triggerCreateFolderDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path)"/>
+               @click="store.triggerCreateFolderDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path)"/>
         <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('上传文件')"
-               @click="store.triggerUploadDialog(props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path)"/>
+               @click="store.triggerUploadDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, props.pathObj.dir_path)"/>
         <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('删除文件')" @click="batchDelete"
                :disable="selected.length<=0"/>
         <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="batchShare"

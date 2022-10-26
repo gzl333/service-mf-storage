@@ -10,7 +10,9 @@ import useFormatSize from '../../../src/hooks/useFormatSize'
 import api from 'src/api'
 
 interface ArrayInterface {
-  id: string,
+  bucketId: string,
+  optionId: string,
+  serviceId: string,
   desc: string,
 }
 
@@ -35,7 +37,7 @@ const tabActive: Ref<string> = ref('1')
 
 // 把过长的文本缩短
 const clipText70 = useClipText(70)
-
+console.log(props)
 // 格式化size
 const formatSize1024 = useFormatSize(1024)
 const columns = computed(() => [
@@ -100,23 +102,30 @@ const deleteSingleFile = (na: string, name: string) => {
   // 添加name用于删除失败 提示文件名
   obj.name = name
   dataArr.push(obj)
-  void store.triggerDeleteFolderDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: dataArr }, false)
+  let str: string
+  if (na.lastIndexOf('/') !== -1) {
+    str = props.tabArr[Number(tabActive.value) - 1].bucketId + '/' + na.slice(0, na.lastIndexOf('/'))
+  } else {
+    str = props.tabArr[Number(tabActive.value) - 1].bucketId
+  }
+  void store.triggerDeleteFolderDialog(props.tabArr[Number(tabActive.value) - 1].bucketId, str, props.pathArr.bucket, { fileArrs: dataArr }, false)
 }
 // 删除多个文件 批量删除
-const batchDeleteFile = async () => {
-  const fileArr: Record<string, string>[] = []
-  selected.value.forEach((item) => {
-    const obj = {
-      na: '',
-      name: ''
-    }
-    obj.na = item.na
-    // 添加name用于删除失败 提示文件名
-    obj.name = item.name
-    fileArr.push(obj)
-  })
-  void store.triggerDeleteFolderDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: fileArr }, false)
-}
+// const batchDeleteFile = async () => {
+//   let fileArr: Record<string, string>[] = []
+//   selected.value.forEach((item) => {
+//     fileArr = []
+//     const obj = {
+//       na: '',
+//       name: ''
+//     }
+//     obj.na = item.na
+//     // 添加name用于删除失败 提示文件名
+//     obj.name = item.name
+//     fileArr.push(obj)
+//     void store.triggerDeleteFolderDialog(props.tabArr[Number(tabActive.value) - 1].bucketId, props.tabArr[Number(tabActive.value) - 1].bucketId + '/' + item.na.slice(0, item.na.lastIndexOf('/')), props.pathArr.bucket, { fileArrs: fileArr }, false)
+//   })
+// }
 // 单个文件分享
 const shareSingleFile = async (na: string, name: string, accessCode: number) => {
   const dataArr = []
@@ -127,29 +136,41 @@ const shareSingleFile = async (na: string, name: string, accessCode: number) => 
   obj.na = na
   obj.name = name
   dataArr.push(obj)
-  if (accessCode === 0) {
-    void store.triggerPublicShareDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: dataArr }, false)
+  let str: string
+  if (na.lastIndexOf('/') !== -1) {
+    str = props.tabArr[Number(tabActive.value) - 1].bucketId + '/' + na.slice(0, na.lastIndexOf('/'))
   } else {
-    void store.triggerAlreadyShareDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: dataArr }, false, false)
+    str = props.tabArr[Number(tabActive.value) - 1].bucketId
+  }
+  if (accessCode === 0) {
+    void store.triggerPublicShareDialog(props.tabArr[Number(tabActive.value) - 1].bucketId, str, props.pathArr.bucket, { fileArrs: dataArr }, false)
+  } else {
+    void store.triggerAlreadyShareDialog(props.tabArr[Number(tabActive.value) - 1].bucketId, str, props.pathArr.bucket, { fileArrs: dataArr }, false, false)
   }
 }
 // 批量分享
-const batchShareFile = async () => {
-  const shareObjArr: Record<string, string>[] = []
-  selected.value.forEach((item) => {
-    const obj = {
-      na: '',
-      name: ''
-    }
-    obj.na = item.na
-    obj.name = item.name
-    shareObjArr.push(obj)
-  })
-  void store.triggerPublicShareDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: shareObjArr }, false)
-}
+// const batchShareFile = async () => {
+//   const shareObjArr: Record<string, string>[] = []
+//   selected.value.forEach((item) => {
+//     const obj = {
+//       na: '',
+//       name: ''
+//     }
+//     obj.na = item.na
+//     obj.name = item.name
+//     shareObjArr.push(obj)
+//   })
+//   void store.triggerPublicShareDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, { fileArrs: shareObjArr }, false)
+// }
 // 文件重命名
-const changeName = (path: string, name: string) => {
-  void store.triggerChangeFolderDialog(props.tabArr[Number(tabActive.value) - 1].id, props.pathArr.bucket, path, name, false)
+const changeName = (na: string, name: string) => {
+  let str: string
+  if (na.lastIndexOf('/') !== -1) {
+    str = props.tabArr[Number(tabActive.value) - 1].bucketId + '/' + na.slice(0, na.lastIndexOf('/'))
+  } else {
+    str = props.tabArr[Number(tabActive.value) - 1].bucketId
+  }
+  void store.triggerChangeFolderDialog(props.tabArr[Number(tabActive.value) - 1].bucketId, str, props.pathArr.bucket, na, name, false)
 }
 const download = async (na: string, fileName: string) => {
   // 创建a标签
@@ -179,7 +200,7 @@ const download = async (na: string, fileName: string) => {
     multiLine: false
   })
   const objPath = props.pathArr.bucket + '/' + na
-  const base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.tabArr[Number(tabActive.value) - 1].id]?.service_id]?.endpoint_url
+  const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.tabArr[Number(tabActive.value) - 1].bucketId]?.service.id]?.endpoint_url
   const downloadRes = await api.storage.single.getObjPath({
     base,
     path: { objpath: objPath }
@@ -227,13 +248,13 @@ watch(
 
 <template>
   <div class="SearchTable">
+<!--    <div class="row q-mt-sm">-->
+<!--      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('批量删除')" @click="batchDeleteFile"-->
+<!--             :disable="selected.length > 0 ? false : true"/>-->
+<!--      <q-btn class="col-auto q-ml-sm" unelevated no-caps color="primary" :label="tc('批量分享')" @click="batchShareFile"-->
+<!--             :disable="selected.length > 0 ? false : true"/>-->
+<!--    </div>-->
     <div class="row q-mt-sm">
-      <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('批量删除')" @click="batchDeleteFile"
-             :disable="selected.length > 0 ? false : true"/>
-      <q-btn class="col-auto q-ml-sm" unelevated no-caps color="primary" :label="tc('批量分享')" @click="batchShareFile"
-             :disable="selected.length > 0 ? false : true"/>
-    </div>
-    <div class="row">
       <div class="col">
         <q-table
           class="rounded-borders"

@@ -6,9 +6,12 @@ import { Notify, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
 import api from 'src/api/index'
-import { conversionBase } from 'src/hooks/useEndpointUrl'
 
 const props = defineProps({
+  bucketId: {
+    type: String,
+    required: true
+  },
   localId: {
     type: String,
     required: true
@@ -29,6 +32,7 @@ const props = defineProps({
 const store = useStore()
 // const $route = useRoute()
 const { tc } = i18n.global
+console.log(props)
 defineEmits([...useDialogPluginComponent.emits])
 const {
   dialogRef,
@@ -84,14 +88,7 @@ const isHavePass = (value: boolean) => {
 
 const share = async () => {
   if (selectModel.value !== null) {
-    const count = props.localId.split('/').length - 1
-    let base
-    if (count > 1) {
-      const str = conversionBase(props.localId, '/', 1)
-      base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
-    } else {
-      base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
-    }
+    const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service.id]?.endpoint_url
     if (props.pathObj.dirArrs && props.pathObj.dirArrs.length > 0) {
       if (isPass.value === false) {
         for (const item of props.pathObj.dirArrs) {
@@ -172,9 +169,9 @@ const share = async () => {
     }
     onDialogOK()
     if (props.pathObj.dirArrs && !props.pathObj.fileArrs && props.pathObj.dirArrs.length === 1 && shareQuery.value.share !== 0) {
-      void store.triggerAlreadyShareDialog(props.localId, props.bucket_name, { dirArrs: props.pathObj.dirArrs }, props.isOperationStore, false)
+      void store.triggerAlreadyShareDialog(props.bucketId, props.localId, props.bucket_name, { dirArrs: props.pathObj.dirArrs }, props.isOperationStore, false)
     } else if (!props.pathObj.dirArrs && props.pathObj.fileArrs && props.pathObj.fileArrs.length === 1 && shareQuery.value.share !== 0) {
-      void store.triggerAlreadyShareDialog(props.localId, props.bucket_name, { fileArrs: props.pathObj.fileArrs }, props.isOperationStore, true)
+      void store.triggerAlreadyShareDialog(props.bucketId, props.localId, props.bucket_name, { fileArrs: props.pathObj.fileArrs }, props.isOperationStore, true)
     }
   } else {
     Notify.create({

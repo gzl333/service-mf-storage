@@ -6,9 +6,12 @@ import { useStore } from 'stores/store'
 import { i18n } from 'boot/i18n'
 import api from 'src/api/index'
 import emitter from 'boot/mitt'
-import { conversionBase } from 'src/hooks/useEndpointUrl'
 
 const props = defineProps({
+  bucketId: {
+    type: String,
+    required: true
+  },
   localId: {
     type: String,
     required: true
@@ -29,6 +32,7 @@ const props = defineProps({
     type: Boolean
   }
 })
+console.log(props)
 const store = useStore()
 const { tc } = i18n.global
 // defineEmits([...useDialogPluginComponent.emits])
@@ -42,10 +46,10 @@ const shareUrl = ref('')
 const shareCode = ref('')
 const share = async () => {
   if (props.pathObj.dirArrs && props.pathObj.dirArrs.length > 0) {
-    await store.triggerPublicShareDialog(props.localId, props.bucketName, { dirArrs: props.pathObj.dirArrs }, props.isOperationStore)
+    await store.triggerPublicShareDialog(props.bucketId, props.localId, props.bucketName, { dirArrs: props.pathObj.dirArrs }, props.isOperationStore)
   }
   if (props.pathObj.fileArrs && props.pathObj.fileArrs.length > 0) {
-    await store.triggerPublicShareDialog(props.localId, props.bucketName, { fileArrs: props.pathObj.fileArrs }, props.isOperationStore)
+    await store.triggerPublicShareDialog(props.bucketId, props.localId, props.bucketName, { fileArrs: props.pathObj.fileArrs }, props.isOperationStore)
   }
   onCancelClick()
 }
@@ -68,17 +72,8 @@ onBeforeMount(async () => {
   } else {
     dirName = props.pathObj.fileArrs[0].na
   }
-  const count = props.localId.split('/').length - 1
-  let base
-  let serviceId
-  if (count > 1) {
-    const str = conversionBase(props.localId, '/', 1)
-    base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
-    serviceId = store.tables.bucketTable.byLocalId[str]?.service_id
-  } else {
-    base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
-    serviceId = store.tables.bucketTable.byLocalId[props.localId]?.service_id
-  }
+  const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service.id]?.endpoint_url
+  const serviceId = store.tables.bucketTable.byId[props.bucketId]?.service.id
   const respShareDir = await api.storage.single.getPath({
     base,
     path: {

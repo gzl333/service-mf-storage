@@ -5,9 +5,12 @@ import { Notify, QInput, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
 import api from 'src/api'
-import { conversionBase } from 'src/hooks/useEndpointUrl'
 
 const props = defineProps({
+  bucketId: {
+    type: String,
+    required: true
+  },
   localId: {
     type: String,
     required: true
@@ -87,14 +90,7 @@ const onOKClick = async () => {
       multiLine: false
     })
     try {
-      const count = props.localId.split('/').length - 1
-      let base
-      if (count > 1) {
-        const str = conversionBase(props.localId, '/', 1)
-        base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[str]?.service_id]?.endpoint_url
-      } else {
-        base = store.tables.serviceTable.byId[store.tables.bucketTable.byLocalId[props.localId]?.service_id]?.endpoint_url
-      }
+      const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service?.id]?.endpoint_url
       const renameRes = await api.storage.single.postObjPath({ base, path: { bucket_name: props.bucket_name, objpath: props.objpath }, query: { rename: dirName.value } })
       if (props.isOperationStore) {
         store.tables.pathTable.byLocalId[props.localId].files.forEach((item) => {
