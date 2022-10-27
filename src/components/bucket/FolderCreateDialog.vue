@@ -25,6 +25,8 @@ const props = defineProps({
 })
 const store = useStore()
 const { tc } = i18n.global
+const dirName = ref('')
+const inputRef = ref<QInput>()
 defineEmits([...useDialogPluginComponent.emits])
 const {
   dialogRef,
@@ -32,6 +34,7 @@ const {
   onDialogOK,
   onDialogCancel
 } = useDialogPluginComponent()
+const onCancelClick = onDialogCancel
 const onOKClick = async () => {
   if (dirName.value === null || dirName.value === '') {
     Notify.create({
@@ -57,25 +60,16 @@ const onOKClick = async () => {
       timeout: 5000,
       multiLine: false
     })
-    // 判断table是几级页面
-    // const count = props.localId.split('/').length
-    // let base
     let dirpath
-    // if (count > 1) {
-    // 多层
-    // const str = conversionBase(props.localId, '/', 1)
-    // base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[str]?.service?.id]?.endpoint_url
-    // } else {
-    // 第一层
-    // base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service?.id]?.endpoint_url
-    // }
-    const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service?.id]?.endpoint_url
+    const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service.id]?.endpoint_url
+    // 判断第几层页面
     if (props.dirPath === '') {
       dirpath = dirName.value
     } else {
       dirpath = props.dirPath + '/' + dirName.value
     }
     await api.storage.single.postDirPath({ base, path: { bucket_name: props.bucketName, dirpath } }).then((res) => {
+      // 创建成功存入store
       store.tables.pathTable.byLocalId[props.localId].files.unshift(res.data.dir)
       Notify.create({
         classes: 'notification-positive shadow-15',
@@ -119,9 +113,6 @@ const onOKClick = async () => {
     })
   }
 }
-const onCancelClick = onDialogCancel
-const dirName = ref('')
-const inputRef = ref<QInput>()
 </script>
 
 <template>

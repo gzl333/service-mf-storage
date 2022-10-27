@@ -28,39 +28,51 @@ const props = defineProps({
     required: true
   }
 })
-const CancelToken = axios.CancelToken
-const source = CancelToken.source()
+console.log(props)
+const currentBucket = computed(() => store.tables.bucketTable.byId[props.bucketId])
 const route = useRoute()
 const store = useStore()
 const { tc } = i18n.global
-defineEmits([...useDialogPluginComponent.emits])
-const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service?.id]?.endpoint_url
-const currentBucket = computed(() => store.tables.bucketTable.byId[props.bucketId])
+// CancelToken和source用于正在上传关闭窗口 取消正在发送的请求
+const CancelToken = axios.CancelToken
+const source = CancelToken.source()
+const fileArr: Ref = ref([])
+// 上传进度 数组形式 多个上传 每个值代表一个文件的上传进度
+const progressArr: Ref<Array<string | number>> = ref([])
+// 上传速度
+const uploadSpeed = ref()
+// 上传剩余时间
+const uploadTime = ref()
+// 用于判断是否正在上传
+const isUploading = ref(false)
+// 用于判断用户是否关闭窗口
+const isClose = ref(false)
+// 用于判断是否取消正在上传的请求
+const isCancel = ref(false)
+// 用于鼠标事件
+const isHover = ref(false)
+const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service.id]?.endpoint_url
 const {
   dialogRef,
   onDialogHide,
   onDialogOK,
   onDialogCancel
 } = useDialogPluginComponent()
-const fileArr: Ref = ref([])
-const progressArr: Ref = ref([])
-const uploadSpeed: Ref = ref()
-const uploadTime: Ref = ref()
-const isUploading = ref(false)
-const isClose = ref(false)
-const isCancel = ref(false)
-const isHover = ref(false)
+defineEmits([...useDialogPluginComponent.emits])
 // 上一次计算时间
 let lastTime = 0
 // 上一次计算的文件大小
 let lastSize = 0
+// 关闭窗口
 const close = async () => {
   isClose.value = true
   onDialogCancel()
 }
+// 删除列表中的文件
 const clearFile = (index: string) => {
   fileArr.value.splice(index, 1)
 }
+// 删除所有文件
 const clearAll = () => {
   fileArr.value = []
 }
@@ -70,6 +82,7 @@ const onMouseEnter = () => {
 const onMouseLeave = () => {
   isHover.value = false
 }
+// 取消正在上传的请求
 const cancelUpload = () => {
   source.cancel('取消请求')
   Notify.create({
@@ -84,9 +97,12 @@ const cancelUpload = () => {
   })
   // source = axios.CancelToken.source()
 }
+// 添加文件
 const addFile = (files: string | File[]) => {
+  // 正在上传中不可添加文件
   if (isUploading.value === false) {
     for (const file of files) {
+      // 最多支持添加十个文件
       if (fileArr.value.length < 10) {
         fileArr.value.push(file)
       } else {

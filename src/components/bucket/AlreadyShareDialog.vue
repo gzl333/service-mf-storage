@@ -32,7 +32,6 @@ const props = defineProps({
     type: Boolean
   }
 })
-console.log(props)
 const store = useStore()
 const { tc } = i18n.global
 // defineEmits([...useDialogPluginComponent.emits])

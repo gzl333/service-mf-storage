@@ -28,7 +28,6 @@ const props = defineProps({
     required: false
   }
 })
-console.log(props)
 const store = useStore()
 const { tc } = i18n.global
 defineEmits([...useDialogPluginComponent.emits])

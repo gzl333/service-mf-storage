@@ -5,8 +5,8 @@ import { useStore } from 'stores/store'
 import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
 import { navigateToUrl } from 'single-spa'
-import ShareTable from 'components/bucket/ShareTable.vue'
 import api from 'src/api'
+import ShareTable from 'components/bucket/ShareTable.vue'
 
 const props = defineProps({
   serviceId: {
@@ -101,14 +101,14 @@ const loadTables = async () => {
         tableRow.value = dataDre.data
       }
     }).catch((error) => {
-      if (error.response?.data.code === 401) {
+      if (error.response?.data.code === 'InvalidShareCode') {
         isPassword.value = true
         isRight.value = false
-      } else if (error.response?.data.code === 403) {
+      } else if (error.response?.data.code === 'NotShared') {
         isPassword.value = false
         isRight.value = true
         message.value = '您没有访问权限'
-      } else if (error.response?.data.code === 404) {
+      } else if (error.response?.data.code === 'NotFound') {
         isPassword.value = false
         isRight.value = true
         message.value = '分享根目录不存在'

@@ -224,7 +224,6 @@ const download = async (fileName: string, na: string) => {
     multiLine: false
   })
   const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
-  console.log(props.pathObj.localId)
   const objPath = props.pathObj.bucket_name + '/' + na
   const res = await api.storage.single.getObjPath({
     base,

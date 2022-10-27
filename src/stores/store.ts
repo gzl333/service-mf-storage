@@ -381,17 +381,6 @@ export const useStore = defineStore('storage', {
       })
       return services
     },
-    // getBuckets (state): Record<string, string>[] {
-    //   const bucketOptions = []
-    //   let obj: Record<string, string> = {}
-    //   for (const objElement of state.tables.bucketTable.allIds) {
-    //     obj = {}
-    //     obj.id = objElement
-    //     obj.desc = objElement
-    //     bucketOptions.push(obj)
-    //   }
-    //   return bucketOptions
-    // },
     getIntegratedSearchOptions (state): Record<string, string>[] {
       const bucketOptions = []
       let obj: Record<string, string> = {}
@@ -406,41 +395,6 @@ export const useStore = defineStore('storage', {
       }
       return bucketOptions
     }
-    // getFirstsBucket (state): string {
-    //   let bucketName = ''
-    //   bucketName = state.tables.bucketTable.allIds[0]
-    //   return bucketName
-    // },
-    // getFirstsIntegratedSearchOption (state): Record<string, string> {
-    //   const obj = {}
-    //   obj.buckerId = state.tables.bucketTable.allIds[0]
-    //   obj.serviceId = state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id
-    //   obj.optionId = state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
-    //   // obj.id = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
-    //   obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id]?.name + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
-    //   // name = state.tables.serviceTable.byId[state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id]?.name + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
-    //   return obj
-    // },
-    // getFirstsIntegratedSearchOptionName (state): string {
-    //   let name = ''
-    //   name = state.tables.serviceTable.byId[state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id]?.name + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
-    //   return name
-    // },
-    // getFirstsIntegratedSearchOptionId (state): string {
-    //   let localId = ''
-    //   localId = state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id + '/' + state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.name
-    //   return localId
-    // },
-    // getFirstsIntegratedSearchOptionBucketId (state): string {
-    //   let name = ''
-    //   name = state.tables.bucketTable.allIds[0]
-    //   return name
-    // },
-    // getFirstsIntegratedSearchOptionServiceId (state): string {
-    //   let name = ''
-    //   name = state.tables.bucketTable.byId[state.tables.bucketTable.allIds[0]]?.service.id
-    //   return name
-    // }
   },
   actions: {
     // loadAllItems () {},

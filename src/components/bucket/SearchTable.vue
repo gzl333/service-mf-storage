@@ -37,7 +37,6 @@ const tabActive: Ref<string> = ref('1')
 
 // 把过长的文本缩短
 const clipText70 = useClipText(70)
-console.log(props)
 // 格式化size
 const formatSize1024 = useFormatSize(1024)
 const columns = computed(() => [

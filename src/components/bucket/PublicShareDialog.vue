@@ -32,7 +32,6 @@ const props = defineProps({
 const store = useStore()
 // const $route = useRoute()
 const { tc } = i18n.global
-console.log(props)
 defineEmits([...useDialogPluginComponent.emits])
 const {
   dialogRef,
