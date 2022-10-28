@@ -152,6 +152,7 @@ const addFile = (files: string | File[]) => {
 //   // await fileReader.readAsArrayBuffer(file)
 // }
 const handleTime = (time: number) => {
+  // 文件切片上传 每一片开始的时候 会有一刻速度为0
   if (time > 0) {
     // 超过一小时
     if (time / 60 / 60 > 1) {

@@ -159,7 +159,7 @@ onBeforeUnmount(() => {
       </div>
       <q-tab-panels v-model="tabActive" animated transition-prev="fade" transition-next="fade">
         <q-tab-panel v-for="tabItem in pathArr" :name="tabItem.tab.index" :key="tabItem.tab.id"
-                     class="no-padding q-mt-sm">
+                     class="no-padding q-mt-sm no-scroll ">
           <SearchTable :pathArr="tabItem.results" :tabArr="serviceModel"/>
         </q-tab-panel>
       </q-tab-panels>
