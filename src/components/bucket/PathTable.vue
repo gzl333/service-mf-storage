@@ -22,8 +22,6 @@ const store = useStore()
 // const route = useRoute()
 const { tc } = i18n.global
 
-console.log(props)
-
 const currentBucket = computed(() => store.tables.bucketTable.byId[props.pathObj.bucketId])
 
 const filter = ref('')

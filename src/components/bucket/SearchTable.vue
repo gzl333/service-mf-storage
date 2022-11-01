@@ -1,28 +1,24 @@
 <script lang="ts" setup>
-import { ref, computed, PropType, watch, Ref } from 'vue'
+import { ref, computed, watch, Ref } from 'vue'
 import { FileInterface } from 'src/stores/store'
 import { useStore } from 'stores/store'
 // import { useRoute } from 'vue-router'
 import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
+import api from 'src/api'
 import useClipText from '../../../src/hooks/useClipText'
 import useFormatSize from '../../../src/hooks/useFormatSize'
-import api from 'src/api'
 
-interface ArrayInterface {
-  bucketId: string,
-  optionId: string,
-  serviceId: string,
-  desc: string,
-}
+// interface ArrayInterface {
+//   bucketId: string,
+//   optionId: string,
+//   serviceId: string,
+//   desc: string,
+// }
 
 const props = defineProps({
   pathArr: {
     type: Object,
-    required: true
-  },
-  tabArr: {
-    type: Array as PropType<ArrayInterface[]>,
     required: true
   }
 })
@@ -103,11 +99,14 @@ const deleteSingleFile = (na: string, name: string) => {
   dataArr.push(obj)
   let str: string
   if (na.lastIndexOf('/') !== -1) {
-    str = props.tabArr[Number(tabActive.value) - 1].bucketId + '/' + na.slice(0, na.lastIndexOf('/'))
+    str = props.pathArr.tab.bucketId + '/' + na.slice(0, na.lastIndexOf('/'))
+    // str = props.tabArr[Number(tabActive.value) - 1].bucketId + '/' + na.slice(0, na.lastIndexOf('/'))
   } else {
-    str = props.tabArr[Number(tabActive.value) - 1].bucketId
+    str = props.pathArr.tab.bucketId
+    // str = props.tabArr[Number(tabActive.value) - 1].bucketId
   }
-  void store.triggerDeleteFolderDialog(props.tabArr[Number(tabActive.value) - 1].bucketId, str, props.pathArr.bucket, { fileArrs: dataArr }, false)
+  void store.triggerDeleteFolderDialog(props.pathArr.tab.bucketId, str, props.pathArr.results.bucket, { fileArrs: dataArr }, false)
+  // void store.triggerDeleteFolderDialog(props.tabArr[Number(tabActive.value) - 1].bucketId, str, props.pathArr.bucket, { fileArrs: dataArr }, false)
 }
 // 删除多个文件 批量删除
 // const batchDeleteFile = async () => {
@@ -137,14 +136,14 @@ const shareSingleFile = async (na: string, name: string, accessCode: number) => 
   dataArr.push(obj)
   let str: string
   if (na.lastIndexOf('/') !== -1) {
-    str = props.tabArr[Number(tabActive.value) - 1].bucketId + '/' + na.slice(0, na.lastIndexOf('/'))
+    str = props.pathArr.tab.bucketId + '/' + na.slice(0, na.lastIndexOf('/'))
   } else {
-    str = props.tabArr[Number(tabActive.value) - 1].bucketId
+    str = props.pathArr.tab.bucketId
   }
   if (accessCode === 0) {
-    void store.triggerPublicShareDialog(props.tabArr[Number(tabActive.value) - 1].bucketId, str, props.pathArr.bucket, { fileArrs: dataArr }, false)
+    void store.triggerPublicShareDialog(props.pathArr.tab.bucketId, str, props.pathArr.results.bucket, { fileArrs: dataArr }, false)
   } else {
-    void store.triggerAlreadyShareDialog(props.tabArr[Number(tabActive.value) - 1].bucketId, str, props.pathArr.bucket, { fileArrs: dataArr }, false, false)
+    void store.triggerAlreadyShareDialog(props.pathArr.tab.bucketId, str, props.pathArr.results.bucket, { fileArrs: dataArr }, false, false)
   }
 }
 // 批量分享
@@ -165,11 +164,11 @@ const shareSingleFile = async (na: string, name: string, accessCode: number) => 
 const changeName = (na: string, name: string) => {
   let str: string
   if (na.lastIndexOf('/') !== -1) {
-    str = props.tabArr[Number(tabActive.value) - 1].bucketId + '/' + na.slice(0, na.lastIndexOf('/'))
+    str = props.pathArr.tab.bucketId + '/' + na.slice(0, na.lastIndexOf('/'))
   } else {
-    str = props.tabArr[Number(tabActive.value) - 1].bucketId
+    str = props.pathArr.tab.bucketId
   }
-  void store.triggerChangeFolderDialog(props.tabArr[Number(tabActive.value) - 1].bucketId, str, props.pathArr.bucket, na, name, false)
+  void store.triggerChangeFolderDialog(props.pathArr.tab.bucketId, str, props.pathArr.results.bucket, na, name, false)
 }
 const download = async (na: string, fileName: string) => {
   // 创建a标签
@@ -198,8 +197,8 @@ const download = async (na: string, fileName: string) => {
     timeout: 5000,
     multiLine: false
   })
-  const objPath = props.pathArr.bucket + '/' + na
-  const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.tabArr[Number(tabActive.value) - 1].bucketId]?.service.id]?.endpoint_url
+  const objPath = props.pathArr.results.bucket + '/' + na
+  const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathArr.tab.bucketId]?.service.id]?.endpoint_url
   const downloadRes = await api.storage.single.getObjPath({
     base,
     path: { objpath: objPath }
@@ -253,14 +252,14 @@ watch(
 <!--      <q-btn class="col-auto q-ml-sm" unelevated no-caps color="primary" :label="tc('批量分享')" @click="batchShareFile"-->
 <!--             :disable="selected.length > 0 ? false : true"/>-->
 <!--    </div>-->
-    <div class="row q-mt-sm">
+    <div class="row">
       <div class="col">
         <q-table
           class="rounded-borders"
           flat
           square
           table-header-class="bg-grey-1 text-grey"
-          :rows="props.pathArr?.files"
+          :rows="props.pathArr?.results.files"
           :columns="columns"
           row-key="na"
           hide-pagination

@@ -270,6 +270,21 @@ export interface StatusInterface {
   name: string
 }
 
+export interface IntegratedServiceInterface {
+  serviceId: string
+  serviceName: string
+}
+
+export interface IntegratedBucketInterface {
+  bucketId: string
+  bucketName: string
+}
+
+export interface IntegratedSearchInterface {
+  service: IntegratedServiceInterface,
+  bucket: Array<IntegratedBucketInterface> | []
+}
+
 /* table的类型 */
 
 // 整体加载表
@@ -381,19 +396,54 @@ export const useStore = defineStore('storage', {
       })
       return services
     },
-    getIntegratedSearchOptions (state): Record<string, string>[] {
-      const bucketOptions = []
-      let obj: Record<string, string> = {}
-      for (const objElement of state.tables.bucketTable.allIds) {
-        obj = {}
-        obj.bucketId = objElement
-        obj.serviceId = state.tables.bucketTable.byId[objElement]?.service.id
-        obj.optionId = state.tables.bucketTable.byId[objElement]?.service.id + '/' + state.tables.bucketTable.byId[objElement].name
-        // obj.id = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
-        obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byId[objElement].service.id].name + '/' + state.tables.bucketTable.byId[objElement].name
-        bucketOptions.push(obj)
+    // getIntegratedSearchOptions (state): Record<string, string>[] {
+    //   const bucketOptions = []
+    //   let obj: Record<string, string> = {}
+    //   for (const objElement of state.tables.bucketTable.allIds) {
+    //     obj = {}
+    //     obj.bucketId = objElement
+    //     obj.serviceId = state.tables.bucketTable.byId[objElement]?.service.id
+    //     obj.optionId = state.tables.bucketTable.byId[objElement]?.service.id + '/' + state.tables.bucketTable.byId[objElement].name
+    //     // obj.id = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
+    //     obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byId[objElement].service.id].name + '/' + state.tables.bucketTable.byId[objElement].name
+    //     bucketOptions.push(obj)
+    //   }
+    //   return bucketOptions
+    // },
+    getIntegratedSearchOptions (state): IntegratedSearchInterface[] {
+      const IntegratedArr = []
+      // 先找到每个服务
+      for (const service of state.tables.serviceTable.allIds) {
+        const IntegratedObj: { service: IntegratedServiceInterface, bucket: IntegratedBucketInterface[] } = {
+          // 对象检索页面需要的数据结构
+          // service用于存放服务
+          service: {
+            serviceId: '',
+            serviceName: ''
+          },
+          // bucket用于存放该服务下的存储桶
+          bucket: []
+        }
+        // 需要服务id以及服务名
+        IntegratedObj.service.serviceId = service
+        IntegratedObj.service.serviceName = state.tables.serviceTable.byId[service]?.name
+        // 遍历所有桶
+        for (const bucket of state.tables.bucketTable.allIds) {
+          const bucketObj = {
+            bucketId: '',
+            bucketName: ''
+          }
+          // 找到属于某一个服务的存储桶 存到某一服务下
+          if (state.tables.bucketTable.byId[bucket]?.service.id === service) {
+            // bucketId和桶名
+            bucketObj.bucketId = bucket
+            bucketObj.bucketName = state.tables.bucketTable.byId[bucket]?.name
+            IntegratedObj.bucket.push(bucketObj)
+          }
+        }
+        IntegratedArr.push(IntegratedObj)
       }
-      return bucketOptions
+      return IntegratedArr
     }
   },
   actions: {

@@ -28,7 +28,6 @@ const props = defineProps({
     required: true
   }
 })
-console.log(props)
 const currentBucket = computed(() => store.tables.bucketTable.byId[props.bucketId])
 const route = useRoute()
 const store = useStore()
