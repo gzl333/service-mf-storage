@@ -1,0 +1,80 @@
+<script lang="ts" setup>
+import { useStore } from 'stores/store'
+import { Notify, QBtn, useDialogPluginComponent } from 'quasar'
+import { i18n } from 'boot/i18n'
+import api from 'src/api/index'
+
+defineEmits([...useDialogPluginComponent.emits])
+const store = useStore()
+const { tc } = i18n.global
+
+const {
+  dialogRef,
+  onDialogHide,
+  onDialogOK,
+  onDialogCancel
+} = useDialogPluginComponent()
+const onCancelClick = onDialogCancel
+
+const onOKClick = async () => {
+  const respGetKeys = await api.storage.storage.postAuthKey()
+  Object.assign(store.tables.keyPairTable.byId, {
+    [respGetKeys.data.key.access_key]: respGetKeys.data.key
+  })
+  store.tables.keyPairTable.allIds.unshift(respGetKeys.data.key.access_key)
+  store.tables.keyPairTable.allIds = [...new Set(store.tables.keyPairTable.allIds)]
+  onDialogOK()
+  Notify.create({
+    classes: 'notification-positive shadow-15',
+    icon: 'check_circle',
+    textColor: 'positive',
+    message: `${tc('创建成功')}`,
+    position: 'bottom',
+    // closeBtn: true,
+    timeout: 5000,
+    multiLine: true
+  })
+}
+
+</script>
+
+<template>
+  <!-- notice dialogRef here -->
+  <q-dialog ref="dialogRef" @hide="onDialogHide">
+    <q-card class="q-dialog-plugin dialog-primary">
+
+      <q-card-section class="row items-center justify-center q-pb-md">
+        <div class="text-primary">
+          {{ tc('创建访问密钥') }}
+        </div>
+        <q-space/>
+        <q-btn icon="close" flat dense size="sm" v-close-popup/>
+      </q-card-section>
+      <q-separator/>
+      <q-card-section class="text-center">
+        <q-icon name="las la-exclamation-circle" size="5rem" color="orange"></q-icon>
+        <div class="text-h6 q-mt-md">{{ '确认要创建新的访问密钥吗？' }}</div>
+      </q-card-section>
+      <q-separator/>
+      <q-card-actions align="between">
+        <q-btn class="q-ma-sm"
+               color="primary"
+               no-caps
+               unelevated
+               @click="onCancelClick">
+          {{ tc('取消') }}
+        </q-btn>
+        <q-btn class="q-ma-sm"
+               color="primary"
+               no-caps
+               unelevated
+               @click="onOKClick">
+          {{ tc('创建') }}
+        </q-btn>
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+</template>
+
+<style lang="scss" scoped>
+</style>

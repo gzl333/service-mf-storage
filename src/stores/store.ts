@@ -15,6 +15,10 @@ import UploadDialog from 'components/bucket/UploadDialog.vue'
 import FileChangeNameDialog from 'components/bucket/FileChangeNameDialog.vue'
 import PublicShareDialog from 'components/bucket/PublicShareDialog.vue'
 import AlreadyShareDialog from 'components/bucket/AlreadyShareDialog.vue'
+import TokenCreateDialog from 'components/bucket/TokenCreateDialog.vue'
+import ChangeKeyStateDialog from 'components/bucket/ChangeKeyStateDialog.vue'
+import CreateKeyDialog from 'components/bucket/CreateKeyDialog.vue'
+import DeleteKeyDialog from 'components/bucket/DeleteKeyDialog.vue'
 
 const exceptionNotifier = useExceptionNotifier()
 
@@ -265,9 +269,19 @@ export interface tokenInterface {
   permission: string
 }
 
-export interface StatusInterface {
-  na: string,
-  name: string
+export interface TokenInterface {
+  key: string
+  user: string
+  created: string
+}
+
+export interface KeyPairInterface {
+  access_key: string
+  create_time: string
+  permission: string
+  secret_key: string
+  state: boolean
+  user: string
 }
 
 export interface IntegratedServiceInterface {
@@ -327,6 +341,9 @@ export interface BucketTokenSetTableInterface extends partTable, idTable<BucketT
 export interface PathTableInterface extends partTable, localIdTable<PathInterface> {
 }
 
+export interface KeyPairTableInterface extends totalTable, idTable<KeyPairInterface> {
+}
+
 /* 表的具体类型 */
 
 export const useStore = defineStore('storage', {
@@ -336,7 +353,9 @@ export const useStore = defineStore('storage', {
       // 例如'/my/server/personal/list' -> ['personal', 'list'], 供二级三级导航栏在刷新时保持选择使用
       currentPath: [] as string[],
       // 分享链接所用的服务单元信息
-      shareService: {} as ServiceInterface
+      shareService: {} as ServiceInterface,
+      tokenArr: [] as TokenInterface[],
+      keyPair: [] as KeyPairInterface[]
     },
     tables: {
       serviceTable: {
@@ -363,7 +382,12 @@ export const useStore = defineStore('storage', {
         status: 'init',
         allLocalIds: [],
         byLocalId: {}
-      } as PathTableInterface
+      } as PathTableInterface,
+      keyPairTable: {
+        status: 'init',
+        allIds: [],
+        byId: {}
+      } as KeyPairTableInterface
     }
   }),
   getters: {
@@ -454,6 +478,8 @@ export const useStore = defineStore('storage', {
         void await this.loadServiceTable()
         // 加载bucketTable
         void await this.loadBucketTable()
+        void await this.loadTokenTable()
+        void await this.loadKeyTable()
       }
     },
     async loadServiceTable () {
@@ -653,6 +679,31 @@ export const useStore = defineStore('storage', {
       } catch (exception) {
         exceptionNotifier(exception)
         this.tables.pathTable.status = 'error'
+      }
+    },
+    async loadTokenTable () {
+      const respGetToken = await api.storage.storage.getAuthToken()
+      this.items.tokenArr.push(respGetToken.data.token)
+    },
+    refreshToken (objItem: TokenInterface) {
+      this.items.tokenArr[0] = objItem
+    },
+    async loadKeyTable () {
+      this.tables.keyPairTable.status = 'loading'
+      try {
+        const respGetKeys = await api.storage.storage.getAuthKey()
+        this.items.keyPair = respGetKeys.data.keys
+        respGetKeys.data.keys.forEach((key: KeyPairInterface) => {
+          Object.assign(this.tables.keyPairTable.byId, {
+            [key.access_key]: key
+          })
+          this.tables.keyPairTable.allIds.unshift(key.access_key)
+          this.tables.keyPairTable.allIds = [...new Set(this.tables.keyPairTable.allIds)]
+        })
+        this.tables.keyPairTable.status = 'total'
+      } catch (exception) {
+        exceptionNotifier(exception)
+        this.tables.keyPairTable.status = 'error'
       }
     },
     // 文件更改分享状态
@@ -861,6 +912,37 @@ export const useStore = defineStore('storage', {
         componentProps: {
           bucketId,
           tokenKey
+        }
+      })
+    },
+    // 触发新建token对话框
+    triggerCreateTokenDialog () {
+      Dialog.create({
+        component: TokenCreateDialog
+      })
+    },
+    // 触发新建访问密匙对话框
+    triggerCreateKeyDialog () {
+      Dialog.create({
+        component: CreateKeyDialog
+      })
+    },
+    // 触发删除访问密匙对话框
+    triggerDeleteKeyDialog (accessKey: string) {
+      Dialog.create({
+        component: DeleteKeyDialog,
+        componentProps: {
+          accessKey
+        }
+      })
+    },
+    // 触发新建token对话框
+    triggerChangeKeyStateDialog (accessKey: string, state: string) {
+      Dialog.create({
+        component: ChangeKeyStateDialog,
+        componentProps: {
+          accessKey,
+          state
         }
       })
     }

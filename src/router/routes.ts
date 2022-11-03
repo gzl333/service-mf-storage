@@ -20,6 +20,10 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/bucket/IntegratedSearch.vue')
       },
       {
+        path: 'security',
+        component: () => import('pages/bucket/SecurityCredential.vue')
+      },
+      {
         path: 'backup',
         component: () => import('pages/backup/BucketBackup.vue')
       },

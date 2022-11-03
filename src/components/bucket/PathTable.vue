@@ -196,6 +196,9 @@ const batchShare = async () => {
 const changeName = (path: string, name: string) => {
   void store.triggerChangeFolderDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, path, name, true)
 }
+const comprehensiveSearch = () => {
+  navigateToUrl('/my/storage/search/?bucket=' + props.pathObj.bucketId)
+}
 const download = async (fileName: string, na: string) => {
   // 创建a标签
   // const a = document.createElement('a')
@@ -280,6 +283,7 @@ watch(
                :disable="selected.length<=0"/>
         <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="batchShare"
                :disable="selected.length<=0"/>
+        <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('综合搜索')" @click="comprehensiveSearch"/>
       </div>
 
       <q-input

@@ -2,7 +2,7 @@
 
 /* eslint-disable camelcase */
 
-import { axiosSingle } from 'boot/axios'
+import { axiosSingle, axiosStorage } from 'boot/axios'
 
 export default {
   single: {
@@ -421,6 +421,40 @@ export default {
         params: payload.query
       }
       return axiosSingle.get(payload.base + '/api/v1/search/object/', config)
+    }
+  },
+  storage: {
+    getAuthToken () {
+      return axiosStorage.get('/api/v1/auth-token/')
+    },
+    putAuthToken () {
+      return axiosStorage.put('/api/v1/auth-token/')
+    },
+    getAuthKey () {
+      return axiosStorage.get('/api/v1/auth-key/')
+    },
+    patchAuthKey (payload: {
+      path: {
+        access_key: string
+      }
+      query: {
+        active: boolean
+      }
+    }) {
+      const config = {
+        params: payload.query
+      }
+      return axiosStorage.patch('/api/v1/auth-key/' + payload.path.access_key + '/', null, config)
+    },
+    postAuthKey () {
+      return axiosStorage.post('/api/v1/auth-key/')
+    },
+    deleteAuthKey (payload: {
+      path: {
+        access_key: string
+      }
+    }) {
+      return axiosStorage.delete('/api/v1/auth-key/' + payload.path.access_key + '/')
     }
   }
 }

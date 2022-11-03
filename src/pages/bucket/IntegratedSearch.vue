@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, Ref, onBeforeUnmount } from 'vue'
+import { ref, computed, Ref, onBeforeUnmount, onBeforeMount } from 'vue'
 import { useStore } from 'stores/store'
-// import { useRoute/* , useRouter */ } from 'vue-router'
+import { useRoute/* , useRouter */ } from 'vue-router'
 import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
 import api from 'src/api'
@@ -22,14 +22,16 @@ const searchOptions = computed(() => store.getIntegratedSearchOptions)
 
 const store = useStore()
 const { tc } = i18n.global
-// const route = useRoute()
+const route = useRoute()
 // const router = useRouter()
 // 选定默认值
 const tabActive: Ref<string> = ref('')
 const pathArr: Ref = ref([])
 const searchScope: Ref<string[]> = ref([])
-const selection = ref([])
+const selection: Ref<Array<string>> = ref([])
 const keyword = ref('')
+const bucketId = route.query.bucket as string
+const defaultKeyword = route.query.keyword as string
 // const chooseTabService = () => {
 //   // 添加第一个值作为默认值
 //   serviceModel.value[0] = searchOptions.value[0]
@@ -129,6 +131,18 @@ emitter.on('done', async (value) => {
     await getSearchDate()
   }
 })
+onBeforeMount(() => {
+  if (bucketId && !defaultKeyword) {
+    selection.value.push(bucketId)
+    searchScope.value.push(store.tables.bucketTable.byId[bucketId]?.service.name + '/' + store.tables.bucketTable.byId[bucketId]?.name)
+  }
+  if (bucketId && defaultKeyword) {
+    selection.value.push(bucketId)
+    keyword.value = defaultKeyword
+    searchScope.value.push(store.tables.bucketTable.byId[bucketId]?.service.name + '/' + store.tables.bucketTable.byId[bucketId]?.name)
+    getSearchDate()
+  }
+})
 onBeforeUnmount(() => {
   // 离开页面清空emitter
   emitter.off('done')
@@ -143,21 +157,20 @@ onBeforeUnmount(() => {
         <span v-for="(item, index) in searchScope" :key="index">{{ item }}&nbsp;&nbsp;&nbsp;</span>
       </div>
       <div>
-        <div v-for="(option, optionIndex) in searchOptions" :key="optionIndex" class="row q-mt-lg items-center">
-          <div class="text-subtitle1 col-2">{{ option.service.serviceName }}</div>
-          <q-card flat bordered class="my-card col-4">
-            <q-card-section>
-              <div v-if="option.bucket.length !== 0">
-                <q-checkbox v-for="(bucket, bucketIndex) in option.bucket" v-model="selection" :key="bucketIndex" :val="bucket.bucketId" :label="bucket.bucketName" @update:model-value="selectSearchScope"/>
-              </div>
-              <div v-else class="text-center q-py-xs">暂无存储桶</div>
-            </q-card-section>
-          </q-card>
+        <div v-for="(option, optionIndex) in searchOptions" :key="optionIndex" class="q-mt-lg">
+          <div class="row items-center">
+            <div class="text-subtitle1 col-2">{{ option.service.serviceName }}</div>
+            <div v-if="option.bucket.length !== 0">
+              <q-checkbox v-for="(bucket, bucketIndex) in option.bucket" v-model="selection" :key="bucketIndex"
+                          :val="bucket.bucketId" :label="bucket.bucketName" @update:model-value="selectSearchScope"/>
+            </div>
+            <div v-else class="text-center q-py-xs">暂无存储桶</div>
+          </div>
+          <q-separator class="q-mt-md" style="width: 800px" />
         </div>
       </div>
       <div class="text-subtitle1 q-mt-md">
-        <span>关键字：</span>
-        <span>{{ keyword }}</span>
+        <span>关键字</span>
       </div>
       <div class="row q-mt-md">
         <q-input class="col-3" outlined v-model="keyword" :label="tc('请输入对象关键字')"/>
@@ -166,29 +179,22 @@ onBeforeUnmount(() => {
     </div>
     <div class="q-mt-md">
       <div class="row">
-        <div class="col-auto">
-          <q-tabs
-            v-model="tabActive"
-            dense
-            class="bg-grey-2"
-            active-color="primary"
-            indicator-color="primary"
-            align="justify"
-            narrow-indicator
-          >
-            <div v-for="(tabItem, index) in pathArr" :key="tabItem.tab.optionId" class="row">
-              <q-tab :name="tabItem.tab.optionId" :label="tabItem.tab.name" no-caps class="q-mt-xs"></q-tab>
-              <div @click="dynamicTab(index)" class="cursor-pointer">
-                <q-icon name="las la-times" size="xs"/>
-              </div>
+        <q-tabs
+          v-model="tabActive"
+          dense
+          class="bg-grey-2"
+          active-color="primary"
+          indicator-color="primary"
+          align="left"
+          narrow-indicator
+        >
+          <q-tab v-for="(tabItem, index) in pathArr" :key="tabItem.tab.optionId" :name="tabItem.tab.optionId" no-caps>
+            <div class="q-py-xs">
+              <span>{{ tabItem.tab.name }}</span>
+              <q-icon class="q-ml-xs" color="black" name="las la-times" size="sm" @click.stop="dynamicTab(index)"/>
             </div>
-<!--            <q-tab v-for="tabItem in pathArr" :name="tabItem.tab.index" :label="tabItem.tab.name" :key="tabItem.tab.optionId" no-caps style="height: 50px">-->
-<!--              <q-badge floating transparent @click="fun">-->
-<!--                <q-icon name="las la-times"/>-->
-<!--              </q-badge>-->
-<!--            </q-tab>-->
-          </q-tabs>
-        </div>
+          </q-tab>
+        </q-tabs>
       </div>
       <q-tab-panels v-model="tabActive" animated transition-prev="fade" transition-next="fade" class="no-scroll">
         <q-tab-panel v-for="tabItem in pathArr" :name="tabItem.tab.optionId" :key="tabItem.tab.optionId"

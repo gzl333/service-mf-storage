@@ -91,6 +91,18 @@ const releaseTime = process.env.releaseTime
 
             <q-item
               clickable
+              :active="activeItemLabel.startsWith('security')"
+              @click="navigateToUrl('/my/storage/security')"
+              active-class="active-item"
+            >
+              <q-item-section class="column items-center">
+                <q-icon name="las la-shield-alt" size="lg"/>
+                <div class="active-text text-center">{{ tc('安全凭证') }}</div>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              clickable
               :active="activeItemLabel.startsWith('backup')"
               @click="navigateToUrl('/my/storage/backup')"
               active-class="active-item"
