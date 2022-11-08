@@ -106,7 +106,8 @@ watch(serviceOptions, chooseTabDataCenter)
   <div class="SecurityCredential">
     <div class="row justify-between items-center">
       <div>
-        <div class="text-h6">您的安全凭证</div>
+        <span class="text-h6 text-primary text-weight-bold">{{ defaultServiceOption?.label }}</span>
+        <span class="text-h6">的安全凭证</span>
         <div>使用此页面管理 iHarbor 账户安全凭证。</div>
       </div>
       <q-select class="col-2" outlined dense v-model="defaultServiceOption" :options="serviceOptions" label="筛选服务单元"/>
