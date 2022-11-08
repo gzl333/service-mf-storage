@@ -19,7 +19,6 @@ import SearchTable from 'components/bucket/SearchTable.vue'
 
 // 获取所有服务选项
 const searchOptions = computed(() => store.getIntegratedSearchOptions)
-
 const store = useStore()
 const { tc } = i18n.global
 const route = useRoute()
@@ -27,7 +26,7 @@ const route = useRoute()
 // 选定默认值
 const tabActive: Ref<string> = ref('')
 const pathArr: Ref = ref([])
-const searchScope: Ref<string[]> = ref([])
+// const searchScope: Ref<Record<string, string>[]> = ref([])
 const selection: Ref<Array<string>> = ref([])
 const keyword = ref('')
 const bucketId = route.query.bucket as string
@@ -52,14 +51,20 @@ const dynamicTab = (index: number) => {
   pathArr.value.splice(index, 1)
   tabActive.value = pathArr.value[0].tab.optionId
 }
-const selectSearchScope = (value: string[]) => {
-  const scopeArr = []
-  for (const bucket of value) {
-    const searchScopeStr = store.tables.bucketTable.byId[bucket]?.service.name + '/' + store.tables.bucketTable.byId[bucket]?.name
-    scopeArr.push(searchScopeStr)
-  }
-  searchScope.value = scopeArr
-}
+// const selectSearchScope = (value: string[]) => {
+//   const scopeArr = []
+//   for (const bucket of value) {
+//     const obj = {
+//       name: '',
+//       nameEn: ''
+//     }
+//     obj.name = store.tables.bucketTable.byId[bucket]?.service.name + '/' + store.tables.bucketTable.byId[bucket]?.name
+//     obj.nameEn = store.tables.bucketTable.byId[bucket]?.service.name_en + '/' + store.tables.bucketTable.byId[bucket]?.name
+//     // const searchScopeStr = store.tables.bucketTable.byId[bucket]?.service.name + '/' + store.tables.bucketTable.byId[bucket]?.name
+//     scopeArr.push(obj)
+//   }
+//   searchScope.value = scopeArr
+// }
 const getSearchDate = async () => {
   pathArr.value = []
   // let index = 0
@@ -69,6 +74,7 @@ const getSearchDate = async () => {
       tab: {
         optionId: '',
         name: '',
+        nameEn: '',
         bucketId: '',
         serviceId: ''
         // index: ''
@@ -87,6 +93,7 @@ const getSearchDate = async () => {
     })
     dataObj.tab.optionId = store.tables.bucketTable.byId[argument]?.service.id + '/' + store.tables.bucketTable.byId[argument]?.name
     dataObj.tab.name = store.tables.bucketTable.byId[argument]?.service.name + '/' + store.tables.bucketTable.byId[argument]?.name
+    dataObj.tab.nameEn = store.tables.bucketTable.byId[argument]?.service.name_en + '/' + store.tables.bucketTable.byId[argument]?.name
     dataObj.tab.serviceId = store.tables.bucketTable.byId[argument]?.service.id
     dataObj.tab.bucketId = argument
     // index值用于区分默认值
@@ -124,6 +131,22 @@ const search = async () => {
     await getSearchDate()
   }
 }
+// 去掉搜索范围显示后 暂时不需要这段逻辑
+/* load bucket table */
+// setup时调用一次
+// if (store.tables.serviceTable.status === 'total') {
+//   store.loadBucketTable()
+// }
+// // 刷新页面时，等待有效的service信息，再调用
+// const unwatch = watch(store.tables.serviceTable, () => {
+//   if (store.tables.serviceTable.status === 'total') {
+//     // serviceTable已经加载，可以load bucketTable
+//     store.loadBucketTable()
+//     // watcher已完成任务，注销
+//     unwatch()
+//   }
+// })
+/* load bucket table */
 // watch(searchOptions, chooseTabService)
 // 接受子组件操作完成emitter，更新数据
 emitter.on('done', async (value) => {
@@ -134,12 +157,12 @@ emitter.on('done', async (value) => {
 onBeforeMount(() => {
   if (bucketId && !defaultKeyword) {
     selection.value.push(bucketId)
-    searchScope.value.push(store.tables.bucketTable.byId[bucketId]?.service.name + '/' + store.tables.bucketTable.byId[bucketId]?.name)
+    // searchScope.value.push({ name: store.tables.bucketTable.byId[bucketId]?.service.name + '/' + store.tables.bucketTable.byId[bucketId]?.name, nameEn: store.tables.bucketTable.byId[bucketId]?.service.name_en + '/' + store.tables.bucketTable.byId[bucketId]?.name })
   }
   if (bucketId && defaultKeyword) {
     selection.value.push(bucketId)
     keyword.value = defaultKeyword
-    searchScope.value.push(store.tables.bucketTable.byId[bucketId]?.service.name + '/' + store.tables.bucketTable.byId[bucketId]?.name)
+    // searchScope.value.push({ name: store.tables.bucketTable.byId[bucketId]?.service.name + '/' + store.tables.bucketTable.byId[bucketId]?.name, nameEn: store.tables.bucketTable.byId[bucketId]?.service.name_en + '/' + store.tables.bucketTable.byId[bucketId]?.name })
     getSearchDate()
   }
 })
@@ -153,24 +176,24 @@ onBeforeUnmount(() => {
   <div class="IntegratedSearch">
     <div class="q-mt-md">
       <div class="text-subtitle1">
-        <span>搜索范围：</span>
-        <span v-for="(item, index) in searchScope" :key="index">{{ item }}&nbsp;&nbsp;&nbsp;</span>
+        <span>{{ tc('搜索范围') }}</span>
+<!--        <span v-for="(item, index) in searchScope" :key="index">{{ i18n.global.locale === 'zh' ? item.name : item.nameEn }}&nbsp;&nbsp;&nbsp;</span>-->
       </div>
       <div>
         <div v-for="(option, optionIndex) in searchOptions" :key="optionIndex" class="q-mt-lg">
           <div class="row items-center">
-            <div class="text-subtitle1 col-2">{{ option.service.serviceName }}</div>
+            <div class="text-subtitle1 col-2">{{ i18n.global.locale === 'zh' ? option.service.serviceName : option.service.serviceNameEn}}</div>
             <div v-if="option.bucket.length !== 0">
               <q-checkbox v-for="(bucket, bucketIndex) in option.bucket" v-model="selection" :key="bucketIndex"
-                          :val="bucket.bucketId" :label="bucket.bucketName" @update:model-value="selectSearchScope"/>
+                          :val="bucket.bucketId" :label="bucket.bucketName"/>
             </div>
-            <div v-else class="text-center q-py-xs">暂无存储桶</div>
+            <div v-else class="text-center q-py-xs">{{ tc('暂无存储桶') }}</div>
           </div>
           <q-separator class="q-mt-md" style="width: 800px" />
         </div>
       </div>
       <div class="text-subtitle1 q-mt-md">
-        <span>关键字</span>
+        <span>{{ tc('关键字') }}</span>
       </div>
       <div class="row q-mt-md">
         <q-input class="col-3" outlined v-model="keyword" :label="tc('请输入对象关键字')"/>
@@ -190,7 +213,7 @@ onBeforeUnmount(() => {
         >
           <q-tab v-for="(tabItem, index) in pathArr" :key="tabItem.tab.optionId" :name="tabItem.tab.optionId" no-caps>
             <div class="q-py-xs">
-              <span>{{ tabItem.tab.name }}</span>
+              <span>{{ i18n.global.locale === 'zh' ? tabItem.tab.name : tabItem.tab.nameEn }}</span>
               <q-icon class="q-ml-xs" color="black" name="las la-times" size="sm" @click.stop="dynamicTab(index)"/>
             </div>
           </q-tab>

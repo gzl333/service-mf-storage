@@ -4,7 +4,7 @@ import { navigateToUrl } from 'single-spa'
 import { BucketInterface, useStore } from 'stores/store'
 // import { useRoute, useRouter } from 'vue-router'
 import { i18n } from 'boot/i18n'
-
+import FtpStatus from 'components/ui/FtpStatus.vue'
 import AccessStatus from 'components/ui/AccessStatus.vue'
 import GlobalBreadcrumbs from 'components/ui/GlobalBreadcrumbs.vue'
 
@@ -310,7 +310,7 @@ const unwatch = watch(store.tables.serviceTable, () => {
 
               <q-btn unelevated dense color="primary" no-caps
                      @click="navigateToUrl(`/my/storage/bucket/${props.row.id}`)">
-                查看详情
+                {{ tc('查看详情') }}
               </q-btn>
             </q-td>
 

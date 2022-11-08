@@ -2,7 +2,7 @@
 
 /* eslint-disable camelcase */
 
-import { axiosSingle, axiosStorage } from 'boot/axios'
+import { axiosSingle } from 'boot/axios'
 
 export default {
   single: {
@@ -424,16 +424,28 @@ export default {
     }
   },
   storage: {
-    getAuthToken () {
-      return axiosStorage.get('/api/v1/auth-token/')
+    getAuthToken (payload: {
+      base: string
+    }) {
+      return axiosSingle.get(payload.base + '/api/v1/auth-token/')
     },
-    putAuthToken () {
-      return axiosStorage.put('/api/v1/auth-token/')
+    putAuthToken (payload: {
+      base: string
+    }) {
+      return axiosSingle.put(payload.base + '/api/v1/auth-token/')
     },
-    getAuthKey () {
-      return axiosStorage.get('/api/v1/auth-key/')
+    getAuthKey (payload: {
+      base: string
+    }) {
+      return axiosSingle.get(payload.base + '/api/v1/auth-key/')
+    },
+    postAuthKey (payload: {
+      base: string
+    }) {
+      return axiosSingle.post(payload.base + '/api/v1/auth-key/')
     },
     patchAuthKey (payload: {
+      base: string,
       path: {
         access_key: string
       }
@@ -444,17 +456,15 @@ export default {
       const config = {
         params: payload.query
       }
-      return axiosStorage.patch('/api/v1/auth-key/' + payload.path.access_key + '/', null, config)
-    },
-    postAuthKey () {
-      return axiosStorage.post('/api/v1/auth-key/')
+      return axiosSingle.patch(payload.base + '/api/v1/auth-key/' + payload.path.access_key + '/', null, config)
     },
     deleteAuthKey (payload: {
+      base: string,
       path: {
         access_key: string
       }
     }) {
-      return axiosStorage.delete('/api/v1/auth-key/' + payload.path.access_key + '/')
+      return axiosSingle.delete(payload.base + '/api/v1/auth-key/' + payload.path.access_key + '/')
     }
   }
 }

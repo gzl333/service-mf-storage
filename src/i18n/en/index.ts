@@ -7,7 +7,11 @@ export default {
   返回: 'Go Back',
 
   // layout
+  // StorageLayout
   对象存储: 'Object Storage',
+  综合检索: 'Comprehensive Retrieval',
+  安全凭证: 'Security Credential',
+  数据备份: 'Data Backup',
 
   // components
   // AlreadyShareDialog
@@ -48,18 +52,18 @@ export default {
   正在修改FTP密码: 'Modifying FTP password',
   成功修改FTP密码: 'FTP password successfully modified',
   // BucketNoteEditDialog
-  修改存储桶备注: 'Change bucket notes',
-  备注: 'Note',
-  '备注长度应在1-50个字符之间': 'The length of notes should be between 1-50 characters',
-  正在修改备注: 'Modifying notes',
-  成功修改存储桶备注: 'Successfully modified bucket notes',
+  修改存储桶备注: 'Change bucket remarks',
+  备注: 'Remarks',
+  '备注长度应在1-50个字符之间': 'The length of remarks should be between 1-50 characters',
+  正在修改备注: 'Modifying remarks',
+  成功修改存储桶备注: 'Successfully modified bucket remarks',
   // BucketTable
   全部存储桶: 'All Buckets',
   没有存储桶: 'No Buckets',
   复制到剪切板: 'Copy To Clipboard',
   关闭: 'Close',
   开启: 'Open',
-  无备注: 'No Notes',
+  无备注: 'No Remarks',
   折叠详情: 'Fold Details',
   展开详情: 'Unfold Details',
   存储桶统计信息: 'Bucket Statistics',
@@ -86,6 +90,8 @@ export default {
   创建读写token: 'Create read / write token',
   创建只读token: 'Create read-only token',
   为存储桶创建token: 'Create a token for the bucket',
+  存储桶创建token: 'Create Bucket Token',
+  当前token数量: 'Current Token Quantity',
   // BucketTokenDeleteDialog
   成功删除token: 'Successfully deleted token',
   删除token: 'Delete Token',
@@ -124,11 +130,11 @@ export default {
   创建文件夹: 'Create Folder',
   返回上一级: 'Go Back',
   没有文件: 'No Files',
+  筛选对象: 'Filter Objects',
   下载次数: 'Amount Of Downloads',
   最后修改: 'Last Modification',
   下载: 'Download',
   重命名: 'Rename',
-  检索对象: 'Search Object',
   '正在下载中，请稍等': 'Downloading, please wait',
   下载完成: 'Download complete',
   // PublicShareDialog
@@ -175,6 +181,39 @@ export default {
   使用说明: 'Instructions',
   发布时间: 'Release Time',
   // pages
+  // BucketList
+  筛选存储桶: 'Filter Buckets',
+  筛选服务单元: 'Filter Service Units',
+  服务单元: 'Service Units',
+  Web访问权限: 'Web Access',
+  私有访问: 'Private Access',
+  公有访问: 'Public Access',
+  查看详情: 'Details',
+  // BucketDetail
+  对象列表: 'Object List',
+  存储桶属性: 'Bucket Properties',
+  连接信息: 'Connection Information',
+  存储桶概述: 'Bucket Overview',
+  名称: 'Name',
+  所属服务单元: 'Service Unit',
+  修改备注: 'Modify Remarks',
+  'Web 访问': 'Web Access',
+  'Web 访问权限': 'Web Access Rights',
+  'Web 访问地址': 'Web Access Address',
+  'API 连接': 'API Connect',
+  'FTP 连接': 'FTP Connect',
+  不支持FTP连接: 'FTP connection is not supported',
+  存储桶token: 'Bucket Token',
+  暂无可用token: 'No Token Available',
+  'FTP 状态': 'FTP State',
+  'FTP 只读密码': 'FTP Read Only Password',
+  'FTP 读写密码': 'FTP Read Write Password',
+  // IntegratedSearch
+  搜索范围: 'Search Scope',
+  关键字: 'Keyword',
+  请选择服务以及存储桶: 'Please select service and bucket',
+  请输入对象关键字: 'Please enter the object keyword',
+  暂无存储桶: 'No Bucket',
   // SharePathList
   输入密码: 'Enter Password',
   密码: 'Password',
@@ -185,7 +224,6 @@ export default {
   // SearchTable
   对象关键字: 'Object Keyword',
   请选择存储桶: 'Please select bucket',
-  请输入对象关键字: 'Please enter the object keyword',
   搜索: 'Search',
   返回文件列表: 'Return To File List',
   批量删除: 'BatchDelete',

@@ -5,6 +5,10 @@ import { i18n } from 'boot/i18n'
 import api from 'src/api/index'
 
 const props = defineProps({
+  serviceId: {
+    type: String,
+    required: true
+  },
   accessKey: {
     type: String,
     required: true
@@ -23,7 +27,7 @@ const {
 const onCancelClick = onDialogCancel
 
 const onOKClick = async () => {
-  await api.storage.storage.deleteAuthKey({ path: { access_key: props.accessKey } })
+  await api.storage.storage.deleteAuthKey({ base: store.tables.serviceTable.byId[props.serviceId]?.endpoint_url, path: { access_key: props.accessKey } })
   delete store.tables.keyPairTable.byId[props.accessKey]
   onDialogOK()
   Notify.create({

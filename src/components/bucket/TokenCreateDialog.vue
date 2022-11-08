@@ -4,13 +4,13 @@ import { Notify, QBtn, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import api from 'src/api/index'
 
-// const props = defineProps({
-//   serviceId: {
-//     type: String,
-//     required: true,
-//     default: ''
-//   }
-// })
+const props = defineProps({
+  serviceId: {
+    type: String,
+    required: true
+  }
+})
+
 defineEmits([...useDialogPluginComponent.emits])
 
 const store = useStore()
@@ -35,8 +35,8 @@ const onOKClick = async () => {
     timeout: 5000,
     multiLine: true
   })
-  const respGetToken = await api.storage.storage.putAuthToken()
-  store.refreshToken(respGetToken.data.token)
+  const respGetToken = await api.storage.storage.putAuthToken({ base: store.tables.serviceTable.byId[props.serviceId]?.endpoint_url })
+  store.tables.authTokenTable.byId[props.serviceId] = respGetToken.data.token
   onDialogOK()
   Notify.create({
     classes: 'notification-positive shadow-15',

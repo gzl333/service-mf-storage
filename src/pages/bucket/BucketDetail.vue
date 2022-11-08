@@ -117,15 +117,15 @@ const clickToCopy = useCopyToClipboard()
     >
       <q-tab name="object"
              @click="navigateToUrl('/my/storage/bucket/' + props.bucketId + '/object')">
-        对象列表
+        {{ tc('对象列表') }}
       </q-tab>
       <q-tab name="property"
              @click="navigateToUrl('/my/storage/bucket/' + props.bucketId + '/property')">
-        存储桶属性
+        {{ tc('存储桶属性') }}
       </q-tab>
       <q-tab name="connection"
              @click="navigateToUrl('/my/storage/bucket/' + props.bucketId + '/connection')">
-        连接信息
+        {{ tc('连接信息') }}
       </q-tab>
     </q-tabs>
 
@@ -146,7 +146,7 @@ const clickToCopy = useCopyToClipboard()
 
         <q-card class="q-mb-md" flat bordered>
           <q-item dense class="row items-center bg-grey-1">
-            存储桶概述
+            {{ tc('存储桶概述') }}
           </q-item>
 
           <q-separator/>
@@ -155,7 +155,7 @@ const clickToCopy = useCopyToClipboard()
             <q-card-section class="col-3">
               <div class="column">
                 <div class="col text-grey">
-                  名称
+                  {{ tc('名称') }}
                 </div>
                 <div class="col">
                   {{ currentBucket?.name }}
@@ -168,7 +168,7 @@ const clickToCopy = useCopyToClipboard()
 
             <q-card-section class="col-3">
               <div class="col text-grey">
-                所属服务单元
+                {{ tc('所属服务单元') }}
               </div>
               <div class="col">
                 {{ i18n.global.locale === 'zh' ? currentService?.name : currentService?.name_en }}
@@ -179,7 +179,7 @@ const clickToCopy = useCopyToClipboard()
 
             <q-card-section class="col-3">
               <div class="col text-grey">
-                创建时间
+                {{ tc('创建时间') }}
               </div>
               <div class="col">
                 {{ new Date(currentBucket?.detail.created_time).toLocaleString(i18n.global.locale) }}
@@ -190,7 +190,7 @@ const clickToCopy = useCopyToClipboard()
 
             <q-card-section class="col-3">
               <div class="col text-grey">
-                备注
+                {{ tc('备注') }}
               </div>
               <div class="col"
                    style="max-width: 300px; word-break: break-all; word-wrap: break-word; white-space: normal;">
@@ -211,7 +211,7 @@ const clickToCopy = useCopyToClipboard()
 
         <q-card flat bordered>
           <q-item dense class="row items-center bg-grey-1">
-            存储桶统计信息
+            {{ tc('存储桶统计信息') }}
           </q-item>
 
           <q-separator/>
@@ -220,7 +220,7 @@ const clickToCopy = useCopyToClipboard()
             <q-card-section class="col-3">
               <div class="column">
                 <div class="col text-grey">
-                  存储桶体积
+                  {{ tc('存储桶体积') }}
                 </div>
                 <div class="col">
                   {{ formatSize(currentBucketStat?.stats.space || 0) }}
@@ -233,7 +233,7 @@ const clickToCopy = useCopyToClipboard()
 
             <q-card-section class="col-3">
               <div class="col text-grey">
-                对象数量
+                {{ tc('对象数量') }}
               </div>
               <div class="col">
                 {{ currentBucketStat?.stats.count }}
@@ -244,7 +244,7 @@ const clickToCopy = useCopyToClipboard()
 
             <q-card-section class="col-3">
               <div class="col text-grey">
-                统计时间
+                {{ tc('统计时间') }}
               </div>
               <div class="col">
                 {{ new Date(currentBucketStat?.stats_time).toLocaleString(i18n.global.locale) }}
@@ -271,7 +271,7 @@ const clickToCopy = useCopyToClipboard()
 
         <q-card class="q-mb-md" flat bordered>
           <q-item dense class="row items-center bg-grey-1">
-            Web 访问
+            {{ tc('Web 访问') }}
           </q-item>
 
           <q-separator/>
@@ -280,7 +280,7 @@ const clickToCopy = useCopyToClipboard()
             <q-card-section class="col-3">
               <div class="column">
                 <div class="col text-grey">
-                  Web 访问权限
+                  {{ tc('Web 访问权限') }}
                 </div>
                 <div class="col row items-center">
                   <q-toggle
@@ -301,7 +301,7 @@ const clickToCopy = useCopyToClipboard()
             <q-card-section v-if="currentBucket?.detail.access_permission === '公有'" class="col-auto">
               <div class="column">
                 <div class="col text-grey">
-                  Web 访问地址
+                  {{ tc('Web 访问地址') }}
                 </div>
                 <div class="col row items-center">
                   {{ currentBucketUrl }}
@@ -324,7 +324,7 @@ const clickToCopy = useCopyToClipboard()
 
         <q-card class="q-mb-md" flat bordered>
           <q-item dense class="row items-center bg-grey-1">
-            API 连接
+            {{ tc('API 连接') }}
           </q-item>
 
           <q-separator/>
@@ -362,7 +362,7 @@ const clickToCopy = useCopyToClipboard()
 
         <q-card class="q-mb-md" flat bordered>
           <q-item dense class="row items-center bg-grey-1">
-            FTP 连接
+            {{ tc('FTP 连接') }}
           </q-item>
 
           <q-separator/>
@@ -370,13 +370,13 @@ const clickToCopy = useCopyToClipboard()
           <q-card-section class="row item-center" horizontal>
 
             <q-card-section v-if="!currentService?.provide_ftp" class="col-3">
-              不支持FTP连接
+              {{ tc('不支持FTP连接') }}
             </q-card-section>
 
             <q-card-section v-if="currentService?.provide_ftp" class="col-3">
               <div class="column">
                 <div class="col text-grey">
-                  FTP 状态
+                  {{ tc('FTP 状态') }}
                 </div>
                 <div class="col row items-center">
                   <q-toggle
@@ -385,7 +385,7 @@ const clickToCopy = useCopyToClipboard()
                     color="green"
                     @click="store.toggleBucketFtp(bucketId)"
                   />
-                  {{ currentBucket?.detail.ftp_enable ? '开启' : '关闭' }}
+                  {{ currentBucket?.detail.ftp_enable ? tc('开启') : tc('关闭') }}
                 </div>
               </div>
             </q-card-section>
@@ -395,7 +395,7 @@ const clickToCopy = useCopyToClipboard()
             <q-card-section v-if="currentService?.provide_ftp" class="col-3">
               <div class="column">
                 <div class="col text-grey">
-                  FTP 只读密码
+                  {{ tc('FTP 只读密码') }}
                 </div>
                 <div class="col row items-center">
                   <PasswordToggle :text="currentBucket?.detail.ftp_ro_password"/>
@@ -432,7 +432,7 @@ const clickToCopy = useCopyToClipboard()
             <q-card-section v-if="currentService?.provide_ftp" class="col-3">
               <div class="column">
                 <div class="col text-grey">
-                  FTP 读写密码
+                  {{ tc('FTP 读写密码')}}
                 </div>
                 <div class="col row items-center">
                   <PasswordToggle :text="currentBucket?.detail.ftp_password"/>

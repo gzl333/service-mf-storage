@@ -4,6 +4,12 @@ import { Notify, QBtn, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import api from 'src/api/index'
 
+const props = defineProps({
+  serviceId: {
+    type: String,
+    required: true
+  }
+})
 defineEmits([...useDialogPluginComponent.emits])
 const store = useStore()
 const { tc } = i18n.global
@@ -17,9 +23,18 @@ const {
 const onCancelClick = onDialogCancel
 
 const onOKClick = async () => {
-  const respGetKeys = await api.storage.storage.postAuthKey()
+  const respGetKeys = await api.storage.storage.postAuthKey({ base: store.tables.serviceTable.byId[props.serviceId]?.endpoint_url })
+  const keyObj = {
+    access_key: respGetKeys.data.key.access_key,
+    create_time: respGetKeys.data.key.create_time,
+    permission: respGetKeys.data.key.permission,
+    secret_key: respGetKeys.data.key.secret_key,
+    state: respGetKeys.data.key.state,
+    user: respGetKeys.data.key.user,
+    service: props.serviceId
+  }
   Object.assign(store.tables.keyPairTable.byId, {
-    [respGetKeys.data.key.access_key]: respGetKeys.data.key
+    [respGetKeys.data.key.access_key]: keyObj
   })
   store.tables.keyPairTable.allIds.unshift(respGetKeys.data.key.access_key)
   store.tables.keyPairTable.allIds = [...new Set(store.tables.keyPairTable.allIds)]

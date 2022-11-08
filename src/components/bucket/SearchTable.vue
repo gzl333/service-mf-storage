@@ -3,6 +3,7 @@ import { ref, computed, watch, Ref } from 'vue'
 import { FileInterface } from 'src/stores/store'
 import { useStore } from 'stores/store'
 // import { useRoute } from 'vue-router'
+import { navigateToUrl } from 'single-spa'
 import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
 import api from 'src/api'
@@ -30,7 +31,6 @@ const { tc } = i18n.global
 const selected = ref<FileInterface[]>([])
 const fileDetail = ref({})
 const tabActive: Ref<string> = ref('1')
-
 // 把过长的文本缩短
 const clipText70 = useClipText(70)
 // 格式化size
@@ -232,6 +232,9 @@ const toggleExpansion = (props: { expand: boolean, row: FileInterface }) => {
     Object.assign(fileDetail.value, { [props.row.name]: props.row })
   }
 }
+const findFile = (na: string) => {
+  navigateToUrl('/my/storage/bucket/' + props.pathArr.tab.bucketId + '/object' + '?path=' + na.slice(0, na.lastIndexOf('/')))
+}
 watch(
   () => tabActive,
   () => {
@@ -345,18 +348,22 @@ watch(
                         new Date(fileDetail[props.row.name]?.ult).toLocaleString(i18n.global.locale)
                       }}
                     </div>
-                    <div>
-                      {{ tc('文件大小') }}: {{ fileDetail[props.row.name]?.si }}
+                    <div>{{ tc('最后修改') }}:
+                      {{ new Date(fileDetail[props.row.name]?.upt).toLocaleString(i18n.global.locale) }}
                     </div>
+                    <div>{{ tc('访问权限') }}: {{ tc(props.row.access_permission) }}</div>
                     <div>
                       {{ tc('下载次数') }}: {{ fileDetail[props.row.name]?.dlc }}
                     </div>
                   </div>
                   <div class="q-ml-xl">
-                    <div>{{ tc('最后修改') }}:
-                      {{ new Date(fileDetail[props.row.name]?.upt).toLocaleString(i18n.global.locale) }}
+                    <div>
+                      <span>{{ tc('文件路径') }}: </span>
+                      <span class="text-primary cursor-pointer" @click="findFile(fileDetail[props.row.name]?.na)">{{ fileDetail[props.row.name]?.na }}</span>
                     </div>
-                    <div>{{ tc('访问权限') }}: {{ tc(props.row.access_permission) }}</div>
+                    <div>
+                      {{ tc('文件大小') }}: {{ fileDetail[props.row.name]?.si }}
+                    </div>
                     <div>MD5: {{ fileDetail[props.row.name]?.md5 }}</div>
                   </div>
                 </div>

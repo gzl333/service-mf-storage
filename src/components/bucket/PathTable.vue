@@ -283,7 +283,7 @@ watch(
                :disable="selected.length<=0"/>
         <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="batchShare"
                :disable="selected.length<=0"/>
-        <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('综合搜索')" @click="comprehensiveSearch"/>
+        <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('综合检索')" @click="comprehensiveSearch"/>
       </div>
 
       <q-input

@@ -275,7 +275,7 @@ export interface TokenInterface {
   created: string
 }
 
-export interface KeyPairInterface {
+export interface ResKeyPairInterface {
   access_key: string
   create_time: string
   permission: string
@@ -284,9 +284,20 @@ export interface KeyPairInterface {
   user: string
 }
 
+export interface KeyPairInterface {
+  access_key: string
+  create_time: string
+  permission: string
+  secret_key: string
+  state: boolean
+  user: string
+  service: string
+}
+
 export interface IntegratedServiceInterface {
   serviceId: string
   serviceName: string
+  serviceNameEn: string
 }
 
 export interface IntegratedBucketInterface {
@@ -344,6 +355,9 @@ export interface PathTableInterface extends partTable, localIdTable<PathInterfac
 export interface KeyPairTableInterface extends totalTable, idTable<KeyPairInterface> {
 }
 
+export interface AuthTokenTableInterface extends totalTable, idTable<TokenInterface> {
+}
+
 /* 表的具体类型 */
 
 export const useStore = defineStore('storage', {
@@ -353,9 +367,7 @@ export const useStore = defineStore('storage', {
       // 例如'/my/server/personal/list' -> ['personal', 'list'], 供二级三级导航栏在刷新时保持选择使用
       currentPath: [] as string[],
       // 分享链接所用的服务单元信息
-      shareService: {} as ServiceInterface,
-      tokenArr: [] as TokenInterface[],
-      keyPair: [] as KeyPairInterface[]
+      shareService: {} as ServiceInterface
     },
     tables: {
       serviceTable: {
@@ -387,7 +399,12 @@ export const useStore = defineStore('storage', {
         status: 'init',
         allIds: [],
         byId: {}
-      } as KeyPairTableInterface
+      } as KeyPairTableInterface,
+      authTokenTable: {
+        status: 'init',
+        allIds: [],
+        byId: {}
+      } as AuthTokenTableInterface
     }
   }),
   getters: {
@@ -396,7 +413,7 @@ export const useStore = defineStore('storage', {
       const services = (state.tables.serviceTable.allIds).map(serviceId => {
         const currentService = state.tables.serviceTable.byId[serviceId]
         return {
-          value: currentService?.id,
+          serviceId: currentService?.id,
           label: currentService?.name,
           labelEn: currentService?.name_en
         }
@@ -443,7 +460,8 @@ export const useStore = defineStore('storage', {
           // service用于存放服务
           service: {
             serviceId: '',
-            serviceName: ''
+            serviceName: '',
+            serviceNameEn: ''
           },
           // bucket用于存放该服务下的存储桶
           bucket: []
@@ -451,6 +469,7 @@ export const useStore = defineStore('storage', {
         // 需要服务id以及服务名
         IntegratedObj.service.serviceId = service
         IntegratedObj.service.serviceName = state.tables.serviceTable.byId[service]?.name
+        IntegratedObj.service.serviceNameEn = state.tables.serviceTable.byId[service]?.name_en
         // 遍历所有桶
         for (const bucket of state.tables.bucketTable.allIds) {
           const bucketObj = {
@@ -468,6 +487,23 @@ export const useStore = defineStore('storage', {
         IntegratedArr.push(IntegratedObj)
       }
       return IntegratedArr
+    },
+    getKeyPairTable: (state) => (service: string): KeyPairInterface[] => {
+      const sortFn = (a: KeyPairInterface, b: KeyPairInterface) => new Date(b.create_time).getTime() - new Date(a.create_time).getTime()
+      const keyPairs: KeyPairInterface[] = []
+      for (const key of Object.values(state.tables.keyPairTable.byId)) {
+        if (key.service === service) {
+          keyPairs.push(key)
+        }
+      }
+      return keyPairs.sort(sortFn)
+    },
+    getTokenTable: (state) => (service: string): TokenInterface[] => {
+      const tokens: TokenInterface[] = []
+      if (state.tables.authTokenTable.byId[service]) {
+        tokens.push(state.tables.authTokenTable.byId[service])
+      }
+      return tokens
     }
   },
   actions: {
@@ -682,29 +718,51 @@ export const useStore = defineStore('storage', {
       }
     },
     async loadTokenTable () {
-      const respGetToken = await api.storage.storage.getAuthToken()
-      this.items.tokenArr.push(respGetToken.data.token)
-    },
-    refreshToken (objItem: TokenInterface) {
-      this.items.tokenArr[0] = objItem
+      this.tables.authTokenTable.status = 'loading'
+      for (const service of this.tables.serviceTable.allIds) {
+        const respGetToken = await api.storage.storage.getAuthToken({ base: this.tables.serviceTable.byId[service].endpoint_url })
+        this.tables.authTokenTable.allIds.unshift(service)
+        Object.assign(this.tables.authTokenTable.byId, {
+          [service]: respGetToken.data.token
+        })
+        this.tables.authTokenTable.allIds = [...new Set(this.tables.authTokenTable.allIds)]
+      }
+      this.tables.authTokenTable.status = 'total'
     },
     async loadKeyTable () {
       this.tables.keyPairTable.status = 'loading'
-      try {
-        const respGetKeys = await api.storage.storage.getAuthKey()
-        this.items.keyPair = respGetKeys.data.keys
-        respGetKeys.data.keys.forEach((key: KeyPairInterface) => {
-          Object.assign(this.tables.keyPairTable.byId, {
-            [key.access_key]: key
+      for (const service of this.tables.serviceTable.allIds) {
+        try {
+          const respGetKeys = await api.storage.storage.getAuthKey({ base: this.tables.serviceTable.byId[service].endpoint_url })
+          respGetKeys.data.keys.forEach((key: ResKeyPairInterface) => {
+            const keyObj = {
+              access_key: '',
+              create_time: '',
+              permission: '',
+              secret_key: '',
+              state: false,
+              user: '',
+              service: ''
+            }
+            keyObj.access_key = key.access_key
+            keyObj.create_time = key.create_time
+            keyObj.permission = key.permission
+            keyObj.secret_key = key.secret_key
+            keyObj.state = key.state
+            keyObj.user = key.user
+            keyObj.service = service
+            Object.assign(this.tables.keyPairTable.byId, {
+              [key.access_key]: keyObj
+            })
+            this.tables.keyPairTable.allIds.unshift(key.access_key)
+            this.tables.keyPairTable.allIds = [...new Set(this.tables.keyPairTable.allIds)]
           })
-          this.tables.keyPairTable.allIds.unshift(key.access_key)
-          this.tables.keyPairTable.allIds = [...new Set(this.tables.keyPairTable.allIds)]
-        })
-        this.tables.keyPairTable.status = 'total'
-      } catch (exception) {
-        exceptionNotifier(exception)
-        this.tables.keyPairTable.status = 'error'
+        } catch (exception) {
+          exceptionNotifier(exception)
+          this.tables.keyPairTable.status = 'error'
+        }
       }
+      this.tables.keyPairTable.status = 'total'
     },
     // 文件更改分享状态
     changeShareStatus (fileStatus: shareInterface) {
@@ -916,31 +974,39 @@ export const useStore = defineStore('storage', {
       })
     },
     // 触发新建token对话框
-    triggerCreateTokenDialog () {
+    triggerCreateTokenDialog (serviceId: string) {
       Dialog.create({
-        component: TokenCreateDialog
+        component: TokenCreateDialog,
+        componentProps: {
+          serviceId
+        }
       })
     },
     // 触发新建访问密匙对话框
-    triggerCreateKeyDialog () {
+    triggerCreateKeyDialog (serviceId: string) {
       Dialog.create({
-        component: CreateKeyDialog
+        component: CreateKeyDialog,
+        componentProps: {
+          serviceId
+        }
       })
     },
     // 触发删除访问密匙对话框
-    triggerDeleteKeyDialog (accessKey: string) {
+    triggerDeleteKeyDialog (serviceId: string, accessKey: string) {
       Dialog.create({
         component: DeleteKeyDialog,
         componentProps: {
+          serviceId,
           accessKey
         }
       })
     },
     // 触发新建token对话框
-    triggerChangeKeyStateDialog (accessKey: string, state: string) {
+    triggerChangeKeyStateDialog (serviceId: string, accessKey: string, state: string) {
       Dialog.create({
         component: ChangeKeyStateDialog,
         componentProps: {
+          serviceId,
           accessKey,
           state
         }

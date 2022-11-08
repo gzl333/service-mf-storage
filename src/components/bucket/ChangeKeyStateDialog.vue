@@ -5,6 +5,10 @@ import { i18n } from 'boot/i18n'
 import api from 'src/api/index'
 
 const props = defineProps({
+  serviceId: {
+    type: String,
+    required: true
+  },
   accessKey: {
     type: String,
     required: true
@@ -17,7 +21,6 @@ const props = defineProps({
 defineEmits([...useDialogPluginComponent.emits])
 const store = useStore()
 const { tc } = i18n.global
-
 const {
   dialogRef,
   onDialogHide,
@@ -27,7 +30,7 @@ const {
 const onCancelClick = onDialogCancel
 
 const onOKClick = async () => {
-  await api.storage.storage.patchAuthKey({ path: { access_key: props.accessKey }, query: { active: !props.state } })
+  await api.storage.storage.patchAuthKey({ base: store.tables.serviceTable.byId[props.serviceId]?.endpoint_url, path: { access_key: props.accessKey }, query: { active: !props.state } })
   store.tables.keyPairTable.byId[props.accessKey].state = !store.tables.keyPairTable.byId[props.accessKey].state
   onDialogOK()
   Notify.create({
