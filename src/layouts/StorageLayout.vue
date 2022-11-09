@@ -50,7 +50,7 @@ const releaseTime = process.env.releaseTime
 
             <q-item
               clickable
-              :active="activeItemLabel.includes('all')"
+              :active="activeItemLabel.includes('bucket')"
               @click="navigateToUrl('/my/storage/bucket/all')"
               active-class="active-item"
             >
@@ -79,6 +79,18 @@ const releaseTime = process.env.releaseTime
 
             <q-item
               clickable
+              :active="activeItemLabel.startsWith('voucher')"
+              @click="navigateToUrl('/my/storage/voucher')"
+              active-class="active-item"
+            >
+              <q-item-section class="column items-center">
+                <q-icon name="currency_yuan" size="lg"/>
+                <div class="active-text text-center">{{ tc('代金券') }}</div>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              clickable
               :active="activeItemLabel.startsWith('search')"
               @click="navigateToUrl('/my/storage/search')"
               active-class="active-item"
@@ -96,22 +108,22 @@ const releaseTime = process.env.releaseTime
               active-class="active-item"
             >
               <q-item-section class="column items-center">
-                <q-icon name="las la-shield-alt" size="lg"/>
+                <q-icon name="lock_outline" size="lg"/>
                 <div class="active-text text-center">{{ tc('安全凭证') }}</div>
               </q-item-section>
             </q-item>
 
-            <q-item
-              clickable
-              :active="activeItemLabel.startsWith('backup')"
-              @click="navigateToUrl('/my/storage/backup')"
-              active-class="active-item"
-            >
-              <q-item-section class="column items-center">
-                <q-icon name="backup" size="lg"/>
-                <div class="active-text text-center">{{ tc('数据备份') }}</div>
-              </q-item-section>
-            </q-item>
+<!--            <q-item-->
+<!--              clickable-->
+<!--              :active="activeItemLabel.startsWith('backup')"-->
+<!--              @click="navigateToUrl('/my/storage/backup')"-->
+<!--              active-class="active-item"-->
+<!--            >-->
+<!--              <q-item-section class="column items-center">-->
+<!--                <q-icon name="backup" size="lg"/>-->
+<!--                <div class="active-text text-center">{{ tc('数据备份') }}</div>-->
+<!--              </q-item-section>-->
+<!--            </q-item>-->
 
             <q-item
               clickable

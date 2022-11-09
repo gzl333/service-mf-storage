@@ -16,6 +16,10 @@ const routes: RouteRecordRaw[] = [
         props: true
       },
       {
+        path: 'voucher',
+        component: () => import('pages/coupon/CouponList.vue')
+      },
+      {
         path: 'search',
         component: () => import('pages/bucket/IntegratedSearch.vue')
       },

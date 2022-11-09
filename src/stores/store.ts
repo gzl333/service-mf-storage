@@ -358,6 +358,9 @@ export interface KeyPairTableInterface extends totalTable, idTable<KeyPairInterf
 export interface AuthTokenTableInterface extends totalTable, idTable<TokenInterface> {
 }
 
+export interface CouponTableInterface extends totalTable, idTable<CouponInterface> {
+}
+
 /* 表的具体类型 */
 
 export const useStore = defineStore('storage', {
@@ -404,7 +407,12 @@ export const useStore = defineStore('storage', {
         status: 'init',
         allIds: [],
         byId: {}
-      } as AuthTokenTableInterface
+      } as AuthTokenTableInterface,
+      couponTable: {
+        status: 'init',
+        allIds: [],
+        byId: {}
+      } as CouponTableInterface
     }
   }),
   getters: {
@@ -504,6 +512,23 @@ export const useStore = defineStore('storage', {
         tokens.push(state.tables.authTokenTable.byId[service])
       }
       return tokens
+    },
+    // 根据用户选择的serviceId来返回coupon数组
+    getCouponsByServiceId: (state) => (serviceId: string): CouponInterface[] => {
+      // 排序函数，根据coupon创建时间降序排列
+      const sortFn = (a: CouponInterface, b: CouponInterface) => new Date(b.creation_time).getTime() - new Date(a.creation_time).getTime()
+
+      if (serviceId === '0') {
+        return Object.values(state.tables.couponTable.byId).sort(sortFn)
+      } else {
+        const rows: CouponInterface[] = []
+        for (const coupon of Object.values(state.tables.couponTable.byId)) {
+          if (coupon?.app_service?.service_id === serviceId) {
+            rows.push(coupon)
+          }
+        }
+        return rows.sort(sortFn)
+      }
     }
   },
   actions: {
@@ -514,6 +539,9 @@ export const useStore = defineStore('storage', {
         void await this.loadServiceTable()
         // 加载bucketTable
         void await this.loadBucketTable()
+        // 加载couponTable
+        void await this.loadCouponTable()
+
         void await this.loadTokenTable()
         void await this.loadKeyTable()
       }
@@ -763,6 +791,36 @@ export const useStore = defineStore('storage', {
         }
       }
       this.tables.keyPairTable.status = 'total'
+    },
+    async loadCouponTable () {
+      // 先清空table，避免多次更新时数据累加（凡是需要强制刷新的table，都要先清空再更新）
+      this.tables.couponTable = {
+        byId: {},
+        allIds: [],
+        status: 'init'
+      }
+      this.tables.couponTable.status = 'loading'
+      try {
+        // 发送请求,列举全部personal coupon
+        const respCoupon = await api.vms.cashcoupon.getCashCoupon({
+          query: {
+            page_size: 9999,
+            app_service_category: 'vms-object'
+          }
+        })
+        // 将响应normalize，存入state里的couponTable
+        const coupon = new schema.Entity('coupon')
+        for (const data of respCoupon.data.results) {
+          const normalizedData = normalize(data, coupon)
+          Object.assign(this.tables.couponTable.byId, normalizedData.entities.coupon)
+          this.tables.couponTable.allIds.unshift(Object.keys(normalizedData.entities.coupon as Record<string, unknown>)[0])
+          this.tables.couponTable.allIds = [...new Set(this.tables.couponTable.allIds)]
+        }
+        this.tables.couponTable.status = 'total'
+      } catch (exception) {
+        exceptionNotifier(exception)
+        this.tables.couponTable.status = 'error'
+      }
     },
     // 文件更改分享状态
     changeShareStatus (fileStatus: shareInterface) {
