@@ -157,7 +157,7 @@ watch(serviceOptions, chooseDefaultSelect)
                   :rows="tokenRow"
                   :columns="tokenColumns"
                   hide-pagination
-                  :no-data-label="tc('没有文件')"
+                  :no-data-label="tc('暂无token')"
                 >
                   <template v-slot:body="props">
                     <q-tr :props="props" :class="props.expand ? 'bg-blue-1':''">
@@ -215,7 +215,7 @@ watch(serviceOptions, chooseDefaultSelect)
                   :rows="keysRow"
                   :columns="keyColumns"
                   hide-pagination
-                  :no-data-label="tc('没有文件')"
+                  :no-data-label="tc('暂无访问密匙')"
                 >
                   <template v-slot:body="props">
                     <q-tr :props="props" :class="props.expand ? 'bg-blue-1':''">
