@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, PropType } from 'vue'
-import { navigateToUrl } from 'single-spa'
+// import { navigateToUrl } from 'single-spa'
 import { CouponInterface, useStore } from 'stores/store'
 // import { useRoute, useRouter } from 'vue-router'
 import { i18n } from 'boot/i18n'
@@ -9,7 +9,8 @@ import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 
 // import CloudPlatformLogo from 'components/ui/CloudPlatformLogo.vue'
 
-const props = defineProps({
+/* const props =  */
+defineProps({
   coupons: {
     type: Array as PropType<CouponInterface[]>,
     required: true
@@ -109,16 +110,17 @@ const columns = computed(() => [
     classes: 'ellipsis',
     headerStyle: 'padding: 0 0 0 1px',
     style: 'max-width: 100px;padding: 15px 0px;white-space: normal;'
-  },
-  {
-    name: 'operation',
-    label: (() => tc('操作'))(),
-    field: 'operation',
-    align: 'center',
-    classes: 'ellipsis',
-    style: 'padding: 15px 0px;width: 150px;',
-    headerStyle: 'padding: 0 2px'
-  }])
+  }
+  // {
+  //   name: 'operation',
+  //   label: (() => tc('操作'))(),
+  //   field: 'operation',
+  //   align: 'center',
+  //   classes: 'ellipsis',
+  //   style: 'padding: 15px 0px;width: 150px;',
+  //   headerStyle: 'padding: 0 2px'
+  // }
+])
 
 // 复制信息到剪切板
 const clickToCopy = useCopyToClipboard()
@@ -217,8 +219,8 @@ const searchMethod = (rows: CouponInterface[], terms: string): CouponInterface[]
             <div>
               {{
                 i18n.global.locale === 'zh' ?
-                  store.tables.serviceTable.byId[props.row.app_service.service_id]?.name :
-                  store.tables.serviceTable.byId[props.row.app_service.service_id]?.name_en
+                  props.row.app_service?.name :
+                  props.row.app_service?.name_en
               }}
             </div>
             <!--            <div>-->
@@ -285,18 +287,18 @@ const searchMethod = (rows: CouponInterface[], terms: string): CouponInterface[]
 
           </q-td>
 
-          <q-td key="operation" :props="props" class="non-selectable">
-            <q-btn v-if="(new Date() - new Date(props.row.expiration_time)) < 0"
-                   flat
-                   no-caps
-                   dense
-                   padding="none"
-                   color="primary"
-            >
-              {{ tc('使用代金券') }}
-            </q-btn>
-            <div v-else>{{ tc('unavailable') }}</div>
-          </q-td>
+          <!--          <q-td key="operation" :props="props" class="non-selectable">-->
+          <!--            <q-btn v-if="(new Date() - new Date(props.row.expiration_time)) < 0"-->
+          <!--                   flat-->
+          <!--                   no-caps-->
+          <!--                   dense-->
+          <!--                   padding="none"-->
+          <!--                   color="primary"-->
+          <!--            >-->
+          <!--              {{ tc('使用代金券') }}-->
+          <!--            </q-btn>-->
+          <!--            <div v-else>{{ tc('unavailable') }}</div>-->
+          <!--          </q-td>-->
 
         </q-tr>
       </template>

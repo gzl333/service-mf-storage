@@ -31,19 +31,19 @@ const onCancelClick = onDialogCancel
 const exceptionNotifier = useExceptionNotifier()
 
 // 服务单元
-const serviceSelection = ref('')
+const serviceIdSelection = ref('')
 const serviceOptions = computed(() => store.getServiceOptions)
 
 /* 默认服务单元选择第一项 */
-const firstService = computed(() => store.tables.serviceTable.allIds[0])
+const firstServiceId = computed(() => store.tables.serviceTable.allIds[0])
 
 if (store.tables.serviceTable.status === 'total') {
-  serviceSelection.value = firstService.value
+  serviceIdSelection.value = firstServiceId.value
+} else {
+  watch(firstServiceId, () => {
+    serviceIdSelection.value = firstServiceId.value
+  })
 }
-
-watch(firstService, () => {
-  serviceSelection.value = firstService.value
-})
 /* 默认服务单元选择第一项 */
 
 const bucketName = ref('')
@@ -82,7 +82,7 @@ const onOKClick = async () => {
       // req
       const respPostStorageBucket = await api.vms.storage.postStorageBucket({
         body: {
-          service_id: serviceSelection.value,
+          service_id: serviceIdSelection.value,
           name: bucketName.value
         }
       })
@@ -163,7 +163,7 @@ const onOKClick = async () => {
               class="col-5"
               outlined
               dense
-              v-model="serviceSelection"
+              v-model="serviceIdSelection"
               :options="serviceOptions"
               emit-value
               map-options
@@ -171,7 +171,7 @@ const onOKClick = async () => {
               :option-label="i18n.global.locale ==='zh'? 'label':'labelEn'">
               <!--当前选项的内容插槽-->
               <template v-slot:selected-item="scope">
-                <span :class="serviceSelection===scope.opt.value ? 'text-primary' : 'text-black'">
+                <span :class="serviceIdSelection===scope.opt.value ? 'text-primary' : 'text-black'">
                   {{ i18n.global.locale === 'zh' ? scope.opt.label : scope.opt.labelEn }}
                 </span>
               </template>

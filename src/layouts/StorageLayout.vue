@@ -139,6 +139,12 @@ const releaseTime = process.env.releaseTime
 
           </q-list>
 
+          <div class="row justify-center q-pt-lg">
+            <q-btn flat no-caps no-wrap color="primary" :ripple="false" dense @click="store.redeemCouponDialog()">
+              {{ tc('兑换代金券') }}
+            </q-btn>
+          </div>
+
           <!--          <div class="text-grey text-body2 text-center q-pt-xl">v0.0.1</div>-->
           <div class="row justify-center q-pt-lg">
             <q-icon class="text-center" name="info" color="grey-5" size="xs">

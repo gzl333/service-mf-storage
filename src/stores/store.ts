@@ -3,6 +3,7 @@ import { normalize, schema } from 'normalizr'
 import { Dialog } from 'quasar'
 import api from 'src/api/index'
 import useExceptionNotifier from 'src/hooks/useExceptionNotifier'
+
 import BucketCreateDialog from 'components/bucket/BucketCreateDialog.vue'
 import BucketDeleteDialog from 'components/bucket/BucketDeleteDialog.vue'
 import BucketFtpPasswordEditDialog from 'components/bucket/BucketFtpPasswordEditDialog.vue'
@@ -19,6 +20,7 @@ import TokenCreateDialog from 'components/bucket/TokenCreateDialog.vue'
 import ChangeKeyStateDialog from 'components/bucket/ChangeKeyStateDialog.vue'
 import CreateKeyDialog from 'components/bucket/CreateKeyDialog.vue'
 import DeleteKeyDialog from 'components/bucket/DeleteKeyDialog.vue'
+import RedeemCouponDialog from 'components/coupon/RedeemCouponDialog.vue'
 
 const exceptionNotifier = useExceptionNotifier()
 
@@ -418,15 +420,14 @@ export const useStore = defineStore('storage', {
   getters: {
     // 获取服务单元选项
     getServiceOptions: state => {
-      const services = (state.tables.serviceTable.allIds).map(serviceId => {
+      return state.tables.serviceTable.allIds.map(serviceId => {
         const currentService = state.tables.serviceTable.byId[serviceId]
         return {
-          serviceId: currentService?.id,
+          value: currentService?.id,
           label: currentService?.name,
           labelEn: currentService?.name_en
         }
       })
-      return services
     },
     // 获取全部服务单元选项
     getAllServiceOptions: state => {
@@ -556,7 +557,7 @@ export const useStore = defineStore('storage', {
           const normalizedData = normalize(item, service)
           // 存入state
           Object.assign(this.tables.serviceTable.byId, normalizedData.entities.service)
-          this.tables.serviceTable.allIds.push(Object.keys(normalizedData.entities.service as Record<string, unknown>)[0])
+          this.tables.serviceTable.allIds.unshift(Object.keys(normalizedData.entities.service as Record<string, unknown>)[0])
           this.tables.serviceTable.allIds = [...new Set(this.tables.serviceTable.allIds)]
         })
         this.tables.serviceTable.status = 'total'
@@ -1069,6 +1070,14 @@ export const useStore = defineStore('storage', {
           state
         }
       })
+    },
+
+    /* coupon */
+    redeemCouponDialog () {
+      Dialog.create({
+        component: RedeemCouponDialog
+      })
     }
+    /* coupon */
   }
 })
