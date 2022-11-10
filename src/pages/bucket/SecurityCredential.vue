@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { useStore } from 'stores/store'
+import { computed, onBeforeUnmount, Ref, ref, watch } from 'vue'
+import { useStore, ResKeyPairInterface, TokenInterface } from 'stores/store'
 // import { useRoute, useRouter } from 'vue-router'
 import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
 import PasswordToggle from 'components/ui/PasswordToggle.vue'
+import api from 'src/api'
+import emitter from 'boot/mitt'
 // const props = defineProps({
 //   foo: {
 //     type: String as PropType<'bar'>,
@@ -24,8 +26,8 @@ const defaultServiceOption = ref()
 const tokenExpanded = ref(true)
 const keyExpanded = ref(true)
 const isJurisdiction = ref(false)
-const tokenRow = computed(() => store.getTokenTable(defaultServiceOption.value?.serviceId))
-const keysRow = computed(() => store.getKeyPairTable(defaultServiceOption.value?.serviceId))
+const tokenRow: Ref<TokenInterface[]> = ref([])
+const keysRow: Ref<ResKeyPairInterface[]> = ref([])
 const tokenColumns = computed(() => [
   {
     name: 'createTime',
@@ -80,12 +82,22 @@ const keyColumns = computed(() => [
     align: 'left'
   }
 ])
-const chooseDefaultSelect = () => {
+const getAuthToken = async () => {
+  const respGetToken = await api.storage.storage.getAuthToken({ base: store.tables.serviceTable.byId[defaultServiceOption.value.serviceId].endpoint_url })
+  tokenRow.value[0] = respGetToken.data.token
+}
+const getKeyPairs = async () => {
+  const respGetKeys = await api.storage.storage.getAuthKey({ base: store.tables.serviceTable.byId[defaultServiceOption.value.serviceId].endpoint_url })
+  keysRow.value = respGetKeys.data.keys
+}
+const chooseDefaultSelect = async () => {
   defaultServiceOption.value = serviceOptions.value[0]
   if (defaultServiceOption.value) {
     if (Object.values(store.tables.bucketTable.byId).findIndex(item => item.service.id === defaultServiceOption.value.serviceId) === -1) {
       isJurisdiction.value = false
     } else {
+      await getAuthToken()
+      await getKeyPairs()
       isJurisdiction.value = true
     }
   }
@@ -107,14 +119,34 @@ const addKey = () => {
     })
   }
 }
-const selectService = () => {
+const selectService = async () => {
   if (Object.values(store.tables.bucketTable.byId).findIndex(item => item.service.id === defaultServiceOption.value.serviceId) === -1) {
     isJurisdiction.value = false
   } else {
+    await getAuthToken()
+    await getKeyPairs()
     isJurisdiction.value = true
   }
 }
-watch(serviceOptions, chooseDefaultSelect)
+watch(store.tables.bucketTable, () => {
+  if (store.tables.bucketTable.status === 'part') {
+    chooseDefaultSelect()
+  }
+})
+emitter.on('tokenRefresh', async (value) => {
+  if (value) {
+    await getAuthToken()
+  }
+})
+emitter.on('keysRefresh', async (value) => {
+  if (value) {
+    await getKeyPairs()
+  }
+})
+onBeforeUnmount(() => {
+  // 离开页面清空emitter
+  emitter.off('tokenRefresh')
+})
 </script>
 
 <template>

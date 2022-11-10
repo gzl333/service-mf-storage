@@ -146,7 +146,7 @@ const searchMethod = (rows: CouponInterface[], terms: string): CouponInterface[]
       card-class=""
       table-class=""
       table-header-class="bg-grey-1 text-grey"
-      :rows="coupons"
+      :rows="props.coupons"
       :columns="columns"
       row-key="name"
       :loading="store.tables.couponTable.status === 'loading'"

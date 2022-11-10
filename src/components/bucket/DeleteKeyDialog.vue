@@ -3,6 +3,7 @@ import { useStore } from 'stores/store'
 import { Notify, QBtn, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import api from 'src/api/index'
+import emitter from 'boot/mitt'
 
 const props = defineProps({
   serviceId: {
@@ -29,7 +30,8 @@ const onCancelClick = onDialogCancel
 const onOKClick = async () => {
   await api.storage.storage.deleteAuthKey({ base: store.tables.serviceTable.byId[props.serviceId]?.endpoint_url, path: { access_key: props.accessKey } })
   // 删除store存储的访问密匙
-  delete store.tables.keyPairTable.byId[props.accessKey]
+  emitter.emit('keysRefresh', true)
+  // delete store.tables.keyPairTable.byId[props.accessKey]
   onDialogOK()
   Notify.create({
     classes: 'notification-positive shadow-15',

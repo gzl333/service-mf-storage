@@ -541,12 +541,6 @@ export const useStore = defineStore('storage', {
         if (this.tables.bucketTable.status === 'init') {
           // 加载bucketTable
           void await this.loadBucketTable()
-          if (this.tables.authTokenTable.status === 'init') {
-            void await this.loadTokenTable()
-          }
-          if (this.tables.keyPairTable.status === 'init') {
-            void await this.loadKeyTable()
-          }
         }
         // 加载couponTable
         void await this.loadCouponTable()
