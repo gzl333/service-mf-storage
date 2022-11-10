@@ -32,17 +32,19 @@ const props = defineProps({
     required: false
   }
 })
+
 const store = useStore()
 const { tc } = i18n.global
-const dirName = ref(props.dirName)
 const inputRef = ref<QInput>()
 defineEmits([...useDialogPluginComponent.emits])
+const dirName = ref(props.dirName)
 const {
   dialogRef,
   onDialogHide,
   onDialogOK,
   onDialogCancel
 } = useDialogPluginComponent()
+
 const onOKClick = async () => {
   if (dirName.value === '' || dirName.value === null) {
     Notify.create({
@@ -92,6 +94,7 @@ const onOKClick = async () => {
     try {
       const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service?.id]?.endpoint_url
       const renameRes = await api.storage.single.postObjPath({ base, path: { bucket_name: props.bucket_name, objpath: props.objpath }, query: { rename: dirName.value } })
+      // 操作store
       if (props.isOperationStore) {
         store.tables.pathTable.byLocalId[props.localId].files.forEach((item) => {
           if (item.name === props.dirName) {
@@ -100,7 +103,8 @@ const onOKClick = async () => {
           }
         })
       } else {
-        emitter.emit('done', true)
+        // 在综合检索页面，刷新数据
+        emitter.emit('refresh', true)
       }
       Notify.create({
         classes: 'notification-positive shadow-15',
@@ -125,7 +129,6 @@ const onCancelClick = onDialogCancel
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin dialog-primary">
-
       <q-card-section class="row items-center justify-center q-pb-md">
         <div class="text-primary">
           {{ tc('文件重命名') }}
@@ -133,11 +136,8 @@ const onCancelClick = onDialogCancel
         <q-space/>
         <q-btn icon="close" flat dense size="sm" v-close-popup/>
       </q-card-section>
-
       <q-separator/>
-
       <q-card-section>
-
         <div class="row q-pb-lg  items-center">
           <div class="col-2 text-grey-7">
             {{ tc('文件名称') }}
@@ -147,11 +147,8 @@ const onCancelClick = onDialogCancel
             </q-input>
           </div>
         </div>
-
       </q-card-section>
-
       <q-separator/>
-
       <q-card-actions align="between">
         <q-btn class="q-ma-sm" color="primary" :label="tc('确认')" no-caps unelevated @click="onOKClick"/>
         <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>

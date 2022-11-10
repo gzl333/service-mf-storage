@@ -33,6 +33,7 @@ const onOKClick = async () => {
     user: respGetKeys.data.key.user,
     service: props.serviceId
   }
+  // 往store中添加访问密匙
   Object.assign(store.tables.keyPairTable.byId, {
     [respGetKeys.data.key.access_key]: keyObj
   })
@@ -57,7 +58,6 @@ const onOKClick = async () => {
   <!-- notice dialogRef here -->
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin dialog-primary">
-
       <q-card-section class="row items-center justify-center q-pb-md">
         <div class="text-primary">
           {{ tc('创建访问密钥') }}

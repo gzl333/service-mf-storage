@@ -31,6 +31,7 @@ const onCancelClick = onDialogCancel
 
 const onOKClick = async () => {
   await api.storage.storage.patchAuthKey({ base: store.tables.serviceTable.byId[props.serviceId]?.endpoint_url, path: { access_key: props.accessKey }, query: { active: !props.state } })
+  // 修改store中状态
   store.tables.keyPairTable.byId[props.accessKey].state = !store.tables.keyPairTable.byId[props.accessKey].state
   onDialogOK()
   Notify.create({
@@ -51,7 +52,6 @@ const onOKClick = async () => {
   <!-- notice dialogRef here -->
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin dialog-primary">
-
       <q-card-section class="row items-center justify-center q-pb-md">
         <div class="text-primary">
           {{ tc('更改密匙状态') }}

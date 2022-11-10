@@ -28,6 +28,7 @@ const props = defineProps({
     required: false
   }
 })
+
 const store = useStore()
 const { tc } = i18n.global
 defineEmits([...useDialogPluginComponent.emits])
@@ -38,12 +39,17 @@ const {
   onDialogCancel
 } = useDialogPluginComponent()
 const isDisable = ref(false)
+
 const onOKClick = async () => {
+  // 用于存放删除成功的文件夹
   const deleteDirArr: string[] = []
+  // 用于存储删除成功的文件
   const deleteFileArr: string[] = []
+  // 用处存储删除失败的文件夹以及文件
   const deleteFailArr: string[] = []
   isDisable.value = true
   const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service.id]?.endpoint_url
+  // 批量删除删除文件夹
   if (props.dirpath.dirArrs && props.dirpath.dirArrs.length > 0) {
     for (const item of props.dirpath.dirArrs) {
       await api.storage.single.deleteDirPath({
@@ -60,6 +66,7 @@ const onOKClick = async () => {
       })
     }
   }
+  // 批量删除删除文件
   if (props.dirpath.fileArrs && props.dirpath.fileArrs.length > 0) {
     for (const item of props.dirpath.fileArrs) {
       await api.storage.single.deleteObjPath({ base, path: { bucket_name: props.bucket_name, objpath: item.na } }).then(() => {
@@ -69,6 +76,7 @@ const onOKClick = async () => {
       })
     }
   }
+  // 如果该数组里有值说明存在删除失败的文件夹
   if (deleteFailArr.length !== 0) {
     Notify.create({
       classes: 'notification-negative shadow-15',
@@ -81,6 +89,7 @@ const onOKClick = async () => {
       multiLine: false
     })
   } else {
+    // 从store中删除文件夹以及文件
     if (props.isOperationStore) {
       store.deleteFile(
         {
@@ -91,7 +100,8 @@ const onOKClick = async () => {
           }
         })
     } else {
-      emitter.emit('done', true)
+      // 综合检索页面刷新数据
+      emitter.emit('refresh', true)
     }
     Notify.create({
       classes: 'notification-positive shadow-15',

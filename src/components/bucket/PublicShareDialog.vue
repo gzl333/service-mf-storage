@@ -29,6 +29,7 @@ const props = defineProps({
     required: false
   }
 })
+
 const store = useStore()
 // const $route = useRoute()
 const { tc } = i18n.global
@@ -39,9 +40,9 @@ const {
   onDialogOK,
   onDialogCancel
 } = useDialogPluginComponent()
+const onCancelClick = onDialogCancel
 // const bucket = $route.query.bucket as string // string or undefined
 // const path = $route.query.path as string
-const onCancelClick = onDialogCancel
 const selectModel = ref(null)
 const isPass = ref(false)
 const options = [
@@ -88,7 +89,9 @@ const isHavePass = (value: boolean) => {
 const share = async () => {
   if (selectModel.value !== null) {
     const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service.id]?.endpoint_url
+    // 批量分享分享文件夹
     if (props.pathObj.dirArrs && props.pathObj.dirArrs.length > 0) {
+      // 判断是否选择带有密码
       if (isPass.value === false) {
         for (const item of props.pathObj.dirArrs) {
           void await api.storage.single.patchDirPath({
@@ -120,6 +123,7 @@ const share = async () => {
         }
       }
     }
+    // 批量分享分享文件
     if (props.pathObj.fileArrs && props.pathObj.fileArrs.length > 0) {
       if (isPass.value === false) {
         for (const item of props.pathObj.fileArrs) {
@@ -162,11 +166,13 @@ const share = async () => {
         share: shareQuery.value.share
       })
     } else {
+      // 综合检索页面 如果修改权限为私有直接刷新数据
       if (shareQuery.value.share === 0 || props.pathObj.fileArrs.length > 1) {
-        emitter.emit('done', true)
+        emitter.emit('refresh', true)
       }
     }
     onDialogOK()
+    // 如果是分享的单个文件夹或文件并且不是修改为私有 分享成功后打开已经分享的窗口
     if (props.pathObj.dirArrs && !props.pathObj.fileArrs && props.pathObj.dirArrs.length === 1 && shareQuery.value.share !== 0) {
       void store.triggerAlreadyShareDialog(props.bucketId, props.localId, props.bucket_name, { dirArrs: props.pathObj.dirArrs }, props.isOperationStore, false)
     } else if (!props.pathObj.dirArrs && props.pathObj.fileArrs && props.pathObj.fileArrs.length === 1 && shareQuery.value.share !== 0) {

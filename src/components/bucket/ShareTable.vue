@@ -47,7 +47,7 @@ const columns = computed(() =>
     {
       name: 'size',
       align: 'center',
-      label: (() => tc('大小'))(),
+      label: (() => tc('文件大小'))(),
       field: 'size'
     },
     {
@@ -58,6 +58,7 @@ const columns = computed(() =>
     }
   ]
 )
+// 跳转下一级
 const goNext = async (na: string) => {
   const path = na.slice(na.indexOf('/') + 1)
   if (password) {
@@ -66,7 +67,7 @@ const goNext = async (na: string) => {
     navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&sub=' + path)
   }
 }
-
+// 跳转前一级
 const goBack = async (path: string, index: number) => {
   if (index + 1 !== arrayPaths.value.length) {
     if (password) {
@@ -76,6 +77,7 @@ const goBack = async (path: string, index: number) => {
     }
   }
 }
+// 跳转到第一级
 const goAllFile = async () => {
   if (password) {
     navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&p=' + password)
@@ -83,6 +85,7 @@ const goAllFile = async () => {
     navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base)
   }
 }
+// 批量下载
 const batchDownload = () => {
   if (selected.value.length > 0) {
     for (const file of selected.value) {

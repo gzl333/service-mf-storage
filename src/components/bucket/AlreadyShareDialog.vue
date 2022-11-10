@@ -60,15 +60,18 @@ const copyUrl = (url: string) => {
   }
 }
 const onDialogHide = () => {
+  // 窗口关闭时判断是否刷新数据，还是需要操作store
   if (!props.isOperationStore && props.isRefresh) {
-    emitter.emit('done', true)
+    // 在综合检索页面窗口关闭需要重新请求
+    emitter.emit('refresh', true)
   }
 }
 onBeforeMount(async () => {
   let dirName = ''
+  // 判断是文件夹还是文件
   if (props.pathObj.dirArrs) {
     dirName = props.pathObj.dirArrs[0].na
-  } else {
+  } else if (props.pathObj.fileArrs) {
     dirName = props.pathObj.fileArrs[0].na
   }
   const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service.id]?.endpoint_url
@@ -81,6 +84,7 @@ onBeforeMount(async () => {
     }
   })
   shareCode.value = respShareDir.data.share_code || ''
+  // 根据后端返回值判断拼接分享链接还是直接使用后端返回的链接
   if (respShareDir.data.is_obj === false) {
     // http://servicedev.cstcloud.cn/storage/share/123?base=xxx&sub=yyy&p=zzz
     shareUrl.value = window.location.protocol + '//' + window.location.hostname + '/storage/share/' + serviceId + '?base=' + props.bucketName + '/' + props.pathObj.dirArrs[0].na

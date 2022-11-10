@@ -23,9 +23,9 @@ const props = defineProps({
     required: true
   }
 })
+
 const store = useStore()
 const { tc } = i18n.global
-const dirName = ref('')
 const inputRef = ref<QInput>()
 defineEmits([...useDialogPluginComponent.emits])
 const {
@@ -35,6 +35,8 @@ const {
   onDialogCancel
 } = useDialogPluginComponent()
 const onCancelClick = onDialogCancel
+const dirName = ref('')
+
 const onOKClick = async () => {
   if (dirName.value === null || dirName.value === '') {
     Notify.create({
@@ -118,7 +120,6 @@ const onOKClick = async () => {
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin dialog-primary">
-
       <q-card-section class="row items-center justify-center q-pb-md">
         <div class="text-primary">
           {{ tc('新建文件夹') }}
@@ -126,11 +127,8 @@ const onOKClick = async () => {
         <q-space/>
         <q-btn icon="close" flat dense size="sm" v-close-popup/>
       </q-card-section>
-
       <q-separator/>
-
       <q-card-section>
-
         <div class="row q-pb-lg  items-center">
           <div class="col-2 text-grey-7">
             {{ tc('文件夹名称') }}
@@ -140,11 +138,8 @@ const onOKClick = async () => {
             </q-input>
           </div>
         </div>
-
       </q-card-section>
-
       <q-separator/>
-
       <q-card-actions align="between">
         <q-btn class="q-ma-sm" color="primary" :label="tc('创建')" no-caps unelevated @click="onOKClick"/>
         <q-btn class="q-ma-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>

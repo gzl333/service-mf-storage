@@ -285,7 +285,9 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
   const config = {
     params: payload?.query
   }
+  // 从第一片开始循环上传
   for (let i = 0; i < fileSize; i += chunkSize) {
+    // 如果上传中途关闭窗口 取消上传
     if (isClose.value === false) {
       let blob = null
       if (start + chunkSize > fileSize) {
@@ -304,6 +306,7 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
       formData.append('chunk_offset ', (start - blobFile.size).toString())
       formData.append('chunk_size', (blobFile.size).toString())
       if (i === 0) {
+        // 第一片上传需要提交reset参数
         await axiosStorage({
           url: base + `/api/v1/obj/${payload.path.bucket_name}/${payload.path.objpath}/`,
           method: 'post',
@@ -346,6 +349,7 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
   } else {
     objpath = props.dirPath + '/' + fileName
   }
+  // 如果已经上传的文件大小小于文件原本大小 代表未上传完全需要删除碎片
   if (start < fileSize) {
     isCancel.value = true
     await api.storage.single.deleteObjPath({
@@ -372,6 +376,7 @@ const factoryFn = async (files: File, index: number) => {
   } else {
     objpath = props.dirPath + '/' + files.name
   }
+  // 文件大于500MB 切片上传
   if (files.size / 1024 / 1024 > 500) {
     await postObjPath({
       path: {
@@ -383,6 +388,7 @@ const factoryFn = async (files: File, index: number) => {
       index
     })
   } else {
+    // 完整上传
     await putObjPath({
       path: {
         bucket_name: props.bucket_name,
@@ -396,6 +402,7 @@ const factoryFn = async (files: File, index: number) => {
 const upload = async () => {
   isCancel.value = false
   if (fileArr.value.length !== 0) {
+    // 循环建立进度条 每一个值代表一个进度条
     for (let index = 0; index < fileArr.value.length; index++) {
       progressArr.value[index] = 0
     }

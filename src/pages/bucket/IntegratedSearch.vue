@@ -149,7 +149,7 @@ const search = async () => {
 /* load bucket table */
 // watch(searchOptions, chooseTabService)
 // 接受子组件操作完成emitter，更新数据
-emitter.on('done', async (value) => {
+emitter.on('refresh', async (value) => {
   if (value) {
     await getSearchDate()
   }

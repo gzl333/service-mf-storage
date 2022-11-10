@@ -28,6 +28,7 @@ const onCancelClick = onDialogCancel
 
 const onOKClick = async () => {
   await api.storage.storage.deleteAuthKey({ base: store.tables.serviceTable.byId[props.serviceId]?.endpoint_url, path: { access_key: props.accessKey } })
+  // 删除store存储的访问密匙
   delete store.tables.keyPairTable.byId[props.accessKey]
   onDialogOK()
   Notify.create({
@@ -48,7 +49,6 @@ const onOKClick = async () => {
   <!-- notice dialogRef here -->
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin dialog-primary">
-
       <q-card-section class="row items-center justify-center q-pb-md">
         <div class="text-primary">
           {{ tc('删除访问密钥') }}
