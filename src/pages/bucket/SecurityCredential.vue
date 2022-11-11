@@ -83,17 +83,17 @@ const keyColumns = computed(() => [
   }
 ])
 const getAuthToken = async () => {
-  const respGetToken = await api.storage.storage.getAuthToken({ base: store.tables.serviceTable.byId[defaultServiceOption.value.serviceId].endpoint_url })
+  const respGetToken = await api.storage.storage.getAuthToken({ base: store.tables.serviceTable.byId[defaultServiceOption.value.value].endpoint_url })
   tokenRow.value[0] = respGetToken.data.token
 }
 const getKeyPairs = async () => {
-  const respGetKeys = await api.storage.storage.getAuthKey({ base: store.tables.serviceTable.byId[defaultServiceOption.value.serviceId].endpoint_url })
+  const respGetKeys = await api.storage.storage.getAuthKey({ base: store.tables.serviceTable.byId[defaultServiceOption.value.value].endpoint_url })
   keysRow.value = respGetKeys.data.keys
 }
 const chooseDefaultSelect = async () => {
   defaultServiceOption.value = serviceOptions.value[0]
   if (defaultServiceOption.value) {
-    if (Object.values(store.tables.bucketTable.byId).findIndex(item => item.service.id === defaultServiceOption.value.serviceId) === -1) {
+    if (Object.values(store.tables.bucketTable.byId).findIndex(item => item.service.id === defaultServiceOption.value.value) === -1) {
       isJurisdiction.value = false
     } else {
       await getAuthToken()
@@ -105,7 +105,7 @@ const chooseDefaultSelect = async () => {
 chooseDefaultSelect()
 const addKey = () => {
   if (keysRow.value.length < 2) {
-    store.triggerCreateKeyDialog(defaultServiceOption.value.serviceId)
+    store.triggerCreateKeyDialog(defaultServiceOption.value.value)
   } else {
     Notify.create({
       classes: 'notification-negative shadow-15',
@@ -120,7 +120,7 @@ const addKey = () => {
   }
 }
 const selectService = async () => {
-  if (Object.values(store.tables.bucketTable.byId).findIndex(item => item.service.id === defaultServiceOption.value.serviceId) === -1) {
+  if (Object.values(store.tables.bucketTable.byId).findIndex(item => item.service.id === defaultServiceOption.value.value) === -1) {
     isJurisdiction.value = false
   } else {
     await getAuthToken()
@@ -204,7 +204,7 @@ onBeforeUnmount(() => {
 
                       <q-td key="operation" :props="props">
                         <q-btn color="primary" unelevated no-caps
-                               @click="store.triggerCreateTokenDialog(defaultServiceOption.serviceId)">
+                               @click="store.triggerCreateTokenDialog(defaultServiceOption.value)">
                           {{ tc('创建新Token') }}
                         </q-btn>
                       </q-td>
@@ -272,11 +272,11 @@ onBeforeUnmount(() => {
 
                       <q-td key="operation" :props="props">
                         <q-btn color="primary" unelevated no-caps
-                               @click="store.triggerChangeKeyStateDialog(defaultServiceOption.serviceId, props.row.access_key, props.row.state)">
+                               @click="store.triggerChangeKeyStateDialog(defaultServiceOption.value, props.row.access_key, props.row.state)">
                           {{ props.row.state ? tc('停用') : tc('启用') }}
                         </q-btn>
                         <q-btn class="q-ml-xs" color="primary" unelevated no-caps
-                               @click="store.triggerDeleteKeyDialog(defaultServiceOption.serviceId, props.row.access_key)">
+                               @click="store.triggerDeleteKeyDialog(defaultServiceOption.value, props.row.access_key)">
                           {{ tc('删除') }}
                         </q-btn>
                       </q-td>

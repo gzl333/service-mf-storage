@@ -23,7 +23,6 @@ const {
   onDialogCancel
 } = useDialogPluginComponent()
 const onCancelClick = onDialogCancel
-
 const onOKClick = async () => {
   Notify.create({
     classes: 'notification-positive shadow-15',
