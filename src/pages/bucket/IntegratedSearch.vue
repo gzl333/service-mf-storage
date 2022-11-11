@@ -219,13 +219,12 @@ onBeforeUnmount(() => {
           </q-tab>
         </q-tabs>
       </div>
-      <q-tab-panels v-model="tabActive" animated transition-prev="fade" transition-next="fade" class="no-scroll">
+      <q-tab-panels v-model="tabActive" animated transition-prev="fade" transition-next="fade">
         <q-tab-panel v-for="tabItem in pathArr" :name="tabItem.tab.optionId" :key="tabItem.tab.optionId"
-                     class="no-padding q-mt-sm no-scroll ">
+                     class="no-padding q-mt-sm">
           <SearchTable :pathArr="tabItem"/>
         </q-tab-panel>
       </q-tab-panels>
-
     </div>
   </div>
 </template>
