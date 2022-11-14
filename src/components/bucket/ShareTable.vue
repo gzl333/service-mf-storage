@@ -60,11 +60,19 @@ const columns = computed(() =>
 )
 // 跳转下一级
 const goNext = async (na: string) => {
-  // const path = na.slice(na.indexOf('/') + 1)
+  const path = na.slice(na.indexOf('/') + 1)
   if (password) {
-    navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&sub=' + na + '&p=' + password)
+    if (route.query.base?.indexOf('/') === -1) {
+      navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&sub=' + na + '&p=' + password)
+    } else {
+      navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&sub=' + path + '&p=' + password)
+    }
   } else {
-    navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&sub=' + na)
+    if (route.query.base?.indexOf('/') === -1) {
+      navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&sub=' + na)
+    } else {
+      navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&sub=' + path)
+    }
   }
 }
 // 跳转前一级

@@ -87,7 +87,8 @@ onBeforeMount(async () => {
   // 根据后端返回值判断拼接分享链接还是直接使用后端返回的链接
   if (respShareDir.data.is_obj === false) {
     // http://servicedev.cstcloud.cn/storage/share/123?base=xxx&sub=yyy&p=zzz
-    shareUrl.value = window.location.protocol + '//' + window.location.hostname + '/storage/share/' + serviceId + '?base=' + props.bucketName + '&sub=' + props.pathObj.dirArrs[0].na
+    shareUrl.value = window.location.protocol + '//' + window.location.hostname + '/storage/share/' + serviceId + '?base=' + props.bucketName + '/' + props.pathObj.dirArrs[0].na
+    // shareUrl.value = window.location.protocol + '//' + window.location.hostname + '/storage/share/' + serviceId + '?base=' + props.bucketName + '&sub=' + props.pathObj.dirArrs[0].na
   } else {
     // shareUrl.value = 'https://' + domainName + '/storage/share/down/obs/' + props.bucket_name + '/' + props.pathObj.fileArrs[0]
     shareUrl.value = respShareDir.data.share_uri
