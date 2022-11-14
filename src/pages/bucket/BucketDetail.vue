@@ -88,9 +88,9 @@ const clickToCopy = useCopyToClipboard()
 <template>
   <div class="BucketDetail">
 
-    <div class="row items-center text-black q-pb-md">
-      <GlobalBreadcrumbs/>
-    </div>
+<!--    <div class="row items-center text-black q-pb-md">-->
+<!--      <GlobalBreadcrumbs/>-->
+<!--    </div>-->
 
     <div class="row items-center" style="vertical-align: bottom;">
 
@@ -115,15 +115,15 @@ const clickToCopy = useCopyToClipboard()
       no-caps
       inline-label
     >
-      <q-tab name="object"
+      <q-tab name="object" icon="las la-file-alt"
              @click="navigateToUrl('/my/storage/bucket/' + props.bucketId + '/object')">
         {{ tc('对象列表') }}
       </q-tab>
-      <q-tab name="property"
+      <q-tab name="property" icon="las la-cog"
              @click="navigateToUrl('/my/storage/bucket/' + props.bucketId + '/property')">
         {{ tc('存储桶属性') }}
       </q-tab>
-      <q-tab name="connection"
+      <q-tab name="connection" icon="las la-network-wired"
              @click="navigateToUrl('/my/storage/bucket/' + props.bucketId + '/connection')">
         {{ tc('连接信息') }}
       </q-tab>
@@ -137,6 +137,10 @@ const clickToCopy = useCopyToClipboard()
         name="object"
         class="q-py-md q-px-none"
       >
+
+        <div class="row items-center text-black q-pb-md">
+          <GlobalBreadcrumbs/>
+        </div>
 
         <PathTable :pathObj="currentPath"/>
 
