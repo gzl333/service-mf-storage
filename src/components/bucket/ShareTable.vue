@@ -60,11 +60,11 @@ const columns = computed(() =>
 )
 // 跳转下一级
 const goNext = async (na: string) => {
-  const path = na.slice(na.indexOf('/') + 1)
+  // const path = na.slice(na.indexOf('/') + 1)
   if (password) {
-    navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&sub=' + path + '&p=' + password)
+    navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&sub=' + na + '&p=' + password)
   } else {
-    navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&sub=' + path)
+    navigateToUrl('/storage/share/' + serviceId + '?base=' + route.query.base + '&sub=' + na)
   }
 }
 // 跳转前一级
