@@ -233,7 +233,11 @@ const toggleExpansion = (props: { expand: boolean, row: FileInterface }) => {
   }
 }
 const findFile = (na: string) => {
-  navigateToUrl('/my/storage/bucket/' + props.pathArr.tab.bucketId + '/object' + '?path=' + na.slice(0, na.lastIndexOf('/')))
+  if (na.lastIndexOf('/') === -1) {
+    navigateToUrl('/my/storage/bucket/' + props.pathArr.tab.bucketId + '/object')
+  } else {
+    navigateToUrl('/my/storage/bucket/' + props.pathArr.tab.bucketId + '/object' + '?path=' + na.slice(0, na.lastIndexOf('/')))
+  }
 }
 watch(
   () => tabActive,
