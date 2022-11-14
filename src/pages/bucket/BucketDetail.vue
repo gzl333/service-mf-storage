@@ -45,7 +45,7 @@ const currentBucketStat = computed(() => store.tables.bucketStatTable.byId[props
 const currentBucketTokenSet = computed(() => store.tables.bucketTokenTable.byId[props.bucketId])
 
 // todo 待设计分享url结构后更新
-const currentBucketUrl = computed(() => location.origin + `/storage/share/?base=${currentBucket.value?.name}`)
+const currentBucketUrl = computed(() => location.origin + `/storage/share/${currentService.value?.id}?base=${currentBucket.value?.name}`)
 /* 获取相关table对象 */
 
 const loadNeededTables = () => {
