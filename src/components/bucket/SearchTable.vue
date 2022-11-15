@@ -23,6 +23,7 @@ const props = defineProps({
     required: true
   }
 })
+console.log(props)
 // const emit = defineEmits(['change', 'delete'])
 // code starts...
 const store = useStore()
@@ -280,56 +281,56 @@ watch(
             <q-checkbox style="" v-model="scope.selected" dense size="xs"/>
           </template>
 
-          <template v-slot:body="props">
-            <q-tr :props="props" :class="props.expand ? 'bg-blue-1':''">
+          <template v-slot:body="rowProps">
+            <q-tr :props="rowProps" :class="rowProps.expand ? 'bg-blue-1':''">
 
               <q-td auto-width>
-                <q-checkbox v-model="props.selected" dense size="xs"/>
+                <q-checkbox v-model="rowProps.selected" dense size="xs"/>
               </q-td>
 
-              <q-td key="name" :props="props">
+              <q-td key="name" :props="rowProps">
                 <q-btn flat no-caps color="black" padding="none" :ripple="false"
-                       @click="toggleExpansion(props)">
+                       @click="toggleExpansion(rowProps)">
                   <div class="row items-center no-wrap">
                     <q-icon class="col-auto" color="grey" name="insert_drive_file"/>
-                    <div class="col-auto"> {{ clipText70(props.row.name) }}</div>
+                    <div class="col-auto"> {{ clipText70(rowProps.row.name) }}</div>
                   </div>
                 </q-btn>
               </q-td>
 
-              <q-td key="time" :props="props">
-                {{ new Date(props.row.ult).toLocaleString(i18n.global.locale) }}
+              <q-td key="time" :props="rowProps">
+                {{ new Date(rowProps.row.ult).toLocaleString(i18n.global.locale) }}
               </q-td>
 
-              <q-td key="size" :props="props">
-                {{ formatSize1024(props.row.si) }}
+              <q-td key="size" :props="rowProps">
+                {{ formatSize1024(rowProps.row.si) }}
               </q-td>
 
-              <q-td key="access" :props="props">
-                {{ tc(props.row.access_permission) }}
+              <q-td key="access" :props="rowProps">
+                {{ tc(rowProps.row.access_permission) }}
               </q-td>
 
-              <q-td key="operation" :props="props">
-                <q-btn color="primary" unelevated no-caps @click="deleteSingleFile(props.row.na, props.row.name)">
+              <q-td key="operation" :props="rowProps">
+                <q-btn color="primary" unelevated no-caps @click="deleteSingleFile(rowProps.row.na, rowProps.row.name)">
                   {{ tc('删除') }}
                 </q-btn>
                 <q-btn class="q-ml-xs" color="primary" unelevated no-caps
-                       @click="shareSingleFile(props.row.na, props.row.name, props.row.access_code)">
+                       @click="shareSingleFile(rowProps.row.na, rowProps.row.name, rowProps.row.access_code)">
                   {{ tc('公开分享') }}
                 </q-btn>
                 <q-btn class="q-ml-xs" color="primary" unelevated no-caps
-                       @click="changeName(props.row.na, props.row.name)">{{ tc('重命名') }}
+                       @click="changeName(rowProps.row.na, rowProps.row.name)">{{ tc('重命名') }}
                 </q-btn>
                 <q-btn class="q-ml-xs" color="primary" unelevated no-caps
-                       @click="download(props.row.na, props.row.name)">{{ tc('下载') }}
+                       @click="download(rowProps.row.na, rowProps.row.name)">{{ tc('下载') }}
                 </q-btn>
                 <q-btn color="primary" flat dense no-caps
-                       :label="props.expand ? tc('折叠详情') : tc('展开详情')"
-                       @click="toggleExpansion(props)"></q-btn>
+                       :label="rowProps.expand ? tc('折叠详情') : tc('展开详情')"
+                       @click="toggleExpansion(rowProps)"></q-btn>
               </q-td>
 
             </q-tr>
-            <q-tr v-show="props.expand" :props="props" class="bg-blue-1">
+            <q-tr v-show="rowProps.expand" :props="rowProps" class="bg-blue-1">
 
               <q-td auto-width>
               </q-td>
@@ -341,7 +342,7 @@ watch(
               <q-td colspan="100%" style="padding: 15px 0px">
                 <div class="column q-gutter-md">
                   <div class="col-auto text-bold">
-                    {{ fileDetail[props.row.name]?.name }}
+                    {{ fileDetail[rowProps.row.name]?.name }}
                   </div>
                 </div>
                 <q-separator/>
@@ -349,26 +350,26 @@ watch(
                   <div>
                     <div>
                       {{ tc('创建时间') }}: {{
-                        new Date(fileDetail[props.row.name]?.ult).toLocaleString(i18n.global.locale)
+                        new Date(fileDetail[rowProps.row.name]?.ult).toLocaleString(i18n.global.locale)
                       }}
                     </div>
                     <div>{{ tc('最后修改') }}:
-                      {{ new Date(fileDetail[props.row.name]?.upt).toLocaleString(i18n.global.locale) }}
+                      {{ new Date(fileDetail[rowProps.row.name]?.upt).toLocaleString(i18n.global.locale) }}
                     </div>
-                    <div>{{ tc('访问权限') }}: {{ tc(props.row.access_permission) }}</div>
+                    <div>{{ tc('访问权限') }}: {{ tc(rowProps.row.access_permission) }}</div>
                     <div>
-                      {{ tc('下载次数') }}: {{ fileDetail[props.row.name]?.dlc }}
+                      {{ tc('下载次数') }}: {{ fileDetail[rowProps.row.name]?.dlc }}
                     </div>
                   </div>
                   <div class="q-ml-xl">
                     <div>
                       <span>{{ tc('文件路径') }}: </span>
-                      <span class="text-primary cursor-pointer" @click="findFile(fileDetail[props.row.name]?.na)">{{ fileDetail[props.row.name]?.na }}</span>
+                      <span class="text-primary cursor-pointer" @click="findFile(fileDetail[rowProps.row.name]?.na)">{{ props?.pathArr?.results?.bucket + '/' + fileDetail[rowProps.row.name]?.na }}</span>
                     </div>
                     <div>
-                      {{ tc('文件大小') }}: {{ fileDetail[props.row.name]?.si }}
+                      {{ tc('文件大小') }}: {{ fileDetail[rowProps.row.name]?.si }}
                     </div>
-                    <div>MD5: {{ fileDetail[props.row.name]?.md5 }}</div>
+                    <div>MD5: {{ fileDetail[rowProps.row.name]?.md5 }}</div>
                   </div>
                 </div>
               </q-td>

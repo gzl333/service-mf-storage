@@ -2,6 +2,7 @@
 import { ref, computed, Ref, onBeforeUnmount, onBeforeMount } from 'vue'
 import { useStore } from 'stores/store'
 import { useRoute/* , useRouter */ } from 'vue-router'
+import { navigateToUrl } from 'single-spa'
 import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
 import api from 'src/api'
@@ -26,45 +27,14 @@ const route = useRoute()
 // 选定默认值
 const tabActive: Ref<string> = ref('')
 const pathArr: Ref = ref([])
-// const searchScope: Ref<Record<string, string>[]> = ref([])
 const selection: Ref<Array<string>> = ref([])
 const keyword = ref('')
 const bucketId = route.query.bucket as string
 const defaultKeyword = route.query.keyword as string
-// const chooseTabService = () => {
-//   // 添加第一个值作为默认值
-//   serviceModel.value[0] = searchOptions.value[0]
-//   pathArr.value[0] = {
-//     tab: {
-//       optionId: searchOptions.value[0]?.optionId,
-//       desc: searchOptions.value[0]?.desc,
-//       bucketId: searchOptions.value[0]?.bucketId,
-//       serviceId: searchOptions.value[0]?.serviceId,
-//       index: '1'
-//     },
-//     // 第一次进页面数据默认为空
-//     results: []
-//   }
-// }
-// chooseTabService()
 const dynamicTab = (index: number) => {
   pathArr.value.splice(index, 1)
   tabActive.value = pathArr.value[0].tab.optionId
 }
-// const selectSearchScope = (value: string[]) => {
-//   const scopeArr = []
-//   for (const bucket of value) {
-//     const obj = {
-//       name: '',
-//       nameEn: ''
-//     }
-//     obj.name = store.tables.bucketTable.byId[bucket]?.service.name + '/' + store.tables.bucketTable.byId[bucket]?.name
-//     obj.nameEn = store.tables.bucketTable.byId[bucket]?.service.name_en + '/' + store.tables.bucketTable.byId[bucket]?.name
-//     // const searchScopeStr = store.tables.bucketTable.byId[bucket]?.service.name + '/' + store.tables.bucketTable.byId[bucket]?.name
-//     scopeArr.push(obj)
-//   }
-//   searchScope.value = scopeArr
-// }
 const getSearchDate = async () => {
   pathArr.value = []
   // let index = 0
@@ -128,42 +98,28 @@ const search = async () => {
       multiLine: false
     })
   } else {
-    await getSearchDate()
+    navigateToUrl('/my/storage/search/?bucket=' + selection.value.join('/') + '&keyword=' + keyword.value)
   }
 }
-// 去掉搜索范围显示后 暂时不需要这段逻辑
-/* load bucket table */
-// setup时调用一次
-// if (store.tables.serviceTable.status === 'total') {
-//   store.loadBucketTable()
-// }
-// // 刷新页面时，等待有效的service信息，再调用
-// const unwatch = watch(store.tables.serviceTable, () => {
-//   if (store.tables.serviceTable.status === 'total') {
-//     // serviceTable已经加载，可以load bucketTable
-//     store.loadBucketTable()
-//     // watcher已完成任务，注销
-//     unwatch()
-//   }
-// })
-/* load bucket table */
-// watch(searchOptions, chooseTabService)
-// 接受子组件操作完成emitter，更新数据
 emitter.on('refresh', async (value) => {
   if (value) {
     await getSearchDate()
   }
 })
-onBeforeMount(() => {
+onBeforeMount(async () => {
   if (bucketId && !defaultKeyword) {
-    selection.value.push(bucketId)
-    // searchScope.value.push({ name: store.tables.bucketTable.byId[bucketId]?.service.name + '/' + store.tables.bucketTable.byId[bucketId]?.name, nameEn: store.tables.bucketTable.byId[bucketId]?.service.name_en + '/' + store.tables.bucketTable.byId[bucketId]?.name })
+    selection.value = bucketId.split('/')
   }
   if (bucketId && defaultKeyword) {
-    selection.value.push(bucketId)
+    selection.value = bucketId.split('/')
     keyword.value = defaultKeyword
-    // searchScope.value.push({ name: store.tables.bucketTable.byId[bucketId]?.service.name + '/' + store.tables.bucketTable.byId[bucketId]?.name, nameEn: store.tables.bucketTable.byId[bucketId]?.service.name_en + '/' + store.tables.bucketTable.byId[bucketId]?.name })
-    getSearchDate()
+    if (store.tables.serviceTable.status !== 'total') {
+      void await store.loadServiceTable()
+      if (store.tables.bucketTable.status !== 'part') {
+        await store.loadBucketTable()
+      }
+    }
+    await getSearchDate()
   }
 })
 onBeforeUnmount(() => {
@@ -177,7 +133,6 @@ onBeforeUnmount(() => {
     <div class="q-mt-md">
       <div class="text-subtitle1">
         <span>{{ tc('搜索范围') }}</span>
-<!--        <span v-for="(item, index) in searchScope" :key="index">{{ i18n.global.locale === 'zh' ? item.name : item.nameEn }}&nbsp;&nbsp;&nbsp;</span>-->
       </div>
       <div>
         <div v-for="(option, optionIndex) in searchOptions" :key="optionIndex" class="q-mt-lg">

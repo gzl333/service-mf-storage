@@ -18,7 +18,6 @@ const props = defineProps({
 defineEmits([...useDialogPluginComponent.emits])
 const store = useStore()
 const { tc } = i18n.global
-
 const {
   dialogRef,
   onDialogHide,
@@ -26,7 +25,6 @@ const {
   onDialogCancel
 } = useDialogPluginComponent()
 const onCancelClick = onDialogCancel
-
 const onOKClick = async () => {
   await api.storage.storage.deleteAuthKey({ base: store.tables.serviceTable.byId[props.serviceId]?.endpoint_url, path: { access_key: props.accessKey } })
   // 删除store存储的访问密匙
