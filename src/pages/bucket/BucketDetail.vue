@@ -88,9 +88,9 @@ const clickToCopy = useCopyToClipboard()
 <template>
   <div class="BucketDetail">
 
-<!--    <div class="row items-center text-black q-pb-md">-->
-<!--      <GlobalBreadcrumbs/>-->
-<!--    </div>-->
+    <!--    <div class="row items-center text-black q-pb-md">-->
+    <!--      <GlobalBreadcrumbs/>-->
+    <!--    </div>-->
 
     <div class="row items-center" style="vertical-align: bottom;">
 
@@ -182,31 +182,35 @@ const clickToCopy = useCopyToClipboard()
             <!--            <q-separator vertical/>-->
 
             <q-card-section class="col-3">
-              <div class="col text-grey">
-                {{ tc('创建时间') }}
-              </div>
-              <div class="col">
-                {{ new Date(currentBucket?.detail.created_time).toLocaleString(i18n.global.locale) }}
+              <div class="column">
+                <div class="col text-grey">
+                  {{ tc('创建时间') }}
+                </div>
+                <div class="col">
+                  {{ new Date(currentBucket?.detail.created_time).toLocaleString(i18n.global.locale) }}
+                </div>
               </div>
             </q-card-section>
 
             <!--            <q-separator vertical/>-->
 
             <q-card-section class="col-3">
-              <div class="col text-grey">
-                {{ tc('备注') }}
-              </div>
-              <div class="col"
-                   style="max-width: 300px; word-break: break-all; word-wrap: break-word; white-space: normal;">
-                {{ currentBucket?.detail.remarks || tc('无备注') }}
-                <q-btn icon="edit"
-                       dense
-                       flat
-                       no-caps
-                       color="primary"
-                       @click="store.triggerEditBucketNoteDialog(bucketId)">
-                  {{ tc('修改备注') }}
-                </q-btn>
+              <div class="column">
+                <div class="col text-grey">
+                  {{ tc('备注') }}
+                </div>
+                <div class="col"
+                     style="max-width: 300px; word-break: break-all; word-wrap: break-word; white-space: normal;">
+                  {{ currentBucket?.detail.remarks || tc('无备注') }}
+                  <q-btn icon="edit"
+                         dense
+                         flat
+                         no-caps
+                         color="primary"
+                         @click="store.triggerEditBucketNoteDialog(bucketId)">
+                    {{ tc('修改备注') }}
+                  </q-btn>
+                </div>
               </div>
             </q-card-section>
 
@@ -236,22 +240,26 @@ const clickToCopy = useCopyToClipboard()
             <!--            <q-separator vertical/>-->
 
             <q-card-section class="col-3">
-              <div class="col text-grey">
-                {{ tc('对象数量') }}
-              </div>
-              <div class="col">
-                {{ currentBucketStat?.stats.count }}
+              <div class="column">
+                <div class="col text-grey">
+                  {{ tc('对象数量') }}
+                </div>
+                <div class="col">
+                  {{ currentBucketStat?.stats.count }}
+                </div>
               </div>
             </q-card-section>
 
             <!--            <q-separator vertical/>-->
 
             <q-card-section class="col-3">
-              <div class="col text-grey">
-                {{ tc('统计时间') }}
-              </div>
-              <div class="col">
-                {{ new Date(currentBucketStat?.stats_time).toLocaleString(i18n.global.locale) }}
+              <div class="column">
+                <div class="col text-grey">
+                  {{ tc('统计时间') }}
+                </div>
+                <div class="col">
+                  {{ new Date(currentBucketStat?.stats_time).toLocaleString(i18n.global.locale) }}
+                </div>
               </div>
             </q-card-section>
 
@@ -436,7 +444,7 @@ const clickToCopy = useCopyToClipboard()
             <q-card-section v-if="currentService?.provide_ftp" class="col-3">
               <div class="column">
                 <div class="col text-grey">
-                  {{ tc('FTP 读写密码')}}
+                  {{ tc('FTP 读写密码') }}
                 </div>
                 <div class="col row items-center">
                   <PasswordToggle :text="currentBucket?.detail.ftp_password"/>
@@ -466,6 +474,31 @@ const clickToCopy = useCopyToClipboard()
                 </div>
               </div>
 
+            </q-card-section>
+
+            <q-card-section v-if="currentService?.provide_ftp" class="col-3">
+              <div class="column">
+                <div class="col text-grey">
+                  {{ tc('FTP连接地址') }}
+                </div>
+                <div v-for="domain in currentService.ftp_domains" :key="domain" class="col row items-center"
+                     style="max-width: 300px; word-break: break-all; word-wrap: break-word; white-space: normal;">
+                  <div class="col-shrink">{{ domain }}</div>
+                  <div class="col-shrink">
+                    <q-btn class="q-px-xs"
+                           flat
+                           color="primary"
+                           icon="content_copy"
+                           size="sm"
+                           @click="clickToCopy(domain, false)">
+                      <q-tooltip>
+                        {{ tc('复制') }}
+                      </q-tooltip>
+                    </q-btn>
+                  </div>
+
+                </div>
+              </div>
             </q-card-section>
 
           </q-card-section>
