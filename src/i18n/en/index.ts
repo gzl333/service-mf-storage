@@ -12,8 +12,19 @@ export default {
   综合检索: 'Comprehensive Retrieval',
   安全凭证: 'Security Credential',
   数据备份: 'Data Backup',
+  代金券: 'Coupon',
 
   // components
+  // CouponTable
+  代金券ID: 'Coupon Id',
+  兑换时间: 'Exchange Time',
+  过期时间: 'Expiration Time',
+  原始面额: 'Original Denomination',
+  余额: 'Balance',
+  状态: 'state',
+  点: 'Points',
+  有效: 'Valid',
+  失效: 'Invalid',
   // AlreadyShareDialog
   当前对象已经是共享状态: 'The current object is already in shared state',
   分享链接: 'Share Links',
@@ -180,6 +191,7 @@ export default {
   // StorageLayout
   使用说明: 'Instructions',
   发布时间: 'Release Time',
+  兑换代金券: 'Redeem Voucher',
   // pages
   // BucketList
   筛选存储桶: 'Filter Buckets',

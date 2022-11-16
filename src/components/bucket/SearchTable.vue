@@ -23,7 +23,6 @@ const props = defineProps({
     required: true
   }
 })
-console.log(props)
 // const emit = defineEmits(['change', 'delete'])
 // code starts...
 const store = useStore()
