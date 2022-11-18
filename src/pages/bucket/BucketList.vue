@@ -155,9 +155,6 @@ const unwatch = watch(store.tables.serviceTable, () => {
                :disable="bucketSelection.length === 0"
                @click="store.triggerDeleteBucketDialog(bucketSelection);bucketSelection=[]"
         />
-        <q-btn class="col-auto" no-caps unelevated color="primary" :label="tc('综合检索')"
-               @click="navigateToUrl('/my/storage/search/?bucket=c5321d1a-59bf-11ed-97e1-c8009fe2eb03&keyword=a')"
-        />
       </div>
 
       <div class="col-5 row items-center justify-end q-gutter-x-md">

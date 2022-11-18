@@ -546,6 +546,17 @@ export const useStore = defineStore('storage', {
         void await this.loadCouponTable()
       }
     },
+    // 加载分享页面需要的table
+    async loadShareAllTables () {
+      if (this.tables.serviceTable.status === 'init') {
+        // 加载serviceTable
+        void await this.loadServiceTable()
+        if (this.tables.bucketTable.status === 'init') {
+          // 加载bucketTable
+          void await this.loadBucketTable()
+        }
+      }
+    },
     async loadServiceTable () {
       this.tables.serviceTable.status = 'loading'
       try {

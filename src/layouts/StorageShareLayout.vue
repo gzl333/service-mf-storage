@@ -20,7 +20,7 @@ const store = useStore()
 // const tc = i18n.global.tc
 // the root layout of @cnic/storage, load @cnic/storage's store here
 console.log('@cnic/storage store:', store.$state)
-void store.loadAllTables()
+void store.loadShareAllTables()
 
 </script>
 
