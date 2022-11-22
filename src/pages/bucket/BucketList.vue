@@ -36,7 +36,7 @@ const serviceOptions = computed(() => store.getAllServiceOptions)
 const bucketSelection = ref<BucketInterface[]>([])
 
 const buckets = computed(() => Object.values(store.tables.bucketTable.byId)
-  .filter((bucket: BucketInterface) => bucket.id.includes(bucketFilter.value) || bucket.name.toLowerCase().includes(bucketFilter.value) || bucket.detail.remarks.toLowerCase().includes(bucketFilter.value))
+  .filter((bucket: BucketInterface) => bucket.id.includes(bucketFilter.value) || bucket.name.toLowerCase().includes(bucketFilter.value) || bucket.detail?.remarks?.toLowerCase().includes(bucketFilter.value))
   .filter((bucket: BucketInterface) => serviceSelection.value === 'all' ? true : bucket.service.id === serviceSelection.value))
 
 // table row hover
@@ -231,7 +231,7 @@ const unwatch = watch(store.tables.serviceTable, () => {
             <q-td key="name" :props="props">
 
               <q-btn flat padding="none" no-caps
-                     @click="navigateToUrl(`/my/storage/bucket/${props.row.id}`)">
+                     @click="props.row.detail !== null ? navigateToUrl(`/my/storage/bucket/${props.row.id}`) : ''">
 
                 <div class="row items-center no-wrap">
                   <q-icon class="col-auto" size="sm" color="primary" name="mdi-database"/>
@@ -240,7 +240,7 @@ const unwatch = watch(store.tables.serviceTable, () => {
 
                 <!--创建时间距离当下小于1小时则打上new标记-->
                 <q-badge style="top:-10px;"
-                         v-if="(new Date() - new Date(props.row.detail.created_time)) < 1000 * 60 * 60 * 1 "
+                         v-if="(new Date() - new Date(props.row.detail?.created_time)) < 1000 * 60 * 60 * 1 "
                          color="light-green" floating transparent rounded align="middle">
                   new
                 </q-badge>
@@ -280,35 +280,52 @@ const unwatch = watch(store.tables.serviceTable, () => {
             </q-td>
 
             <q-td key="creation" :props="props">
-              {{ new Date(props.row.detail.created_time).toLocaleString(i18n.global.locale) }}
+              {{
+                props.row.detail === null ? tc('无法获取') : new Date(props.row.detail?.created_time).toLocaleString(i18n.global.locale)
+              }}
             </q-td>
 
             <q-td key="access" :props="props">
-              <AccessStatus :is-private="props.row.detail.access_permission === '私有'"/>
+              <div v-if="props.row.detail === null">
+                {{ tc('无法获取') }}
+              </div>
+              <AccessStatus v-else :is-private="props.row.detail?.access_permission === '私有'"/>
             </q-td>
 
             <q-td key="ftp" :props="props">
-              <FtpStatus v-if="store.tables.serviceTable.byId[props.row.service.id]?.provide_ftp"
-                         :is-enable="props.row.detail.ftp_enable"/>
+              <div v-if="store.tables.serviceTable.byId[props.row.service.id]?.provide_ftp">
+                <div v-if="props.row.detail === null">
+                  {{ tc('无法获取') }}
+                </div>
+                <FtpStatus v-else :is-enable="props.row.detail?.ftp_enable"/>
+              </div>
               <div v-else>不支持FTP连接</div>
             </q-td>
 
             <q-td key="note" :props="props">
-              {{ clipText20(props.row.detail.remarks) || tc('无备注') }}
+              <div v-if="props.row.detail === null">
+                {{ tc('无法获取') }}
+              </div>
 
-              <q-btn :class="hoverRow === props.row.name ? '':'invisible'" icon="edit" size="sm" dense flat
-                     color="primary"
-                     @click="store.triggerEditBucketNoteDialog(props.row.id)">
-                <q-tooltip>
-                  {{ tc('修改') }}
-                </q-tooltip>
-              </q-btn>
-
+              <div v-else>
+                {{ clipText20(props.row.detail?.remarks || '') || tc('无备注') }}
+                <q-btn :class="hoverRow === props.row.name ? '':'invisible'" icon="edit" size="sm" dense flat
+                       color="primary"
+                       @click="store.triggerEditBucketNoteDialog(props.row.id)">
+                  <q-tooltip>
+                    {{ tc('修改') }}
+                  </q-tooltip>
+                </q-btn>
+              </div>
             </q-td>
 
             <q-td key="operation" :props="props">
+              <q-btn v-if="props.row.detail === null" unelevated dense color="primary" no-caps
+                     @click="store.triggerDeleteBucketDialog([props.row])">
+                {{ tc('删除存储桶') }}
+              </q-btn>
 
-              <q-btn unelevated dense color="primary" no-caps
+              <q-btn v-else unelevated dense color="primary" no-caps
                      @click="navigateToUrl(`/my/storage/bucket/${props.row.id}`)">
                 {{ tc('查看详情') }}
               </q-btn>

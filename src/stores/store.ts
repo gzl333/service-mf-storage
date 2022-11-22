@@ -111,7 +111,7 @@ export interface BucketDetailInterface {
 
 // 完整桶对象类型，主体为brief，内含detail
 export interface BucketInterface extends BucketBriefInterface {
-  detail: BucketDetailInterface
+  detail: BucketDetailInterface | null
 }
 
 /* DEPRECATED  // 桶对象类型，从具体服务获取
@@ -574,25 +574,38 @@ export const useStore = defineStore('storage', {
       this.tables.bucketTable.byId = {}
       // requests
       try {
+        // 在vms获取桶的大致信息
         const respVmsBucketList = await api.vms.storage.getStorageBucket({
           query: {
             page_size: 9999
           }
         })
         for (const bucketBrief of respVmsBucketList.data.results) {
-          // 请求bucket具体信息
-          const base = this.tables.serviceTable.byId[bucketBrief.service.id]?.endpoint_url
-          const respGetBuckets = await api.storage.single.getBucketsIdOrName({
-            base,
-            path: { id_or_name: bucketBrief.name },
-            query: { 'by-name': true }
-          })
-          // 保存对象
-          Object.assign(this.tables.bucketTable.byId, {
-            [bucketBrief.id]: Object.assign(bucketBrief, {
-              detail: respGetBuckets.data.bucket
+          try {
+            // 去具体服务单元请求bucket具体信息
+            const base = this.tables.serviceTable.byId[bucketBrief.service.id]?.endpoint_url
+            const respGetBuckets = await api.storage.single.getBucketsIdOrName({
+              base,
+              path: { id_or_name: bucketBrief.name },
+              query: { 'by-name': true }
             })
-          })
+            // 保存对象detail字段
+            Object.assign(this.tables.bucketTable.byId, {
+              [bucketBrief.id]: Object.assign(bucketBrief, {
+                detail: respGetBuckets.data.bucket
+              })
+            })
+          } catch (exception) {
+            // 没获取到则是该桶可能被具体服务单元删除了
+            exceptionNotifier(exception)
+            // 保存对象detail字段为null
+            Object.assign(this.tables.bucketTable.byId, {
+              [bucketBrief.id]: Object.assign(bucketBrief, {
+                detail: null
+              })
+            })
+          }
+          // 无论是否拿到detail，都是bucket table的一部分，id都应记录
           this.tables.bucketTable.allIds.unshift(bucketBrief.id)
           this.tables.bucketTable.allIds = [...new Set(this.tables.bucketTable.allIds)]
         }
@@ -869,10 +882,13 @@ export const useStore = defineStore('storage', {
           path: { id_or_name: bucket.name },
           query: {
             'by-name': true,
-            public: bucket.detail.access_permission === '私有' ? 1 : 2
+            public: bucket.detail?.access_permission === '私有' ? 1 : 2
           }
         })
-        bucket.detail.access_permission = respPatchAccess.data.public === 1 ? '公有' : '私有'
+        // bucket.detail?.access_permission = respPatchAccess.data.public === 1 ? '公有' : '私有'
+        if (bucket.detail !== null) {
+          Object.assign(bucket.detail, { access_permission: respPatchAccess.data.public === 1 ? '公有' : '私有' })
+        }
         this.tables.bucketTable.status = 'part'
       } catch (exception) {
         this.tables.bucketTable.status = 'error'
@@ -889,10 +905,13 @@ export const useStore = defineStore('storage', {
           base,
           path: { bucket_name: bucket.name },
           query: {
-            enable: !bucket.detail.ftp_enable
+            enable: !bucket.detail?.ftp_enable
           }
         })
-        bucket.detail.ftp_enable = respPatchFtp.data.data.enable
+        // bucket.detail.ftp_enable = respPatchFtp.data.data.enable
+        if (bucket.detail !== null) {
+          Object.assign(bucket.detail, { ftp_enable: respPatchFtp.data.data.enable })
+        }
         this.tables.bucketTable.status = 'part'
       } catch (exception) {
         this.tables.bucketTable.status = 'error'
