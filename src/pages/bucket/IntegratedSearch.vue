@@ -101,6 +101,9 @@ const search = async () => {
     navigateToUrl('/my/storage/search/?bucket=' + selection.value.join('/') + '&keyword=' + keyword.value)
   }
 }
+const resetSearch = () => {
+  navigateToUrl('/my/storage/search/?bucket=' + selection.value.join('/'))
+}
 emitter.on('refresh', async (value) => {
   if (value) {
     await getSearchDate()
@@ -154,6 +157,7 @@ onBeforeUnmount(() => {
         <q-input class="col-3" outlined v-model="keyword" :label="tc('请输入对象关键字')"/>
       </div>
       <q-btn unelevated no-caps class="q-py-sm q-px-lg q-mt-sm" color="primary" :label="tc('搜索')" @click="search"/>
+      <q-btn unelevated no-caps class="q-py-sm q-px-lg q-mt-sm q-ml-sm" color="primary" :label="tc('重置搜索')" @click="resetSearch"/>
     </div>
     <div class="q-mt-md">
       <div class="row">
