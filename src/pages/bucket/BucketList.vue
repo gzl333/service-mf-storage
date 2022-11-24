@@ -120,7 +120,9 @@ const columns = computed(() => [
     classes: ''
   }
 ])
-
+const goConnection = (bucketId: string) => {
+  navigateToUrl('/my/storage/bucket/' + bucketId + '/connection')
+}
 /* load bucket table */
 // setup时调用一次
 if (store.tables.serviceTable.status === 'total') {
@@ -289,7 +291,9 @@ const unwatch = watch(store.tables.serviceTable, () => {
               <div v-if="props.row.detail === null">
                 {{ tc('无法获取') }}
               </div>
-              <AccessStatus v-else :is-private="props.row.detail?.access_permission === '私有'" :bucket-id="props.row.id"/>
+              <div v-else @click="goConnection(props.row.id)" class="cursor-pointer">
+                <AccessStatus :is-private="props.row.detail?.access_permission === '私有'"/>
+              </div>
             </q-td>
 
             <q-td key="ftp" :props="props">
@@ -297,7 +301,9 @@ const unwatch = watch(store.tables.serviceTable, () => {
                 <div v-if="props.row.detail === null">
                   {{ tc('无法获取') }}
                 </div>
-                <FtpStatus v-else :is-enable="props.row.detail?.ftp_enable" :bucket-id="props.row.id"/>
+                <div v-else class="cursor-pointer" @click="goConnection(props.row.id)">
+                  <FtpStatus :is-enable="props.row.detail?.ftp_enable" />
+                </div>
               </div>
               <div v-else>不支持FTP连接</div>
             </q-td>
