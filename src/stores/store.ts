@@ -588,7 +588,7 @@ export const useStore = defineStore('storage', {
         // 在vms获取桶的大致信息
         const respVmsBucketList = await api.vms.storage.getStorageBucket({
           query: {
-            page_size: 9999
+            page_size: 99999
           }
         })
         for (const bucketBrief of respVmsBucketList.data.results) {
@@ -725,6 +725,7 @@ export const useStore = defineStore('storage', {
         if (!path) { // 桶的根目录
           const respGetDirBucket = await api.storage.single.getDirBucketName({
             base,
+            query: { limit: 99999 },
             path: { bucket_name: bucket.name }
           })
           const item = {
