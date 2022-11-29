@@ -7,9 +7,10 @@ import { navigateToUrl } from 'single-spa'
 import { i18n } from 'boot/i18n'
 import useClipText from 'src/hooks/useClipText'
 import useFormatSize from 'src/hooks/useFormatSize'
-import { Notify } from 'quasar'
-import api from 'src/api/index'
-
+// import { Notify } from 'quasar'
+// import api from 'src/api/index'
+import { axiosStorage } from 'boot/axios'
+import { FloatSub } from 'src/hooks/handleFloat'
 const props = defineProps({
   pathObj: {
     type: Object as PropType<PathInterface>,
@@ -21,7 +22,6 @@ const props = defineProps({
 const store = useStore()
 // const route = useRoute()
 const { tc } = i18n.global
-
 const currentBucket = computed(() => store.tables.bucketTable.byId[props.pathObj.bucketId])
 
 const filter = ref('')
@@ -199,6 +199,80 @@ const changeName = (path: string, name: string) => {
 const comprehensiveSearch = () => {
   navigateToUrl('/my/storage/search/?bucket=' + props.pathObj.bucketId)
 }
+let lastTime = 0
+// 上一次计算的文件大小
+let lastSize = 0
+const uploadSpeed = ref()
+// 上传剩余时间
+const uploadTime = ref()
+const handleTime = (time: number) => {
+  // 文件切片上传 每一片开始的时候 会有一刻速度为0
+  if (time > 0) {
+    // 超过一小时
+    if (time / 60 / 60 > 1) {
+      const intHour = parseInt((time / 60 / 60).toString())
+      const floatHour = parseFloat((time / 60 / 60).toFixed(1))
+      const num = FloatSub(floatHour, intHour)
+      const min = num * 60
+      if (intHour < 24) {
+        return intHour + tc('小时') + min + tc('分钟')
+      } else {
+        return tc('超过一天')
+      }
+      //  超过一分钟
+    } else if (time / 60 > 1) {
+      const intMin = parseInt((time / 60).toString())
+      const floatMin = parseFloat((time / 60).toFixed(1))
+      const num = FloatSub(floatMin, intMin)
+      const sec = num * 60
+      return intMin + tc('分钟') + sec + tc('秒')
+    } else {
+      const sec = parseInt(time.toString())
+      if (sec > 0) {
+        return sec + tc('秒')
+      } else {
+        return 0 + tc('秒')
+      }
+    }
+  } else {
+    return tc('计算中')
+  }
+}
+const calcSpeedTime = (event: ProgressEvent) => {
+  // 计算间隔
+  const nowTime = new Date().getTime()
+  // 时间单位为毫秒，需转化为秒
+  const intervalTime = (nowTime - lastTime) / 1000
+  const intervalSize = event.loaded - lastSize
+  // 重新赋值以便于下次计算
+  lastTime = nowTime
+  lastSize = event.loaded
+
+  // 计算速度
+  let speed = intervalSize / intervalTime
+  // 保存以b/s为单位的速度值，方便计算剩余时间
+  const bSpeed = speed
+  // 单位名称
+  let units = 'b/s'
+  if (speed / 1024 > 1) {
+    speed = speed / 1024
+    units = 'k/s'
+  }
+  if (speed / 1024 > 1) {
+    speed = speed / 1024
+    units = 'M/s'
+  }
+  if (speed > 0) {
+    // 如果速度大于0
+    uploadSpeed.value = speed.toFixed(1) + units
+  } else {
+    // 如果速度小于等于0 则赋值为0.0
+    uploadSpeed.value = (0.0).toString() + units
+  }
+  // 计算剩余时间
+  const leftTime = ((event.total - event.loaded) / bSpeed)
+  uploadTime.value = handleTime(Number(leftTime.toFixed(1)))
+}
 const download = async (fileName: string, na: string) => {
   // 创建a标签
   // const a = document.createElement('a')
@@ -214,42 +288,50 @@ const download = async (fileName: string, na: string) => {
   // a.click()
   // 将标签从dom移除
   // document.body.removeChild(a)
-  Notify.create({
-    classes: 'notification-positive shadow-15',
-    icon: 'las la-redo-alt',
-    textColor: 'positive',
-    message: `${tc('正在下载中，请稍等')}...`,
-    position: 'bottom',
-    closeBtn: true,
-    timeout: 5000,
-    multiLine: false
-  })
+  const index = store.items.progressList.length
+  store.triggerDownloadProgressDialog()
   const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
   const objPath = props.pathObj.bucket_name + '/' + na
-  const res = await api.storage.single.getObjPath({
-    base,
-    path: { objpath: objPath }
+  axiosStorage({
+    url: base + `/share/obs/${objPath}`, // todo 改成服务单元对应api
+    method: 'get',
+    responseType: 'blob',
+    onDownloadProgress: async function (progressEvent) {
+      // console.log(progressEvent)
+      if (progressEvent.lengthComputable) {
+        const complete = (Math.round(progressEvent.loaded / progressEvent.total * 100))
+        calcSpeedTime(progressEvent)
+        store.items.progressList[index] = { fileName, progress: complete, loaded: progressEvent.loaded, totalSize: progressEvent.total, speed: uploadSpeed.value, time: uploadTime.value }
+        // 计算进度
+        // progressArr.value[payload.index] = (progressEvent.loaded / progressEvent.total * 100).toFixed(1)
+        // 计算速度和时间
+        // calcSpeedTime(progressEvent)
+        // if (isClose.value) {
+        // 取消正在发的请求
+        // cancelUpload()
+        // void await store.addPathTable(
+        //   currentBucket.value.id,
+        //   route.query.path as string
+        // )
+        // }
+      }
+    }
+  }).then((res) => {
+    const url = window.URL.createObjectURL(new Blob([res.data]))
+    const link = document.createElement('a')
+    link.style.display = 'none'
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    // 释放blob URL地址
+    window.URL.revokeObjectURL(url)
   })
-  const url = window.URL.createObjectURL(new Blob([res.data]))
-  const link = document.createElement('a')
-  link.style.display = 'none'
-  link.href = url
-  link.setAttribute('download', fileName)
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  // 释放blob URL地址
-  window.URL.revokeObjectURL(url)
-  Notify.create({
-    classes: 'notification-positive shadow-15',
-    icon: 'las la-redo-alt',
-    textColor: 'positive',
-    message: tc('下载完成'),
-    position: 'bottom',
-    closeBtn: true,
-    timeout: 5000,
-    multiLine: false
-  })
+  // const res = await api.storage.single.getObjPath({
+  //   base,
+  //   path: { objpath: objPath }
+  // })
 }
 const toggleExpansion = (props: { expand: boolean, row: FileInterface }) => {
   if (props.expand) {
@@ -269,6 +351,12 @@ watch(
     deep: true
   }
 )
+// watch(store.items.progressList, () => {
+//   const progress = store.items.progressList.find(item => item.progress !== 100)
+//   if (progress === undefined) {
+//     store.items.progressList = []
+//   }
+// })
 </script>
 
 <template>

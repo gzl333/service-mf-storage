@@ -21,6 +21,7 @@ import ChangeKeyStateDialog from 'components/bucket/ChangeKeyStateDialog.vue'
 import CreateKeyDialog from 'components/bucket/CreateKeyDialog.vue'
 import DeleteKeyDialog from 'components/bucket/DeleteKeyDialog.vue'
 import RedeemCouponDialog from 'components/coupon/RedeemCouponDialog.vue'
+import DownloadProgressDialog from 'components/bucket/DownloadProgressDialog.vue'
 
 const exceptionNotifier = useExceptionNotifier()
 
@@ -307,6 +308,15 @@ export interface IntegratedBucketInterface {
   bucketName: string
 }
 
+export interface DownloadProgressInterface {
+  fileName: string,
+  progress: number,
+  loaded: number,
+  totalSize: number,
+  speed: string,
+  time: string
+}
+
 export interface IntegratedSearchInterface {
   service: IntegratedServiceInterface,
   bucket: Array<IntegratedBucketInterface> | []
@@ -372,7 +382,8 @@ export const useStore = defineStore('storage', {
       // 例如'/my/server/personal/list' -> ['personal', 'list'], 供二级三级导航栏在刷新时保持选择使用
       currentPath: [] as string[],
       // 分享链接所用的服务单元信息
-      shareService: {} as ServiceInterface
+      shareService: {} as ServiceInterface,
+      progressList: [] as DownloadProgressInterface[]
     },
     tables: {
       serviceTable: {
@@ -1101,7 +1112,12 @@ export const useStore = defineStore('storage', {
         }
       })
     },
-
+    // 触发下载进度条对话框
+    triggerDownloadProgressDialog () {
+      Dialog.create({
+        component: DownloadProgressDialog
+      })
+    },
     /* coupon */
     redeemCouponDialog () {
       Dialog.create({
