@@ -34,6 +34,12 @@ const currentFiles = computed(() => props.pathObj?.files.filter((file: FileInter
 // table中选中的对象
 const selected = ref<FileInterface[]>([])
 const fileDetail = ref({})
+const lastTimeArr: number[] = []
+// 上一次计算的文件大小
+const lastSizeArr: number[] = []
+const uploadSpeed = ref('')
+// 上传剩余时间
+const uploadTime = ref('')
 // const toggleSelection = (file: FileInterface) => {
 //   if (selected.value.filter((item) => item.name === file.name).length === 0) {
 //     selected.value.push(file)
@@ -199,12 +205,6 @@ const changeName = (path: string, name: string) => {
 const comprehensiveSearch = () => {
   navigateToUrl('/my/storage/search/?bucket=' + props.pathObj.bucketId)
 }
-let lastTime = 0
-// 上一次计算的文件大小
-let lastSize = 0
-const uploadSpeed = ref()
-// 上传剩余时间
-const uploadTime = ref()
 const handleTime = (time: number) => {
   // 文件切片上传 每一片开始的时候 会有一刻速度为0
   if (time > 0) {
@@ -238,16 +238,15 @@ const handleTime = (time: number) => {
     return tc('计算中')
   }
 }
-const calcSpeedTime = (event: ProgressEvent) => {
+const calcSpeedTime = (event: ProgressEvent, index: number) => {
   // 计算间隔
   const nowTime = new Date().getTime()
   // 时间单位为毫秒，需转化为秒
-  const intervalTime = (nowTime - lastTime) / 1000
-  const intervalSize = event.loaded - lastSize
+  const intervalTime = (nowTime - lastTimeArr[index]) / 1000
+  const intervalSize = event.loaded - lastSizeArr[index]
   // 重新赋值以便于下次计算
-  lastTime = nowTime
-  lastSize = event.loaded
-
+  lastTimeArr[index] = nowTime
+  lastSizeArr[index] = event.loaded
   // 计算速度
   let speed = intervalSize / intervalTime
   // 保存以b/s为单位的速度值，方便计算剩余时间
@@ -289,6 +288,8 @@ const download = async (fileName: string, na: string) => {
   // 将标签从dom移除
   // document.body.removeChild(a)
   const index = store.items.progressList.length
+  lastSizeArr[index] = 0
+  lastTimeArr[index] = 0
   store.triggerDownloadProgressDialog()
   const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
   const objPath = props.pathObj.bucket_name + '/' + na
@@ -300,7 +301,7 @@ const download = async (fileName: string, na: string) => {
       // console.log(progressEvent)
       if (progressEvent.lengthComputable) {
         const complete = (Math.round(progressEvent.loaded / progressEvent.total * 100))
-        calcSpeedTime(progressEvent)
+        calcSpeedTime(progressEvent, index)
         store.items.progressList[index] = { fileName, progress: complete, loaded: progressEvent.loaded, totalSize: progressEvent.total, speed: uploadSpeed.value, time: uploadTime.value }
         // 计算进度
         // progressArr.value[payload.index] = (progressEvent.loaded / progressEvent.total * 100).toFixed(1)

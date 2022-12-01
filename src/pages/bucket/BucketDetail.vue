@@ -138,10 +138,10 @@ const clickToCopy = useCopyToClipboard()
         class="q-py-md q-px-none"
       >
 
-        <div class="row items-center text-black q-pb-md">
+        <div class="row items-center justify-between text-black q-pb-md">
           <GlobalBreadcrumbs/>
+          <q-btn class="col-auto" flat no-caps color="primary" :label="tc('查看下载文件')" @click="store.triggerDownloadProgressDialog()"/>
         </div>
-
         <PathTable :pathObj="currentPath"/>
 
       </q-tab-panel>

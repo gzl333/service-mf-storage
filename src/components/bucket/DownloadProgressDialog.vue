@@ -55,8 +55,8 @@ const getFileSize = (size: number) => {
       </q-card-section>
       <q-separator/>
       <q-list separator>
-        <q-card v-for="(file, index) in downloadProgress" :key="index" flat bordered
-                class="my-card bg-grey-2 q-mt-md">
+        <div v-if="downloadProgress.length > 0">
+        <q-card v-for="(file, index) in downloadProgress" :key="index" flat bordered class="my-card bg-grey-2 q-mt-md">
           <q-card-section class="q-py-xs q-px-md">
             <div class="row no-wrap items-center justify-between">
               <div class="col-auto">
@@ -79,9 +79,11 @@ const getFileSize = (size: number) => {
               </div>
             </div>
           </q-card-section>
-          <q-card-section class="q-py-none q-px-md">
-          </q-card-section>
         </q-card>
+        </div>
+        <div v-else class="text-center text-subtitle1 q-mt-lg">
+          暂无下载文件
+        </div>
       </q-list>
     </q-card>
   </q-dialog>
