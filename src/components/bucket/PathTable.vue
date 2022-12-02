@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import { ref, computed, PropType, watch } from 'vue'
-import { FileInterface, PathInterface } from 'src/stores/store'
+import { ref, computed, PropType, watch, Ref } from 'vue'
 import { useStore } from 'stores/store'
+import { FileInterface, PathInterface } from 'src/stores/store'
 // import { useRoute } from 'vue-router'
 import { navigateToUrl } from 'single-spa'
 import { i18n } from 'boot/i18n'
+import { Notify } from 'quasar'
 import useClipText from 'src/hooks/useClipText'
 import useFormatSize from 'src/hooks/useFormatSize'
-// import { Notify } from 'quasar'
-// import api from 'src/api/index'
 import { axiosStorage } from 'boot/axios'
 import { FloatSub } from 'src/hooks/handleFloat'
+
 const props = defineProps({
   pathObj: {
     type: Object as PropType<PathInterface>,
@@ -272,7 +272,9 @@ const calcSpeedTime = (event: ProgressEvent, index: number) => {
   const leftTime = ((event.total - event.loaded) / bSpeed)
   uploadTime.value = handleTime(Number(leftTime.toFixed(1)))
 }
-const download = async (fileName: string, na: string) => {
+const waitArr: string[] = []
+const downArr: Ref<string[]> = ref([])
+const download = async (fileName: string, na: string, fileSize: number) => {
   // 创建a标签
   // const a = document.createElement('a')
   // 定义下载名称
@@ -287,52 +289,65 @@ const download = async (fileName: string, na: string) => {
   // a.click()
   // 将标签从dom移除
   // document.body.removeChild(a)
+  Notify.create({
+    classes: 'notification-positive shadow-15',
+    icon: 'check_circle',
+    textColor: 'positive',
+    message: '已加入下载队列中',
+    position: 'bottom',
+    closeBtn: true,
+    timeout: 5000,
+    multiLine: false
+  })
   const index = store.items.progressList.length
   lastSizeArr[index] = 0
   lastTimeArr[index] = 0
-  store.triggerDownloadProgressDialog()
-  const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
-  const objPath = props.pathObj.bucket_name + '/' + na
-  axiosStorage({
-    url: base + `/share/obs/${objPath}`, // todo 改成服务单元对应api
-    method: 'get',
-    responseType: 'blob',
-    onDownloadProgress: async function (progressEvent) {
-      // console.log(progressEvent)
-      if (progressEvent.lengthComputable) {
-        const complete = (Math.round(progressEvent.loaded / progressEvent.total * 100))
-        calcSpeedTime(progressEvent, index)
-        store.items.progressList[index] = { fileName, progress: complete, loaded: progressEvent.loaded, totalSize: progressEvent.total, speed: uploadSpeed.value, time: uploadTime.value }
-        // 计算进度
-        // progressArr.value[payload.index] = (progressEvent.loaded / progressEvent.total * 100).toFixed(1)
-        // 计算速度和时间
-        // calcSpeedTime(progressEvent)
-        // if (isClose.value) {
-        // 取消正在发的请求
-        // cancelUpload()
-        // void await store.addPathTable(
-        //   currentBucket.value.id,
-        //   route.query.path as string
-        // )
-        // }
+  if (index < 3) {
+    downArr.value.push(na)
+    const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
+    const objPath = props.pathObj.bucket_name + '/' + na
+    axiosStorage({
+      url: base + `/share/obs/${objPath}`, // todo 改成服务单元对应api
+      method: 'get',
+      responseType: 'blob',
+      onDownloadProgress: async function (progressEvent) {
+        if (progressEvent.lengthComputable) {
+          const complete = (Math.round(progressEvent.loaded / progressEvent.total * 100))
+          calcSpeedTime(progressEvent, index)
+          store.items.progressList[index] = {
+            fileName,
+            progress: complete,
+            loaded: progressEvent.loaded,
+            totalSize: progressEvent.total,
+            speed: uploadSpeed.value,
+            time: uploadTime.value
+          }
+        }
       }
+    }).then((res) => {
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement('a')
+      link.style.display = 'none'
+      link.href = url
+      link.setAttribute('download', fileName)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      // 释放blob URL地址
+      window.URL.revokeObjectURL(url)
+      downArr.value = downArr.value.filter(item => item !== na)
+    })
+  } else {
+    waitArr.push(na)
+    store.items.progressList[index] = {
+      fileName,
+      progress: 0,
+      loaded: 0,
+      totalSize: fileSize,
+      speed: '等待开始下载',
+      time: '等待开始下载'
     }
-  }).then((res) => {
-    const url = window.URL.createObjectURL(new Blob([res.data]))
-    const link = document.createElement('a')
-    link.style.display = 'none'
-    link.href = url
-    link.setAttribute('download', fileName)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    // 释放blob URL地址
-    window.URL.revokeObjectURL(url)
-  })
-  // const res = await api.storage.single.getObjPath({
-  //   base,
-  //   path: { objpath: objPath }
-  // })
+  }
 }
 const toggleExpansion = (props: { expand: boolean, row: FileInterface }) => {
   if (props.expand) {
@@ -352,6 +367,54 @@ watch(
     deep: true
   }
 )
+watch(
+  () => downArr.value.length,
+  () => {
+    if (downArr.value.length < 3) {
+      if (waitArr.length > 0) {
+        console.log('下载完成出列', downArr.value)
+        console.log('下载完成出列', waitArr)
+        downArr.value.push(waitArr[0])
+        waitArr.shift()
+        console.log('下载完成出列1', downArr.value)
+        console.log('下载完成出列1', waitArr)
+        const index = store.items.progressList.findIndex(item => item.fileName === downArr.value[downArr.value.length - 1])
+        const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
+        const objPath = props.pathObj.bucket_name + '/' + downArr.value[downArr.value.length - 1]
+        axiosStorage({
+          url: base + `/share/obs/${objPath}`, // todo 改成服务单元对应api
+          method: 'get',
+          responseType: 'blob',
+          onDownloadProgress: async function (progressEvent) {
+            if (progressEvent.lengthComputable) {
+              const complete = (Math.round(progressEvent.loaded / progressEvent.total * 100))
+              calcSpeedTime(progressEvent, index)
+              store.items.progressList[index].progress = complete
+              store.items.progressList[index].loaded = progressEvent.loaded
+              store.items.progressList[index].totalSize = progressEvent.total
+              store.items.progressList[index].speed = uploadSpeed.value
+              store.items.progressList[index].time = uploadTime.value
+            }
+          }
+        }).then((res) => {
+          const url = window.URL.createObjectURL(new Blob([res.data]))
+          const link = document.createElement('a')
+          link.style.display = 'none'
+          link.href = url
+          link.setAttribute('download', downArr.value[downArr.value.length - 1])
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          // 释放blob URL地址
+          window.URL.revokeObjectURL(url)
+          console.log(downArr.value)
+          downArr.value = downArr.value.filter(item => item !== downArr.value[downArr.value.length - 1])
+        }
+        )
+      }
+    }
+  })
+
 // watch(store.items.progressList, () => {
 //   const progress = store.items.progressList.find(item => item.progress !== 100)
 //   if (progress === undefined) {
@@ -372,7 +435,8 @@ watch(
                :disable="selected.length<=0"/>
         <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="batchShare"
                :disable="selected.length<=0"/>
-        <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('综合检索')" @click="comprehensiveSearch"/>
+        <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('综合检索')"
+               @click="comprehensiveSearch"/>
       </div>
 
       <q-input
@@ -475,7 +539,7 @@ watch(
                        @click="changeName(props.row.na, props.row.name)">{{ tc('重命名') }}
                 </q-btn>
                 <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps
-                       @click="download(props.row.name, props.row.na)">{{ tc('下载') }}
+                       @click="download(props.row.name, props.row.na, props.row.si)">{{ tc('下载') }}
                 </q-btn>
                 <!--                <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">{{ tc('下载') }}</q-btn>-->
                 <q-btn v-if="props.row.fod === true" color="primary" flat dense no-caps
