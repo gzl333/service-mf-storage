@@ -307,7 +307,7 @@ const download = async (fileName: string, na: string, fileSize: number) => {
     const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
     const objPath = props.pathObj.bucket_name + '/' + na
     axiosStorage({
-      url: base + `/share/obs/${objPath}`, // todo 改成服务单元对应api
+      url: base + `/share/obs/${objPath}`,
       method: 'get',
       responseType: 'blob',
       onDownloadProgress: async function (progressEvent) {
@@ -382,7 +382,7 @@ watch(
         const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
         const objPath = props.pathObj.bucket_name + '/' + downArr.value[downArr.value.length - 1]
         axiosStorage({
-          url: base + `/share/obs/${objPath}`, // todo 改成服务单元对应api
+          url: base + `/share/obs/${objPath}`,
           method: 'get',
           responseType: 'blob',
           onDownloadProgress: async function (progressEvent) {
@@ -414,13 +414,6 @@ watch(
       }
     }
   })
-
-// watch(store.items.progressList, () => {
-//   const progress = store.items.progressList.find(item => item.progress !== 100)
-//   if (progress === undefined) {
-//     store.items.progressList = []
-//   }
-// })
 </script>
 
 <template>
