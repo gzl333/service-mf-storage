@@ -140,7 +140,9 @@ const clickToCopy = useCopyToClipboard()
 
         <div class="row items-center justify-between text-black q-pb-md">
           <GlobalBreadcrumbs/>
-          <q-btn class="col-auto" flat no-caps color="primary" :label="tc('查看下载文件')" @click="store.triggerDownloadProgressDialog()"/>
+          <q-btn flat no-caps color="primary" class="q-mr-xs" :label="tc('查看下载文件')" @click="store.triggerDownloadProgressDialog()">
+            <q-badge color="orange" floating v-show="store.items.progressList.length !== 0">{{ store.items.progressList.length }}</q-badge>
+          </q-btn>
         </div>
         <PathTable :pathObj="currentPath"/>
 

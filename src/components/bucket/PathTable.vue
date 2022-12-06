@@ -40,6 +40,8 @@ const lastSizeArr: number[] = []
 const uploadSpeed = ref('')
 // 上传剩余时间
 const uploadTime = ref('')
+const waitQueue: string[] = []
+const downQueue: Ref<string[]> = ref([])
 // const toggleSelection = (file: FileInterface) => {
 //   if (selected.value.filter((item) => item.name === file.name).length === 0) {
 //     selected.value.push(file)
@@ -272,8 +274,6 @@ const calcSpeedTime = (event: ProgressEvent, index: number) => {
   const leftTime = ((event.total - event.loaded) / bSpeed)
   uploadTime.value = handleTime(Number(leftTime.toFixed(1)))
 }
-const waitArr: string[] = []
-const downArr: Ref<string[]> = ref([])
 const download = async (fileName: string, na: string, fileSize: number) => {
   // 创建a标签
   // const a = document.createElement('a')
@@ -302,8 +302,8 @@ const download = async (fileName: string, na: string, fileSize: number) => {
   const index = store.items.progressList.length
   lastSizeArr[index] = 0
   lastTimeArr[index] = 0
-  if (index < 3) {
-    downArr.value.push(na)
+  if (downQueue.value.length < 3) {
+    downQueue.value.push(na)
     const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
     const objPath = props.pathObj.bucket_name + '/' + na
     axiosStorage({
@@ -335,10 +335,10 @@ const download = async (fileName: string, na: string, fileSize: number) => {
       document.body.removeChild(link)
       // 释放blob URL地址
       window.URL.revokeObjectURL(url)
-      downArr.value = downArr.value.filter(item => item !== na)
+      downQueue.value = downQueue.value.filter(item => item !== na)
     })
   } else {
-    waitArr.push(na)
+    waitQueue.push(na)
     store.items.progressList[index] = {
       fileName,
       progress: 0,
@@ -368,19 +368,19 @@ watch(
   }
 )
 watch(
-  () => downArr.value.length,
+  () => downQueue.value.length,
   () => {
-    if (downArr.value.length < 3) {
-      if (waitArr.length > 0) {
-        console.log('下载完成出列', downArr.value)
-        console.log('下载完成出列', waitArr)
-        downArr.value.push(waitArr[0])
-        waitArr.shift()
-        console.log('下载完成出列1', downArr.value)
-        console.log('下载完成出列1', waitArr)
-        const index = store.items.progressList.findIndex(item => item.fileName === downArr.value[downArr.value.length - 1])
+    if (downQueue.value.length < 3) {
+      if (waitQueue.length > 0) {
+        // console.log('下载完成出列', downQueue.value)
+        // console.log('下载完成出列', waitQueue)
+        downQueue.value.push(waitQueue[0])
+        waitQueue.shift()
+        // console.log('下载完成出列1', downQueue.value)
+        // console.log('下载完成出列1', waitQueue)
+        const index = store.items.progressList.findIndex(item => item.fileName === downQueue.value[downQueue.value.length - 1])
         const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
-        const objPath = props.pathObj.bucket_name + '/' + downArr.value[downArr.value.length - 1]
+        const objPath = props.pathObj.bucket_name + '/' + downQueue.value[downQueue.value.length - 1]
         axiosStorage({
           url: base + `/share/obs/${objPath}`,
           method: 'get',
@@ -401,14 +401,13 @@ watch(
           const link = document.createElement('a')
           link.style.display = 'none'
           link.href = url
-          link.setAttribute('download', downArr.value[downArr.value.length - 1])
+          link.setAttribute('download', downQueue.value[downQueue.value.length - 1])
           document.body.appendChild(link)
           link.click()
           document.body.removeChild(link)
           // 释放blob URL地址
           window.URL.revokeObjectURL(url)
-          console.log(downArr.value)
-          downArr.value = downArr.value.filter(item => item !== downArr.value[downArr.value.length - 1])
+          downQueue.value = downQueue.value.filter(item => item !== downQueue.value[downQueue.value.length - 1])
         }
         )
       }

@@ -56,30 +56,31 @@ const getFileSize = (size: number) => {
       <q-separator/>
       <q-list separator>
         <div v-if="downloadProgress.length > 0">
-        <q-card v-for="(file, index) in downloadProgress" :key="index" flat bordered class="my-card bg-grey-2 q-mt-md">
-          <q-card-section class="q-py-xs q-px-md">
-            <div class="row no-wrap items-center justify-between">
-              <div class="col-auto">
-                <div class="text-weight-bold">{{ file.fileName }}</div>
-                <div>{{ getFileSize(file.loaded) + '/' + getFileSize(file.totalSize) }}</div>
+          <q-card v-for="(file, index) in downloadProgress" :key="index" flat bordered
+                  class="my-card bg-grey-2 q-mt-md">
+            <q-card-section class="q-py-xs q-px-md">
+              <div class="row no-wrap items-center justify-between">
+                <div class="col-4">
+                  <div class="text-weight-bold">{{ file.fileName }}</div>
+                  <div>{{ getFileSize(file.loaded) + '/' + getFileSize(file.totalSize) }}</div>
+                </div>
+                <div class="col-8 row">
+                  <div class="col-12 row items-center justify-between">
+                    <div class="col-10">
+                      <q-linear-progress :value="file.progress / 100" color="positive" size="md"/>
+                    </div>
+                    <div class="text-center">{{ file.progress }}%</div>
+                  </div>
+                  <div>
+                    <span>下载速度：{{ file.speed }}</span>
+                    <span class="q-ml-sm">剩余时间：</span>
+                    <span v-show="file.progress !== 100">{{ file.time }}</span>
+                    <span v-show="file.progress === 100">下载完成</span>
+                  </div>
+                </div>
               </div>
-              <div class="col-7 row">
-                <div class="col-12 row items-center justify-between">
-                <div class="col-10">
-                  <q-linear-progress :value="file.progress / 100" color="positive" size="md"/>
-                </div>
-                <div class="text-center">{{ file.progress }}%</div>
-                </div>
-                <div>
-                  <span>下载速度：{{ file.speed }}</span>
-                  <span class="q-ml-sm">剩余时间：</span>
-                  <span v-show="file.progress !== 100">{{ file.time }}</span>
-                  <span v-show="file.progress === 100">下载完成</span>
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
+            </q-card-section>
+          </q-card>
         </div>
         <div v-else class="text-center text-subtitle1 q-mt-lg">
           暂无下载文件
