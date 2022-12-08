@@ -64,8 +64,15 @@ const getFileSize = (size: number) => {
                 <div class="col-10">
                   <q-linear-progress :value="file.progress / 100" color="positive" size="md"/>
                 </div>
-                <div class="text-center" v-if="file.progress !== 100">{{ file.progress }}%</div>
-                <q-icon v-else name="las la-check-circle" size="sm" color="positive" class="q-ml-sm"/>
+                <div class="text-center q-ml-sm" v-if="file.progress !== 100">{{ file.progress }}%</div>
+                <q-btn v-if="file.progress !== 100" class="q-ml-sm" size="md" flat dense round icon="clear">
+                  <q-tooltip>{{ tc('取消下载') }}</q-tooltip>
+                </q-btn>
+                <q-icon v-if="file.progress === 100" name="las la-check-circle" size="sm" color="positive"
+                        class="q-ml-sm"/>
+                <q-btn v-if="file.progress === 100" size="md" flat dense round icon="las la-trash-alt">
+                  <q-tooltip>{{ tc('删除') }}</q-tooltip>
+                </q-btn>
               </div>
               <div>
                 <span>{{ getFileSize(file.loadedSize) + '/' + getFileSize(file.totalSize) }}</span>

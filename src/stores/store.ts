@@ -310,6 +310,7 @@ export interface IntegratedBucketInterface {
 
 export interface DownloadProgressInterface {
   fileName: string,
+  na: string,
   progress: number,
   loadedSize: number,
   totalSize: number,

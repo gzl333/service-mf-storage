@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed, PropType, watch, Ref } from 'vue'
+import { ref, computed, PropType, watch } from 'vue'
 import { useStore } from 'stores/store'
 import { FileInterface, PathInterface } from 'src/stores/store'
 // import { useRoute } from 'vue-router'
@@ -17,6 +17,10 @@ const props = defineProps({
     required: true
   }
 })
+interface QueueInterface {
+  fileName: string
+  na: string
+}
 // const emit = defineEmits(['change', 'delete'])
 // code starts...
 const store = useStore()
@@ -273,8 +277,8 @@ const calcSpeedTime = (event: ProgressEvent, index: number) => {
   downTime.value = handleTime(Number(leftTime.toFixed(1)))
   return { downSpeed: downSpeed.value, downTime: downTime.value }
 }
-const waitQueue: string[] = []
-const downQueue: Ref<string[]> = ref([])
+const waitQueue: QueueInterface[] = []
+const downQueue = ref<QueueInterface[]>([])
 const download = (fileName: string, na: string, itemIndex: number) => {
   const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
   const objPath = props.pathObj.bucket_name + '/' + na
@@ -289,6 +293,7 @@ const download = (fileName: string, na: string, itemIndex: number) => {
         await store.storageProgressList({
           progressData: {
             fileName,
+            na,
             progress,
             loadedSize: progressEvent.loaded,
             totalSize: progressEvent.total,
@@ -310,7 +315,7 @@ const download = (fileName: string, na: string, itemIndex: number) => {
     document.body.removeChild(link)
     // 释放blob URL地址
     window.URL.revokeObjectURL(url)
-    downQueue.value = downQueue.value.filter(item => item !== na)
+    downQueue.value = downQueue.value.filter(item => item.na !== na)
   })
 }
 const putQueue = async (fileName: string, na: string, fileSize: number) => {
@@ -342,12 +347,13 @@ const putQueue = async (fileName: string, na: string, fileSize: number) => {
   lastSizeArr[itemIndex] = 0
   lastTimeArr[itemIndex] = 0
   if (downQueue.value.length < 3) {
-    downQueue.value.push(na)
+    downQueue.value.push({ fileName, na })
     download(fileName, na, itemIndex)
   } else {
-    waitQueue.push(na)
+    waitQueue.push({ fileName, na })
     store.items.progressList[itemIndex] = {
       fileName,
+      na,
       progress: 0,
       loadedSize: 0,
       totalSize: fileSize,
@@ -381,9 +387,10 @@ watch(
       if (waitQueue.length > 0) {
         downQueue.value.push(waitQueue[0])
         waitQueue.shift()
-        const fileName = downQueue.value[downQueue.value.length - 1].slice(downQueue.value[downQueue.value.length - 1].lastIndexOf('/') + 1)
-        const itemIndex = store.items.progressList.findIndex(item => item.fileName === fileName)
-        download(fileName, downQueue.value[downQueue.value.length - 1], itemIndex)
+        const fileName = downQueue.value[downQueue.value.length - 1].fileName
+        const na = downQueue.value[downQueue.value.length - 1].na
+        const itemIndex = store.items.progressList.findIndex(item => item.na === na)
+        download(fileName, downQueue.value[downQueue.value.length - 1].na, itemIndex)
       }
     }
   })
