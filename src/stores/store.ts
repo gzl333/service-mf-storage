@@ -311,10 +311,10 @@ export interface IntegratedBucketInterface {
 export interface DownloadProgressInterface {
   fileName: string,
   progress: number,
-  loaded: number,
+  loadedSize: number,
   totalSize: number,
-  speed: string,
-  time: string
+  downSpeed: string,
+  surplusTime: string
 }
 
 export interface IntegratedSearchInterface {
@@ -940,6 +940,10 @@ export const useStore = defineStore('storage', {
         this.tables.bucketTable.status = 'error'
         exceptionNotifier(exception)
       }
+    },
+    // 存储下载进度条
+    async storageProgressList (payload: { progressData: DownloadProgressInterface, itemIndex: number }) {
+      this.items.progressList[payload.itemIndex] = payload.progressData
     },
     /* dialogs */
     // 触发新建存储桶对话框

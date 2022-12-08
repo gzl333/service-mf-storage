@@ -34,14 +34,6 @@ const currentFiles = computed(() => props.pathObj?.files.filter((file: FileInter
 // table中选中的对象
 const selected = ref<FileInterface[]>([])
 const fileDetail = ref({})
-const lastTimeArr: number[] = []
-// 上一次计算的文件大小
-const lastSizeArr: number[] = []
-const uploadSpeed = ref('')
-// 上传剩余时间
-const uploadTime = ref('')
-const waitQueue: string[] = []
-const downQueue: Ref<string[]> = ref([])
 // const toggleSelection = (file: FileInterface) => {
 //   if (selected.value.filter((item) => item.name === file.name).length === 0) {
 //     selected.value.push(file)
@@ -207,6 +199,12 @@ const changeName = (path: string, name: string) => {
 const comprehensiveSearch = () => {
   navigateToUrl('/my/storage/search/?bucket=' + props.pathObj.bucketId)
 }
+const lastTimeArr: number[] = []
+// 上一次计算的文件大小
+const lastSizeArr: number[] = []
+const downSpeed = ref('')
+// 上传剩余时间
+const downTime = ref('')
 const handleTime = (time: number) => {
   // 文件切片上传 每一片开始的时候 会有一刻速度为0
   if (time > 0) {
@@ -265,16 +263,57 @@ const calcSpeedTime = (event: ProgressEvent, index: number) => {
   }
   if (speed > 0) {
     // 如果速度大于0
-    uploadSpeed.value = speed.toFixed(1) + units
+    downSpeed.value = speed.toFixed(1) + units
   } else {
     // 如果速度小于等于0 则赋值为0.0
-    uploadSpeed.value = (0.0).toString() + units
+    downSpeed.value = (0.0).toString() + units
   }
   // 计算剩余时间
   const leftTime = ((event.total - event.loaded) / bSpeed)
-  uploadTime.value = handleTime(Number(leftTime.toFixed(1)))
+  downTime.value = handleTime(Number(leftTime.toFixed(1)))
+  return { downSpeed: downSpeed.value, downTime: downTime.value }
 }
-const download = async (fileName: string, na: string, fileSize: number) => {
+const waitQueue: string[] = []
+const downQueue: Ref<string[]> = ref([])
+const download = (fileName: string, na: string, itemIndex: number) => {
+  const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
+  const objPath = props.pathObj.bucket_name + '/' + na
+  axiosStorage({
+    url: base + `/share/obs/${objPath}`,
+    method: 'get',
+    responseType: 'blob',
+    onDownloadProgress: async function (progressEvent) {
+      if (progressEvent.lengthComputable) {
+        const progress = (Math.round(progressEvent.loaded / progressEvent.total * 100))
+        const downSpeedAndTime = calcSpeedTime(progressEvent, itemIndex)
+        await store.storageProgressList({
+          progressData: {
+            fileName,
+            progress,
+            loadedSize: progressEvent.loaded,
+            totalSize: progressEvent.total,
+            downSpeed: downSpeedAndTime.downSpeed,
+            surplusTime: downSpeedAndTime.downTime
+          },
+          itemIndex
+        })
+      }
+    }
+  }).then((res) => {
+    const url = window.URL.createObjectURL(new Blob([res.data]))
+    const link = document.createElement('a')
+    link.style.display = 'none'
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    // 释放blob URL地址
+    window.URL.revokeObjectURL(url)
+    downQueue.value = downQueue.value.filter(item => item !== na)
+  })
+}
+const putQueue = async (fileName: string, na: string, fileSize: number) => {
   // 创建a标签
   // const a = document.createElement('a')
   // 定义下载名称
@@ -299,53 +338,21 @@ const download = async (fileName: string, na: string, fileSize: number) => {
     timeout: 5000,
     multiLine: false
   })
-  const index = store.items.progressList.length
-  lastSizeArr[index] = 0
-  lastTimeArr[index] = 0
+  const itemIndex = store.items.progressList.length
+  lastSizeArr[itemIndex] = 0
+  lastTimeArr[itemIndex] = 0
   if (downQueue.value.length < 3) {
     downQueue.value.push(na)
-    const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
-    const objPath = props.pathObj.bucket_name + '/' + na
-    axiosStorage({
-      url: base + `/share/obs/${objPath}`,
-      method: 'get',
-      responseType: 'blob',
-      onDownloadProgress: async function (progressEvent) {
-        if (progressEvent.lengthComputable) {
-          const complete = (Math.round(progressEvent.loaded / progressEvent.total * 100))
-          calcSpeedTime(progressEvent, index)
-          store.items.progressList[index] = {
-            fileName,
-            progress: complete,
-            loaded: progressEvent.loaded,
-            totalSize: progressEvent.total,
-            speed: uploadSpeed.value,
-            time: uploadTime.value
-          }
-        }
-      }
-    }).then((res) => {
-      const url = window.URL.createObjectURL(new Blob([res.data]))
-      const link = document.createElement('a')
-      link.style.display = 'none'
-      link.href = url
-      link.setAttribute('download', fileName)
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      // 释放blob URL地址
-      window.URL.revokeObjectURL(url)
-      downQueue.value = downQueue.value.filter(item => item !== na)
-    })
+    download(fileName, na, itemIndex)
   } else {
     waitQueue.push(na)
-    store.items.progressList[index] = {
+    store.items.progressList[itemIndex] = {
       fileName,
       progress: 0,
-      loaded: 0,
+      loadedSize: 0,
       totalSize: fileSize,
-      speed: '等待开始下载',
-      time: '等待开始下载'
+      downSpeed: '等待开始下载',
+      surplusTime: '等待开始下载'
     }
   }
 }
@@ -372,44 +379,11 @@ watch(
   () => {
     if (downQueue.value.length < 3) {
       if (waitQueue.length > 0) {
-        // console.log('下载完成出列', downQueue.value)
-        // console.log('下载完成出列', waitQueue)
         downQueue.value.push(waitQueue[0])
         waitQueue.shift()
-        // console.log('下载完成出列1', downQueue.value)
-        // console.log('下载完成出列1', waitQueue)
-        const index = store.items.progressList.findIndex(item => item.fileName === downQueue.value[downQueue.value.length - 1])
-        const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
-        const objPath = props.pathObj.bucket_name + '/' + downQueue.value[downQueue.value.length - 1]
-        axiosStorage({
-          url: base + `/share/obs/${objPath}`,
-          method: 'get',
-          responseType: 'blob',
-          onDownloadProgress: async function (progressEvent) {
-            if (progressEvent.lengthComputable) {
-              const complete = (Math.round(progressEvent.loaded / progressEvent.total * 100))
-              calcSpeedTime(progressEvent, index)
-              store.items.progressList[index].progress = complete
-              store.items.progressList[index].loaded = progressEvent.loaded
-              store.items.progressList[index].totalSize = progressEvent.total
-              store.items.progressList[index].speed = uploadSpeed.value
-              store.items.progressList[index].time = uploadTime.value
-            }
-          }
-        }).then((res) => {
-          const url = window.URL.createObjectURL(new Blob([res.data]))
-          const link = document.createElement('a')
-          link.style.display = 'none'
-          link.href = url
-          link.setAttribute('download', downQueue.value[downQueue.value.length - 1])
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-          // 释放blob URL地址
-          window.URL.revokeObjectURL(url)
-          downQueue.value = downQueue.value.filter(item => item !== downQueue.value[downQueue.value.length - 1])
-        }
-        )
+        const fileName = downQueue.value[downQueue.value.length - 1].slice(downQueue.value[downQueue.value.length - 1].lastIndexOf('/') + 1)
+        const itemIndex = store.items.progressList.findIndex(item => item.fileName === fileName)
+        download(fileName, downQueue.value[downQueue.value.length - 1], itemIndex)
       }
     }
   })
@@ -531,7 +505,7 @@ watch(
                        @click="changeName(props.row.na, props.row.name)">{{ tc('重命名') }}
                 </q-btn>
                 <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps
-                       @click="download(props.row.name, props.row.na, props.row.si)">{{ tc('下载') }}
+                       @click="putQueue(props.row.name, props.row.na, props.row.si)">{{ tc('下载') }}
                 </q-btn>
                 <!--                <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">{{ tc('下载') }}</q-btn>-->
                 <q-btn v-if="props.row.fod === true" color="primary" flat dense no-caps
