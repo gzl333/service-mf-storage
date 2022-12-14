@@ -40,6 +40,10 @@ const getFileSize = (size: number) => {
     return (size / Math.pow(num, 4)).toFixed(2) + 'T'
   }
 }
+const deleteFile = (na: string) => {
+  const index = store.items.progressList.findIndex(item => item.na === na)
+  store.items.progressList.splice(index, 1)
+}
 </script>
 
 <template>
@@ -70,7 +74,7 @@ const getFileSize = (size: number) => {
                 </q-btn>
                 <q-icon v-if="file.progress === 100" name="las la-check-circle" size="sm" color="positive"
                         class="q-ml-sm"/>
-                <q-btn v-if="file.progress === 100" size="md" flat dense round icon="las la-trash-alt">
+                <q-btn v-if="file.progress === 100" size="md" flat dense round icon="las la-trash-alt" @click="deleteFile(file.na)">
                   <q-tooltip>{{ tc('删除') }}</q-tooltip>
                 </q-btn>
               </div>
