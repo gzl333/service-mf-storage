@@ -4,12 +4,14 @@ import { useStore } from 'stores/store'
 import { FileInterface, PathInterface } from 'src/stores/store'
 // import { useRoute } from 'vue-router'
 import { navigateToUrl } from 'single-spa'
-import { i18n } from 'boot/i18n'
+import { axiosStorage } from 'boot/axios'
+import axios from 'axios'
 import { Notify } from 'quasar'
+import { i18n } from 'boot/i18n'
+import { FloatSub } from 'src/hooks/handleFloat'
 import useClipText from 'src/hooks/useClipText'
 import useFormatSize from 'src/hooks/useFormatSize'
-import { axiosStorage } from 'boot/axios'
-import { FloatSub } from 'src/hooks/handleFloat'
+import emitter from 'boot/mitt'
 
 const props = defineProps({
   pathObj: {
@@ -17,10 +19,10 @@ const props = defineProps({
     required: true
   }
 })
-interface QueueInterface {
-  fileName: string
-  na: string
-}
+// interface QueueInterface {
+//   fileName: string
+//   na: string
+// }
 // const emit = defineEmits(['change', 'delete'])
 // code starts...
 const store = useStore()
@@ -277,14 +279,20 @@ const calcSpeedTime = (event: ProgressEvent, index: number) => {
   downTime.value = handleTime(Number(leftTime.toFixed(1)))
   return { downSpeed: downSpeed.value, downTime: downTime.value }
 }
-const waitQueue: QueueInterface[] = []
-const downQueue = ref<QueueInterface[]>([])
+// const waitQueue: QueueInterface[] = []
+// const downQueue = ref<QueueInterface[]>([])
+// CancelToken和source用于正在上传关闭窗口 取消正在发送的请求
+const CancelToken = axios.CancelToken
+const source = CancelToken.source()
+// const cancelArr = []
 const download = (fileName: string, na: string, itemIndex: number) => {
+  // cancelArr[itemIndex] = source
   const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
   const objPath = props.pathObj.bucket_name + '/' + na
   axiosStorage({
     url: base + `/share/obs/${objPath}`,
     method: 'get',
+    cancelToken: source.token,
     responseType: 'blob',
     onDownloadProgress: async function (progressEvent) {
       if (progressEvent.lengthComputable) {
@@ -315,9 +323,19 @@ const download = (fileName: string, na: string, itemIndex: number) => {
     document.body.removeChild(link)
     // 释放blob URL地址
     window.URL.revokeObjectURL(url)
-    downQueue.value = downQueue.value.filter(item => item.na !== na)
+    // downQueue.value = downQueue.value.filter(item => item.na !== na)
+    store.items.downQueue = store.items.downQueue.filter(item => item.na !== na)
+  }).catch((error) => {
+    console.log(error)
   })
 }
+const cancelDownload = () => {
+  source.cancel('取消请求')
+  // cancelArr[itemIndex].cancel('取消请求')
+}
+emitter.on('cancel', () => {
+  cancelDownload()
+})
 const putQueue = async (fileName: string, na: string, fileSize: number) => {
   // 创建a标签
   // const a = document.createElement('a')
@@ -346,11 +364,13 @@ const putQueue = async (fileName: string, na: string, fileSize: number) => {
   const itemIndex = store.items.progressList.length
   lastSizeArr[itemIndex] = 0
   lastTimeArr[itemIndex] = 0
-  if (downQueue.value.length < 3) {
-    downQueue.value.push({ fileName, na })
+  if (store.items.downQueue.length < 3) {
+    // downQueue.value.push({ fileName, na })
+    store.items.downQueue.push({ fileName, na })
     download(fileName, na, itemIndex)
   } else {
-    waitQueue.push({ fileName, na })
+    // waitQueue.push({ fileName, na })
+    store.items.waitQueue.push({ fileName, na })
     store.items.progressList[itemIndex] = {
       fileName,
       na,
@@ -381,16 +401,17 @@ watch(
   }
 )
 watch(
-  () => downQueue.value.length,
+  () => store.items.downQueue.length,
   () => {
-    if (downQueue.value.length < 3) {
-      if (waitQueue.length > 0) {
-        downQueue.value.push(waitQueue[0])
-        waitQueue.shift()
-        const fileName = downQueue.value[downQueue.value.length - 1].fileName
-        const na = downQueue.value[downQueue.value.length - 1].na
+    if (store.items.downQueue.length < 3) {
+      if (store.items.waitQueue.length > 0) {
+        // downQueue.value.push(waitQueue[0])
+        store.items.downQueue.push(store.items.waitQueue[0])
+        store.items.waitQueue.shift()
+        const fileName = store.items.downQueue[store.items.downQueue.length - 1].fileName
+        const na = store.items.downQueue[store.items.downQueue.length - 1].na
         const itemIndex = store.items.progressList.findIndex(item => item.na === na)
-        download(fileName, downQueue.value[downQueue.value.length - 1].na, itemIndex)
+        download(fileName, store.items.downQueue[store.items.downQueue.length - 1].na, itemIndex)
       }
     }
   })

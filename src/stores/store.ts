@@ -318,6 +318,11 @@ export interface DownloadProgressInterface {
   surplusTime: string
 }
 
+interface QueueInterface {
+  fileName: string
+  na: string
+}
+
 export interface IntegratedSearchInterface {
   service: IntegratedServiceInterface,
   bucket: Array<IntegratedBucketInterface> | []
@@ -384,7 +389,9 @@ export const useStore = defineStore('storage', {
       currentPath: [] as string[],
       // 分享链接所用的服务单元信息
       shareService: {} as ServiceInterface,
-      progressList: [] as DownloadProgressInterface[]
+      progressList: [] as DownloadProgressInterface[],
+      downQueue: [] as QueueInterface[],
+      waitQueue: [] as QueueInterface[]
     },
     tables: {
       serviceTable: {

@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useStore } from 'stores/store'
 import { QBtn, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
+// import emitter from 'boot/mitt'
 // import api from 'src/api/index'
 
 // const props = defineProps({
@@ -44,6 +45,12 @@ const deleteFile = (na: string) => {
   const index = store.items.progressList.findIndex(item => item.na === na)
   store.items.progressList.splice(index, 1)
 }
+// const cancelDownload = (na: string) => {
+//   const index = store.items.progressList.findIndex(item => item.na === na)
+//   emitter.emit('cancel', index)
+//   store.items.progressList[index].surplusTime = '已取消'
+//   store.items.progressList[index].downSpeed = '已取消'
+// }
 </script>
 
 <template>
