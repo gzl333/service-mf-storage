@@ -51,6 +51,9 @@ const deleteFile = (na: string) => {
 //   store.items.progressList[index].surplusTime = '已取消'
 //   store.items.progressList[index].downSpeed = '已取消'
 // }
+const clearAll = () => {
+  store.items.progressList = []
+}
 </script>
 
 <template>
@@ -65,10 +68,13 @@ const deleteFile = (na: string) => {
         <q-btn icon="close" flat dense size="sm" v-close-popup/>
       </q-card-section>
       <q-separator/>
+      <div class="row justify-end q-mt-xs">
+      <q-btn no-caps color="primary" label="全部删除" :disabled="store.items.downQueue.length + store.items.waitQueue.length !== 0 || store.items.progressList.length === 0" @click="clearAll"/>
+      </div>
       <q-list separator>
         <div v-if="downloadProgress.length > 0">
           <q-card v-for="(file, index) in downloadProgress" :key="index" flat bordered
-                  class="my-card bg-grey-2 q-mt-md">
+                  class="my-card bg-grey-2 q-mt-sm">
             <q-card-section class="q-py-xs q-px-md">
               <div class="text-weight-bold">{{ file.fileName }}</div>
               <div class="row items-center">
