@@ -19,12 +19,7 @@ const props = defineProps({
     required: true
   }
 })
-// interface QueueInterface {
-//   fileName: string
-//   na: string
-// }
 // const emit = defineEmits(['change', 'delete'])
-// code starts...
 const store = useStore()
 // const route = useRoute()
 const { tc } = i18n.global
@@ -281,18 +276,17 @@ const calcSpeedTime = (event: ProgressEvent, index: number) => {
 }
 // const waitQueue: QueueInterface[] = []
 // const downQueue = ref<QueueInterface[]>([])
-// CancelToken和source用于正在上传关闭窗口 取消正在发送的请求
-const CancelToken = axios.CancelToken
-const source = CancelToken.source()
-// const cancelArr = []
+const cancelArr: { abort: () => void; }[] = []
 const download = (fileName: string, na: string, itemIndex: number) => {
-  // cancelArr[itemIndex] = source
+  // axios新增用于取消请求的方式
+  const controller = new AbortController()
+  cancelArr[itemIndex] = controller
   const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
   const objPath = props.pathObj.bucket_name + '/' + na
   axiosStorage({
     url: base + `/share/obs/${objPath}`,
     method: 'get',
-    cancelToken: source.token,
+    signal: controller.signal,
     responseType: 'blob',
     onDownloadProgress: async function (progressEvent) {
       if (progressEvent.lengthComputable) {
@@ -325,16 +319,30 @@ const download = (fileName: string, na: string, itemIndex: number) => {
     window.URL.revokeObjectURL(url)
     // downQueue.value = downQueue.value.filter(item => item.na !== na)
     store.items.downQueue = store.items.downQueue.filter(item => item.na !== na)
-  }).catch((error) => {
-    console.log(error)
+  }).catch((thrown) => {
+    if (axios.isCancel(thrown)) {
+      console.log('Request canceled', thrown)
+    } else {
+      console.log(thrown)
+    }
   })
 }
-const cancelDownload = () => {
-  source.cancel('取消请求')
-  // cancelArr[itemIndex].cancel('取消请求')
-}
-emitter.on('cancel', () => {
-  cancelDownload()
+// const cancelDownload = (value: string) => {
+//   const index = store.items.progressList.findIndex(item => item.na === value)
+//   cancelArr[index].abort()
+//   store.items.progressList[index].surplusTime = '已取消'
+//   store.items.progressList[index].downSpeed = '已取消'
+//   store.items.downQueue = store.items.downQueue.filter(item => item.na !== value)
+// }
+emitter.on('cancel', (value) => {
+  // cancelDownload(value)
+  const index = store.items.progressList.findIndex(item => item.na === value)
+  // 取消正在进行的下载请求
+  cancelArr[index].abort()
+  store.items.progressList[index].surplusTime = '已取消'
+  store.items.progressList[index].downSpeed = '已取消'
+  // 取消下载出列
+  store.items.downQueue = store.items.downQueue.filter(item => item.na !== value)
 })
 const putQueue = async (fileName: string, na: string, fileSize: number) => {
   // 创建a标签

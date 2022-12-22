@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useStore } from 'stores/store'
 import { QBtn, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
-// import emitter from 'boot/mitt'
+import emitter from 'boot/mitt'
 // import api from 'src/api/index'
 
 // const props = defineProps({
@@ -45,12 +45,9 @@ const deleteFile = (na: string) => {
   const index = store.items.progressList.findIndex(item => item.na === na)
   store.items.progressList.splice(index, 1)
 }
-// const cancelDownload = (na: string) => {
-//   const index = store.items.progressList.findIndex(item => item.na === na)
-//   emitter.emit('cancel', index)
-//   store.items.progressList[index].surplusTime = '已取消'
-//   store.items.progressList[index].downSpeed = '已取消'
-// }
+const cancelDownload = (na: string) => {
+  emitter.emit('cancel', na)
+}
 const clearAll = () => {
   store.items.progressList = []
 }
@@ -69,6 +66,7 @@ const clearAll = () => {
       </q-card-section>
       <q-separator/>
       <div class="row justify-end q-mt-xs">
+        <q-btn no-caps color="primary" label="全部取消" class="q-mr-xs"/>
       <q-btn no-caps color="primary" label="全部删除" :disabled="store.items.downQueue.length + store.items.waitQueue.length !== 0 || store.items.progressList.length === 0" @click="clearAll"/>
       </div>
       <q-list separator>
@@ -82,7 +80,7 @@ const clearAll = () => {
                   <q-linear-progress :value="file.progress / 100" color="positive" size="md"/>
                 </div>
                 <div class="text-center q-ml-sm" v-if="file.progress !== 100">{{ file.progress }}%</div>
-                <q-btn v-if="file.progress !== 100" class="q-ml-sm" size="md" flat dense round icon="clear">
+                <q-btn v-if="file.progress !== 100" class="q-ml-sm" size="md" flat dense round icon="clear" @click="cancelDownload(file.na)">
                   <q-tooltip>{{ tc('取消下载') }}</q-tooltip>
                 </q-btn>
                 <q-icon v-if="file.progress === 100" name="las la-check-circle" size="sm" color="positive"
