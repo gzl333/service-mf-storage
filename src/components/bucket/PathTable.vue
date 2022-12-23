@@ -8,7 +8,7 @@ import { axiosStorage } from 'boot/axios'
 import axios from 'axios'
 import { Notify } from 'quasar'
 import { i18n } from 'boot/i18n'
-import { FloatSub } from 'src/hooks/handleFloat'
+import { handleTime } from 'src/hooks/handleTools'
 import useClipText from 'src/hooks/useClipText'
 import useFormatSize from 'src/hooks/useFormatSize'
 import emitter from 'boot/mitt'
@@ -206,39 +206,6 @@ const lastSizeArr: number[] = []
 const downSpeed = ref('')
 // 上传剩余时间
 const downTime = ref('')
-const handleTime = (time: number) => {
-  // 文件切片上传 每一片开始的时候 会有一刻速度为0
-  if (time > 0) {
-    // 超过一小时
-    if (time / 60 / 60 > 1) {
-      const intHour = parseInt((time / 60 / 60).toString())
-      const floatHour = parseFloat((time / 60 / 60).toFixed(1))
-      const num = FloatSub(floatHour, intHour)
-      const min = num * 60
-      if (intHour < 24) {
-        return intHour + tc('小时') + min + tc('分钟')
-      } else {
-        return tc('超过一天')
-      }
-      //  超过一分钟
-    } else if (time / 60 > 1) {
-      const intMin = parseInt((time / 60).toString())
-      const floatMin = parseFloat((time / 60).toFixed(1))
-      const num = FloatSub(floatMin, intMin)
-      const sec = num * 60
-      return intMin + tc('分钟') + sec + tc('秒')
-    } else {
-      const sec = parseInt(time.toString())
-      if (sec > 0) {
-        return sec + tc('秒')
-      } else {
-        return 0 + tc('秒')
-      }
-    }
-  } else {
-    return tc('计算中')
-  }
-}
 const calcSpeedTime = (event: ProgressEvent, index: number) => {
   // 计算间隔
   const nowTime = new Date().getTime()
@@ -274,9 +241,10 @@ const calcSpeedTime = (event: ProgressEvent, index: number) => {
   downTime.value = handleTime(Number(leftTime.toFixed(1)))
   return { downSpeed: downSpeed.value, downTime: downTime.value }
 }
-// const waitQueue: QueueInterface[] = []
-// const downQueue = ref<QueueInterface[]>([])
 const cancelArr: { abort: () => void; }[] = []
+// 用于全部取消下载请求
+const CancelToken = axios.CancelToken
+const source = CancelToken.source()
 const download = (fileName: string, na: string, itemIndex: number) => {
   // axios新增用于取消请求的方式
   const controller = new AbortController()
@@ -287,6 +255,7 @@ const download = (fileName: string, na: string, itemIndex: number) => {
     url: base + `/share/obs/${objPath}`,
     method: 'get',
     signal: controller.signal,
+    cancelToken: source.token,
     responseType: 'blob',
     onDownloadProgress: async function (progressEvent) {
       if (progressEvent.lengthComputable) {
@@ -300,7 +269,8 @@ const download = (fileName: string, na: string, itemIndex: number) => {
             loadedSize: progressEvent.loaded,
             totalSize: progressEvent.total,
             downSpeed: downSpeedAndTime.downSpeed,
-            surplusTime: downSpeedAndTime.downTime
+            surplusTime: downSpeedAndTime.downTime,
+            state: 'download'
           },
           itemIndex
         })
@@ -317,7 +287,7 @@ const download = (fileName: string, na: string, itemIndex: number) => {
     document.body.removeChild(link)
     // 释放blob URL地址
     window.URL.revokeObjectURL(url)
-    // downQueue.value = downQueue.value.filter(item => item.na !== na)
+    store.items.progressList[itemIndex].state = 'complete'
     store.items.downQueue = store.items.downQueue.filter(item => item.na !== na)
   }).catch((thrown) => {
     if (axios.isCancel(thrown)) {
@@ -327,23 +297,6 @@ const download = (fileName: string, na: string, itemIndex: number) => {
     }
   })
 }
-// const cancelDownload = (value: string) => {
-//   const index = store.items.progressList.findIndex(item => item.na === value)
-//   cancelArr[index].abort()
-//   store.items.progressList[index].surplusTime = '已取消'
-//   store.items.progressList[index].downSpeed = '已取消'
-//   store.items.downQueue = store.items.downQueue.filter(item => item.na !== value)
-// }
-emitter.on('cancel', (value) => {
-  // cancelDownload(value)
-  const index = store.items.progressList.findIndex(item => item.na === value)
-  // 取消正在进行的下载请求
-  cancelArr[index].abort()
-  store.items.progressList[index].surplusTime = '已取消'
-  store.items.progressList[index].downSpeed = '已取消'
-  // 取消下载出列
-  store.items.downQueue = store.items.downQueue.filter(item => item.na !== value)
-})
 const putQueue = async (fileName: string, na: string, fileSize: number) => {
   // 创建a标签
   // const a = document.createElement('a')
@@ -373,11 +326,9 @@ const putQueue = async (fileName: string, na: string, fileSize: number) => {
   lastSizeArr[itemIndex] = 0
   lastTimeArr[itemIndex] = 0
   if (store.items.downQueue.length < 3) {
-    // downQueue.value.push({ fileName, na })
     store.items.downQueue.push({ fileName, na })
     download(fileName, na, itemIndex)
   } else {
-    // waitQueue.push({ fileName, na })
     store.items.waitQueue.push({ fileName, na })
     store.items.progressList[itemIndex] = {
       fileName,
@@ -386,10 +337,41 @@ const putQueue = async (fileName: string, na: string, fileSize: number) => {
       loadedSize: 0,
       totalSize: fileSize,
       downSpeed: '等待开始下载',
-      surplusTime: '等待开始下载'
+      surplusTime: '等待开始下载',
+      state: 'wait'
     }
   }
 }
+emitter.on('cancel', (value) => {
+  const index = store.items.progressList.findIndex(item => item.na === value)
+  // 取消正在进行的下载请求
+  cancelArr[index].abort()
+  store.items.progressList[index].surplusTime = '已取消'
+  store.items.progressList[index].downSpeed = '已取消'
+  store.items.progressList[index].state = 'cancel'
+  // 取消下载出列
+  store.items.downQueue = store.items.downQueue.filter(item => item.na !== value)
+})
+// const cancelAll = () => {
+//   source.cancel('下载全部取消')
+//   Notify.create({
+//     classes: 'notification-negative shadow-15',
+//     icon: 'las la-times-circle',
+//     textColor: 'negative',
+//     message: tc('下载已经全部取消'),
+//     position: 'bottom',
+//     closeBtn: true,
+//     timeout: 5000,
+//     multiLine: false
+//   })
+//   store.items.downQueue = []
+//   store.items.waitQueue = []
+// }
+// emitter.on('cancelAll', (value) => {
+//   if (value) {
+//     cancelAll()
+//   }
+// })
 const toggleExpansion = (props: { expand: boolean, row: FileInterface }) => {
   if (props.expand) {
     props.expand = !props.expand
@@ -413,7 +395,6 @@ watch(
   () => {
     if (store.items.downQueue.length < 3) {
       if (store.items.waitQueue.length > 0) {
-        // downQueue.value.push(waitQueue[0])
         store.items.downQueue.push(store.items.waitQueue[0])
         store.items.waitQueue.shift()
         const fileName = store.items.downQueue[store.items.downQueue.length - 1].fileName

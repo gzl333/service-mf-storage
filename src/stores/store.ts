@@ -315,7 +315,8 @@ export interface DownloadProgressInterface {
   loadedSize: number,
   totalSize: number,
   downSpeed: string,
-  surplusTime: string
+  surplusTime: string,
+  state: 'download' | 'wait' | 'complete' | 'cancel'
 }
 
 interface QueueInterface {

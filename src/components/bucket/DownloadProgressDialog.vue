@@ -4,7 +4,6 @@ import { useStore } from 'stores/store'
 import { QBtn, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
-// import api from 'src/api/index'
 
 // const props = defineProps({
 
@@ -48,6 +47,9 @@ const deleteFile = (na: string) => {
 const cancelDownload = (na: string) => {
   emitter.emit('cancel', na)
 }
+// const cancelAllDownload = () => {
+//   emitter.emit('cancelAll', true)
+// }
 const clearAll = () => {
   store.items.progressList = []
 }
@@ -66,8 +68,10 @@ const clearAll = () => {
       </q-card-section>
       <q-separator/>
       <div class="row justify-end q-mt-xs">
-        <q-btn no-caps color="primary" label="全部取消" class="q-mr-xs"/>
-      <q-btn no-caps color="primary" label="全部删除" :disabled="store.items.downQueue.length + store.items.waitQueue.length !== 0 || store.items.progressList.length === 0" @click="clearAll"/>
+        <!--        <q-btn :disabled="store.items.downQueue.length === 0" no-caps color="primary" label="全部取消" class="q-mr-xs" @click="cancelAllDownload"/>-->
+        <q-btn no-caps color="primary" label="全部删除"
+               :disabled="store.items.downQueue.length + store.items.waitQueue.length !== 0 || store.items.progressList.length === 0"
+               @click="clearAll"/>
       </div>
       <q-list separator>
         <div v-if="downloadProgress.length > 0">
@@ -79,22 +83,26 @@ const clearAll = () => {
                 <div class="col-10">
                   <q-linear-progress :value="file.progress / 100" color="positive" size="md"/>
                 </div>
-                <div class="text-center q-ml-sm" v-if="file.progress !== 100">{{ file.progress }}%</div>
-                <q-btn v-if="file.progress !== 100" class="q-ml-sm" size="md" flat dense round icon="clear" @click="cancelDownload(file.na)">
+                <div class="text-center q-ml-sm" v-if="file.state !== 'complete'">{{ file.progress }}%</div>
+                <q-btn v-if="file.state === 'download'" class="q-ml-sm" size="md" flat dense round
+                       icon="clear" @click="cancelDownload(file.na)">
                   <q-tooltip>{{ tc('取消下载') }}</q-tooltip>
                 </q-btn>
-                <q-icon v-if="file.progress === 100" name="las la-check-circle" size="sm" color="positive"
+                <q-icon v-if="file.state === 'complete'" name="las la-check-circle" size="sm" color="positive"
                         class="q-ml-sm"/>
-                <q-btn v-if="file.progress === 100" size="md" flat dense round icon="las la-trash-alt" @click="deleteFile(file.na)">
+                <q-btn v-if="file.state === 'complete' || file.state === 'cancel'" size="md" flat dense round icon="las la-trash-alt" @click="deleteFile(file.na)">
                   <q-tooltip>{{ tc('删除') }}</q-tooltip>
                 </q-btn>
               </div>
-              <div>
-                <span>{{ getFileSize(file.loadedSize) + '/' + getFileSize(file.totalSize) }}</span>
-                <span class="q-ml-sm">下载速度：{{ file.downSpeed }}</span>
-                <span class="q-ml-sm">剩余时间：</span>
-                <span v-show="file.progress !== 100">{{ file.surplusTime }}</span>
-                <span v-show="file.progress === 100">下载完成</span>
+              <div class="row">
+                <div>{{ getFileSize(file.loadedSize) + '/' + getFileSize(file.totalSize) }}</div>
+                <div class="q-ml-sm">下载速度：{{ file.downSpeed }}</div>
+                <div class="q-ml-sm">
+                  <span>剩余时间：</span>
+                  <span v-if="file.progress !== 100">{{ file.surplusTime }}</span>
+                  <span v-else>下载完成</span>
+                </div>
+                <div>{{ file.state }}</div>
               </div>
             </q-card-section>
           </q-card>
