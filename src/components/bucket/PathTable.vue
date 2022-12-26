@@ -241,14 +241,15 @@ const calcSpeedTime = (event: ProgressEvent, index: number) => {
   downTime.value = handleTime(Number(leftTime.toFixed(1)))
   return { downSpeed: downSpeed.value, downTime: downTime.value }
 }
-const cancelArr: { abort: () => void; }[] = []
+let cancelArr: { na: string; controller: AbortController }[] = []
 // 用于全部取消下载请求
 const CancelToken = axios.CancelToken
 const source = CancelToken.source()
 const download = (fileName: string, na: string, itemIndex: number) => {
   // axios新增用于取消请求的方式
   const controller = new AbortController()
-  cancelArr[itemIndex] = controller
+  // 一个请求使用唯一的一个controller
+  cancelArr[itemIndex] = { na, controller }
   const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
   const objPath = props.pathObj.bucket_name + '/' + na
   axiosStorage({
@@ -287,8 +288,12 @@ const download = (fileName: string, na: string, itemIndex: number) => {
     document.body.removeChild(link)
     // 释放blob URL地址
     window.URL.revokeObjectURL(url)
+    // 更改文件状态
     store.items.progressList[itemIndex].state = 'complete'
+    // 下载完成 下载队列出列
     store.items.downQueue = store.items.downQueue.filter(item => item.na !== na)
+    // 下载完成 用于存储取消下载controller的数组删除下载完的controller
+    cancelArr = cancelArr.filter(cancelItem => cancelItem.na !== na)
   }).catch((thrown) => {
     if (axios.isCancel(thrown)) {
       console.log('Request canceled', thrown)
@@ -312,43 +317,81 @@ const putQueue = async (fileName: string, na: string, fileSize: number) => {
   // a.click()
   // 将标签从dom移除
   // document.body.removeChild(a)
-  Notify.create({
-    classes: 'notification-positive shadow-15',
-    icon: 'check_circle',
-    textColor: 'positive',
-    message: '已加入下载队列中',
-    position: 'bottom',
-    closeBtn: true,
-    timeout: 5000,
-    multiLine: false
-  })
-  const itemIndex = store.items.progressList.length
-  lastSizeArr[itemIndex] = 0
-  lastTimeArr[itemIndex] = 0
-  if (store.items.downQueue.length < 3) {
-    store.items.downQueue.push({ fileName, na })
-    download(fileName, na, itemIndex)
+  // const itemIndex = store.items.progressList.length
+  let queueIndex
+  // 如果进度条数组中已经存在某一个文件 那么再次下载同一个文件时 不再重新添加值 使用某个文件所在位置的索引
+  if (store.items.progressList.findIndex(progressItem => progressItem.na === na) === -1) {
+    queueIndex = store.items.progressList.length
   } else {
-    store.items.waitQueue.push({ fileName, na })
-    store.items.progressList[itemIndex] = {
-      fileName,
-      na,
-      progress: 0,
-      loadedSize: 0,
-      totalSize: fileSize,
-      downSpeed: '等待开始下载',
-      surplusTime: '等待开始下载',
-      state: 'wait'
+    queueIndex = store.items.progressList.findIndex(item => item.na === na)
+  }
+  // 用于计算 一个进度条使用数组中的唯一一个值
+  lastSizeArr[queueIndex] = 0
+  lastTimeArr[queueIndex] = 0
+  // 下载队列最多三个同时下载
+  if (store.items.downQueue.length < 3) {
+    // 如果重复点击下载同一文件
+    if (store.items.downQueue.findIndex(item => item.na === na) === -1) {
+      Notify.create({
+        classes: 'notification-positive shadow-15',
+        icon: 'check_circle',
+        textColor: 'positive',
+        message: '已加入下载队列中',
+        position: 'bottom',
+        closeBtn: true,
+        timeout: 5000,
+        multiLine: false
+      })
+      // 下载队列入列
+      store.items.downQueue.push({ fileName, na })
+      download(fileName, na, queueIndex)
+    } else {
+      Notify.create({
+        classes: 'notification-positive shadow-15',
+        icon: 'check_circle',
+        textColor: 'positive',
+        message: '文件已经在下载队列中',
+        position: 'bottom',
+        closeBtn: true,
+        timeout: 5000,
+        multiLine: false
+      })
+    }
+  } else {
+    if (store.items.waitQueue.findIndex(item => item.na === na) === -1) {
+      Notify.create({
+        classes: 'notification-positive shadow-15',
+        icon: 'check_circle',
+        textColor: 'positive',
+        message: '已加入下载队列中',
+        position: 'bottom',
+        closeBtn: true,
+        timeout: 5000,
+        multiLine: false
+      })
+      // 等待队列入列
+      store.items.waitQueue.push({ fileName, na })
+      store.items.progressList[queueIndex] = {
+        fileName,
+        na,
+        progress: 0,
+        loadedSize: 0,
+        totalSize: fileSize,
+        downSpeed: '等待开始下载',
+        surplusTime: '等待开始下载',
+        state: 'wait'
+      }
     }
   }
 }
 emitter.on('cancel', (value) => {
-  const index = store.items.progressList.findIndex(item => item.na === value)
+  const progressIndex = store.items.progressList.findIndex(item => item.na === value)
   // 取消正在进行的下载请求
-  cancelArr[index].abort()
-  store.items.progressList[index].surplusTime = '已取消'
-  store.items.progressList[index].downSpeed = '已取消'
-  store.items.progressList[index].state = 'cancel'
+  const cancelIndex = cancelArr.findIndex(cancelItem => cancelItem.na === value)
+  cancelArr[cancelIndex].controller.abort()
+  store.items.progressList[progressIndex].surplusTime = '已取消'
+  store.items.progressList[progressIndex].downSpeed = '已取消'
+  store.items.progressList[progressIndex].state = 'cancel'
   // 取消下载出列
   store.items.downQueue = store.items.downQueue.filter(item => item.na !== value)
 })

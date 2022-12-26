@@ -102,7 +102,7 @@ const clearAll = () => {
                   <span v-if="file.progress !== 100">{{ file.surplusTime }}</span>
                   <span v-else>下载完成</span>
                 </div>
-                <div>{{ file.state }}</div>
+<!--                <div>{{ file.state }}</div>-->
               </div>
             </q-card-section>
           </q-card>
