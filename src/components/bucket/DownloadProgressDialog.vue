@@ -45,7 +45,7 @@ const deleteFile = (na: string) => {
   store.items.progressList.splice(index, 1)
 }
 const cancelDownload = (na: string) => {
-  emitter.emit('cancel', na)
+  emitter.emit('cancelDownload', na)
 }
 // const cancelAllDownload = () => {
 //   emitter.emit('cancelAll', true)
@@ -80,13 +80,17 @@ const clearAll = () => {
             <q-card-section class="q-py-xs q-px-md">
               <div class="text-weight-bold">{{ file.fileName }}</div>
               <div class="row items-center">
-                <div class="col-10">
+                <div class="col-9">
                   <q-linear-progress :value="file.progress / 100" color="positive" size="md"/>
                 </div>
                 <div class="text-center q-ml-sm" v-if="file.state !== 'complete'">{{ file.progress }}%</div>
                 <q-btn v-if="file.state === 'download'" class="q-ml-sm" size="md" flat dense round
                        icon="clear" @click="cancelDownload(file.na)">
                   <q-tooltip>{{ tc('取消下载') }}</q-tooltip>
+                </q-btn>
+                <q-btn v-if="file.state === 'cancel'" class="q-ml-sm" size="md" flat dense round
+                       icon="las la-arrow-alt-circle-down">
+                  <q-tooltip>{{ tc('重新下载') }}</q-tooltip>
                 </q-btn>
                 <q-icon v-if="file.state === 'complete'" name="las la-check-circle" size="sm" color="positive"
                         class="q-ml-sm"/>

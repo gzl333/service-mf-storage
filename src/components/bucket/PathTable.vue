@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed, PropType, watch } from 'vue'
+import { ref, computed, PropType, watch, onBeforeUnmount } from 'vue'
 import { useStore } from 'stores/store'
 import { FileInterface, PathInterface } from 'src/stores/store'
 // import { useRoute } from 'vue-router'
@@ -241,15 +241,15 @@ const calcSpeedTime = (event: ProgressEvent, index: number) => {
   downTime.value = handleTime(Number(leftTime.toFixed(1)))
   return { downSpeed: downSpeed.value, downTime: downTime.value }
 }
-let cancelArr: { na: string; controller: AbortController }[] = []
 // 用于全部取消下载请求
 const CancelToken = axios.CancelToken
 const source = CancelToken.source()
 const download = (fileName: string, na: string, itemIndex: number) => {
+  console.log(store.items.progressList)
   // axios新增用于取消请求的方式
   const controller = new AbortController()
   // 一个请求使用唯一的一个controller
-  cancelArr[itemIndex] = { na, controller }
+  store.items.cancelDownloadArr.push({ na, controller })
   const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
   const objPath = props.pathObj.bucket_name + '/' + na
   axiosStorage({
@@ -293,7 +293,7 @@ const download = (fileName: string, na: string, itemIndex: number) => {
     // 下载完成 下载队列出列
     store.items.downQueue = store.items.downQueue.filter(item => item.na !== na)
     // 下载完成 用于存储取消下载controller的数组删除下载完的controller
-    cancelArr = cancelArr.filter(cancelItem => cancelItem.na !== na)
+    store.items.cancelDownloadArr = store.items.cancelDownloadArr.filter(cancelItem => cancelItem.na !== na)
   }).catch((thrown) => {
     if (axios.isCancel(thrown)) {
       console.log('Request canceled', thrown)
@@ -344,6 +344,7 @@ const putQueue = async (fileName: string, na: string, fileSize: number) => {
       })
       // 下载队列入列
       store.items.downQueue.push({ fileName, na })
+      console.log(store.items.downQueue)
       download(fileName, na, queueIndex)
     } else {
       Notify.create({
@@ -384,16 +385,20 @@ const putQueue = async (fileName: string, na: string, fileSize: number) => {
     }
   }
 }
-emitter.on('cancel', (value) => {
-  const progressIndex = store.items.progressList.findIndex(item => item.na === value)
-  // 取消正在进行的下载请求
-  const cancelIndex = cancelArr.findIndex(cancelItem => cancelItem.na === value)
-  cancelArr[cancelIndex].controller.abort()
-  store.items.progressList[progressIndex].surplusTime = '已取消'
-  store.items.progressList[progressIndex].downSpeed = '已取消'
-  store.items.progressList[progressIndex].state = 'cancel'
-  // 取消下载出列
-  store.items.downQueue = store.items.downQueue.filter(item => item.na !== value)
+emitter.on('cancelDownload', (value) => {
+  const cancelIndex = store.items.cancelDownloadArr.findIndex(cancelItem => cancelItem.na === value)
+  if (cancelIndex !== -1) {
+    const progressIndex = store.items.progressList.findIndex(item => item.na === value)
+    // 取消正在进行的下载请求
+    store.items.cancelDownloadArr[cancelIndex].controller.abort()
+    store.items.progressList[progressIndex].surplusTime = '已取消'
+    store.items.progressList[progressIndex].downSpeed = '已取消'
+    store.items.progressList[progressIndex].state = 'cancel'
+    // 取消下载出列
+    store.items.downQueue = store.items.downQueue.filter(item => item.na !== value)
+    // 下载完成 用于存储取消下载controller的数组删除下载完的controller
+    store.items.cancelDownloadArr = store.items.cancelDownloadArr.filter(cancelItem => cancelItem.na !== value)
+  }
 })
 // const cancelAll = () => {
 //   source.cancel('下载全部取消')
@@ -447,6 +452,10 @@ watch(
       }
     }
   })
+onBeforeUnmount(() => {
+  // 离开页面清空emitter
+  emitter.off('cancelDownload')
+})
 </script>
 
 <template>

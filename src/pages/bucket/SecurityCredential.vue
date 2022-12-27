@@ -146,6 +146,7 @@ emitter.on('keysRefresh', async (value) => {
 onBeforeUnmount(() => {
   // 离开页面清空emitter
   emitter.off('tokenRefresh')
+  emitter.off('keysRefresh')
 })
 </script>
 

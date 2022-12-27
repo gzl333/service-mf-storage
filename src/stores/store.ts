@@ -324,6 +324,11 @@ interface QueueInterface {
   na: string
 }
 
+interface CancelDownloadInterface {
+  na: string,
+  controller: AbortController
+}
+
 export interface IntegratedSearchInterface {
   service: IntegratedServiceInterface,
   bucket: Array<IntegratedBucketInterface> | []
@@ -392,7 +397,8 @@ export const useStore = defineStore('storage', {
       shareService: {} as ServiceInterface,
       progressList: [] as DownloadProgressInterface[],
       downQueue: [] as QueueInterface[],
-      waitQueue: [] as QueueInterface[]
+      waitQueue: [] as QueueInterface[],
+      cancelDownloadArr: [] as CancelDownloadInterface[]
     },
     tables: {
       serviceTable: {

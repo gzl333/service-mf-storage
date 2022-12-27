@@ -127,7 +127,7 @@ onBeforeMount(async () => {
 })
 onBeforeUnmount(() => {
   // 离开页面清空emitter
-  emitter.off('done')
+  emitter.off('refresh')
 })
 </script>
 
