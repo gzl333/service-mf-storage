@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { /* ref, */ computed, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { navigateToUrl } from 'single-spa'
 import { useStore } from 'stores/store'
 import { useRoute/* , useRouter */ } from 'vue-router'
 import { i18n } from 'boot/i18n'
-
+import { Notify } from 'quasar'
 import TokenDetail from 'components/bucket/TokenDetail.vue'
 import PasswordToggle from 'components/ui/PasswordToggle.vue'
 import AccessStatus from 'components/ui/AccessStatus.vue'
@@ -43,11 +43,15 @@ const currentBucket = computed(() => store.tables.bucketTable.byId[props.bucketI
 const currentService = computed(() => store.tables.serviceTable.byId[currentBucket.value?.service?.id])
 const currentBucketStat = computed(() => store.tables.bucketStatTable.byId[props.bucketId])
 const currentBucketTokenSet = computed(() => store.tables.bucketTokenTable.byId[props.bucketId])
-
 // todo 待设计分享url结构后更新
 const currentBucketUrl = computed(() => location.origin + `/storage/share/${currentService.value?.id}?base=${currentBucket.value?.name}`)
 /* 获取相关table对象 */
-
+const paginationTable = ref({
+  page: 1,
+  limit: 100,
+  offset: 0
+})
+const jumpPage = ref<string>('')
 const loadNeededTables = () => {
   // 当前bucket统计对象
   void store.addBucketStatTable(props.bucketId)
@@ -58,7 +62,9 @@ const loadNeededTables = () => {
   // 当前path对象
   void store.addPathTable(
     currentBucket.value.id,
-    route.query.path as string
+    route.query.path as string,
+    paginationTable.value.limit,
+    paginationTable.value.offset
   )
 }
 
@@ -80,9 +86,65 @@ const unwatch = watch(currentService, () => {
 /* 获取相关table对象 */
 const path = route.query.path as string
 const currentPath = computed(() => store.tables.pathTable.byLocalId[currentBucket.value?.id + (path ? ('/' + path) : '')])
-
 const formatSize = useFormatSize(1024)
 const clickToCopy = useCopyToClipboard()
+const changePageSize = async () => {
+  jumpPage.value = ''
+  paginationTable.value.offset = 0
+  void await store.addPathTable(
+    currentBucket.value.id,
+    route.query.path as string,
+    paginationTable.value.limit,
+    paginationTable.value.offset
+  )
+  paginationTable.value.page = 1
+}
+const changePagination = () => {
+  jumpPage.value = ''
+  paginationTable.value.offset = (paginationTable.value.page - 1) * paginationTable.value.limit
+  void store.addPathTable(
+    currentBucket.value.id,
+    route.query.path as string,
+    paginationTable.value.limit,
+    paginationTable.value.offset
+  )
+}
+const goToPage = async () => {
+  if (jumpPage.value === '') {
+    Notify.create({
+      classes: 'notification-negative shadow-15',
+      icon: 'las la-times-circle',
+      textColor: 'negative',
+      message: tc('请输入跳转的页码'),
+      position: 'bottom',
+      closeBtn: true,
+      timeout: 5000,
+      multiLine: false
+    })
+  } else if (Number(jumpPage.value) <= 0 || Number(jumpPage.value) > Math.ceil(currentPath?.value?.fileCount / paginationTable.value.limit)) {
+    Notify.create({
+      classes: 'notification-negative shadow-15',
+      icon: 'las la-times-circle',
+      textColor: 'negative',
+      message: tc('请输入正确的页码'),
+      position: 'bottom',
+      closeBtn: true,
+      timeout: 5000,
+      multiLine: false
+    })
+  } else {
+    const page = parseInt(jumpPage.value)
+    paginationTable.value.offset = (page - 1) * paginationTable.value.limit
+    void await store.addPathTable(
+      currentBucket.value.id,
+      route.query.path as string,
+      paginationTable.value.limit,
+      paginationTable.value.offset
+    )
+    paginationTable.value.page = page
+    jumpPage.value = ''
+  }
+}
 </script>
 
 <template>
@@ -140,12 +202,43 @@ const clickToCopy = useCopyToClipboard()
 
         <div class="row items-center justify-between text-black q-pb-md">
           <GlobalBreadcrumbs/>
-          <q-btn flat no-caps color="primary" class="q-mr-xs text-weight-bold" :label="tc('查看下载文件')" @click="store.triggerDownloadProgressDialog()">
-            <q-badge color="orange" floating v-show="store.items.waitQueue.length + store.items.downQueue.length !== 0">{{ store.items.waitQueue.length + store.items.downQueue.length }}</q-badge>
+          <q-btn flat no-caps color="primary" class="q-mr-xs text-weight-bold" :label="tc('查看下载文件')"
+                 @click="store.triggerDownloadProgressDialog()">
+            <q-badge color="orange" floating v-show="store.items.waitQueue.length + store.items.downQueue.length !== 0">
+              {{ store.items.waitQueue.length + store.items.downQueue.length }}
+            </q-badge>
           </q-btn>
         </div>
         <PathTable :pathObj="currentPath"/>
-
+        <div class="row q-mt-md text-grey justify-between items-center">
+          <div class="row items-center">
+            <div>每页文件数：</div>
+            <q-select color="grey" v-model="paginationTable.limit" :options="[100, 150, 200, 250,300]" dense options-dense
+                      borderless @update:model-value="changePageSize">
+            </q-select>
+            <div>/{{ tc('页') }}</div>
+          </div>
+          <div class="row items-center justify-end">
+            <div class="row items-center q-mr-md">
+              <div class="q-mr-sm">跳转到</div>
+              <q-input class="q-mr-sm" style="width: 50px" outlined dense v-model="jumpPage"/>
+              <div class="q-mr-sm">页</div>
+              <q-btn color="primary" label="跳转" @click="goToPage" />
+            </div>
+              <q-pagination
+                v-model="paginationTable.page"
+                :max="Math.ceil(currentPath?.fileCount/paginationTable.limit)"
+                :max-pages="10"
+                direction-links
+                boundary-links
+                icon-first="skip_previous"
+                icon-last="skip_next"
+                icon-prev="fast_rewind"
+                icon-next="fast_forward"
+                @update:model-value="changePagination"
+              />
+          </div>
+        </div>
       </q-tab-panel>
 
       <q-tab-panel name="property" class="q-py-md q-px-none">

@@ -245,7 +245,7 @@ const calcSpeedTime = (event: ProgressEvent, index: number) => {
 const CancelToken = axios.CancelToken
 const source = CancelToken.source()
 const download = (fileName: string, na: string, itemIndex: number) => {
-  console.log(store.items.progressList)
+  // console.log(store.items.progressList)
   // axios新增用于取消请求的方式
   const controller = new AbortController()
   // 一个请求使用唯一的一个controller
@@ -344,7 +344,7 @@ const putQueue = async (fileName: string, na: string, fileSize: number) => {
       })
       // 下载队列入列
       store.items.downQueue.push({ fileName, na })
-      console.log(store.items.downQueue)
+      // console.log(store.items.downQueue)
       download(fileName, na, queueIndex)
     } else {
       Notify.create({
@@ -491,9 +491,7 @@ onBeforeUnmount(() => {
       </q-input>
 
     </div>
-
     <div class="row">
-
       <div class="col">
         <q-table
           class="rounded-borders"

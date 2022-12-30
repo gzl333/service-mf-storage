@@ -190,8 +190,8 @@ export interface FileInterface {
 export interface PathInterface {
   bucket_name: string
   dir_path: string
+  fileCount: number
   files: FileInterface[]
-
   // 自己定义的localId，来自bucketId dir_path 两者的拼接 'bucketId' or 'bucketId/path1/path2/path3...'
   localId: string
   bucketId: string
@@ -739,7 +739,7 @@ export const useStore = defineStore('storage', {
       }
     },
     // PathTable: 累积加载，localId (bucketId/path1/path2)
-    async addPathTable (bucketId: string, path?: string) {
+    async addPathTable (bucketId: string, path?: string, limit?: number, offset?: number) {
       const bucket = this.tables.bucketTable.byId[bucketId]
       const base = this.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
       // 1. status改为loading
@@ -751,7 +751,7 @@ export const useStore = defineStore('storage', {
         if (!path) { // 桶的根目录
           const respGetDirBucket = await api.storage.single.getDirBucketName({
             base,
-            query: { limit: 99999 },
+            query: { limit, offset },
             path: { bucket_name: bucket.name }
           })
           const item = {
@@ -760,6 +760,7 @@ export const useStore = defineStore('storage', {
               localId: bucket.id,
               bucket_name: respGetDirBucket.data.bucket_name,
               dir_path: respGetDirBucket.data.dir_path,
+              fileCount: respGetDirBucket.data.count,
               files: respGetDirBucket.data.files
             })
           }
@@ -769,6 +770,10 @@ export const useStore = defineStore('storage', {
         } else { // 次级目录
           const respGetDirPath = await api.storage.single.getDirBucketNameDirPath({
             base,
+            query: {
+              limit,
+              offset
+            },
             path: {
               bucket_name: bucket.name,
               dirpath: path
@@ -780,6 +785,7 @@ export const useStore = defineStore('storage', {
               localId: bucket.id + '/' + respGetDirPath.data.dir_path,
               bucket_name: respGetDirPath.data.bucket_name,
               dir_path: respGetDirPath.data.dir_path,
+              fileCount: respGetDirPath.data.count,
               files: respGetDirPath.data.files
             })
           }
