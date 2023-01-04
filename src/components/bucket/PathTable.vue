@@ -245,7 +245,6 @@ const calcSpeedTime = (event: ProgressEvent, index: number) => {
 const CancelToken = axios.CancelToken
 const source = CancelToken.source()
 const download = (fileName: string, na: string, itemIndex: number) => {
-  // console.log(store.items.progressList)
   // axios新增用于取消请求的方式
   const controller = new AbortController()
   // 一个请求使用唯一的一个controller
@@ -343,8 +342,7 @@ const putQueue = async (fileName: string, na: string, fileSize: number) => {
         multiLine: false
       })
       // 下载队列入列
-      store.items.downQueue.push({ fileName, na })
-      // console.log(store.items.downQueue)
+      store.items.downQueue.push({ fileName, na, state: 'normal' })
       download(fileName, na, queueIndex)
     } else {
       Notify.create({
@@ -441,14 +439,22 @@ watch(
 watch(
   () => store.items.downQueue.length,
   () => {
-    if (store.items.downQueue.length < 3) {
-      if (store.items.waitQueue.length > 0) {
-        store.items.downQueue.push(store.items.waitQueue[0])
-        store.items.waitQueue.shift()
-        const fileName = store.items.downQueue[store.items.downQueue.length - 1].fileName
-        const na = store.items.downQueue[store.items.downQueue.length - 1].na
-        const itemIndex = store.items.progressList.findIndex(item => item.na === na)
-        download(fileName, store.items.downQueue[store.items.downQueue.length - 1].na, itemIndex)
+    if (store.items.downQueue.length > 0 && store.items.downQueue.length < 3) {
+      if (store.items.downQueue[store.items.downQueue.length - 1]?.state === 'reload') {
+        download(store.items.downQueue[store.items.downQueue.length - 1].fileName, store.items.downQueue[store.items.downQueue.length - 1].na, store.items.progressList.findIndex(item => item.na === store.items.downQueue[store.items.downQueue.length - 1].na))
+        store.items.downQueue[store.items.downQueue.length - 1].state = 'normal'
+      } else {
+        if (store.items.waitQueue.length > 0) {
+          store.items.downQueue.push(store.items.waitQueue[0])
+          store.items.waitQueue.shift()
+          download(store.items.downQueue[store.items.downQueue.length - 1].fileName, store.items.downQueue[store.items.downQueue.length - 1].na, store.items.progressList.findIndex(item => item.na === store.items.downQueue[store.items.downQueue.length - 1].na))
+          store.items.downQueue[store.items.downQueue.length - 1].state = 'normal'
+        }
+      }
+    } else if (store.items.downQueue.length === 3) {
+      if (store.items.downQueue[store.items.downQueue.length - 1]?.state === 'reload') {
+        download(store.items.downQueue[store.items.downQueue.length - 1].fileName, store.items.downQueue[store.items.downQueue.length - 1].na, store.items.progressList.findIndex(item => item.na === store.items.downQueue[store.items.downQueue.length - 1].na))
+        store.items.downQueue[store.items.downQueue.length - 1].state = 'normal'
       }
     }
   })

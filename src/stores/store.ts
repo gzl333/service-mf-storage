@@ -322,6 +322,7 @@ export interface DownloadProgressInterface {
 interface QueueInterface {
   fileName: string
   na: string
+  state?: 'normal' | 'reload'
 }
 
 interface CancelDownloadInterface {

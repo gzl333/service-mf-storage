@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { useStore } from 'stores/store'
-import { QBtn, useDialogPluginComponent } from 'quasar'
+import { Notify, QBtn, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
 
@@ -53,6 +53,62 @@ const cancelDownload = (na: string) => {
 const clearAll = () => {
   store.items.progressList = []
 }
+const reDownload = (fileName: string, na: string, fileSize: number) => {
+  const index = store.items.progressList.findIndex(progressItem => progressItem.na === na)
+  if (store.items.downQueue.length < 3) {
+    // 如果重复点击下载同一文件
+    if (store.items.downQueue.findIndex(item => item.na === na) === -1) {
+      Notify.create({
+        classes: 'notification-positive shadow-15',
+        icon: 'check_circle',
+        textColor: 'positive',
+        message: '已重新加入下载队列中',
+        position: 'bottom',
+        closeBtn: true,
+        timeout: 5000,
+        multiLine: false
+      })
+      // 下载队列入列
+      store.items.downQueue.push({ fileName, na, state: 'reload' })
+    } else {
+      Notify.create({
+        classes: 'notification-positive shadow-15',
+        icon: 'check_circle',
+        textColor: 'positive',
+        message: '文件已重新加入下载队列',
+        position: 'bottom',
+        closeBtn: true,
+        timeout: 5000,
+        multiLine: false
+      })
+    }
+  } else {
+    if (store.items.waitQueue.findIndex(item => item.na === na) === -1) {
+      Notify.create({
+        classes: 'notification-positive shadow-15',
+        icon: 'check_circle',
+        textColor: 'positive',
+        message: '已重新加入下载队列中',
+        position: 'bottom',
+        closeBtn: true,
+        timeout: 5000,
+        multiLine: false
+      })
+      // 等待队列入列
+      store.items.waitQueue.push({ fileName, na })
+      store.items.progressList[index] = {
+        fileName,
+        na,
+        progress: 0,
+        loadedSize: 0,
+        totalSize: fileSize,
+        downSpeed: '等待开始下载',
+        surplusTime: '等待开始下载',
+        state: 'wait'
+      }
+    }
+  }
+}
 </script>
 
 <template>
@@ -89,7 +145,7 @@ const clearAll = () => {
                   <q-tooltip>{{ tc('取消下载') }}</q-tooltip>
                 </q-btn>
                 <q-btn v-if="file.state === 'cancel'" class="q-ml-sm" size="md" flat dense round
-                       icon="las la-arrow-alt-circle-down">
+                       icon="las la-arrow-alt-circle-down" @click="reDownload(file.fileName, file.na ,file.totalSize)">
                   <q-tooltip>{{ tc('重新下载') }}</q-tooltip>
                 </q-btn>
                 <q-icon v-if="file.state === 'complete'" name="las la-check-circle" size="sm" color="positive"

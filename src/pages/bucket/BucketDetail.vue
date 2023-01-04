@@ -200,7 +200,7 @@ const goToPage = async () => {
         class="q-py-md q-px-none"
       >
 
-        <div class="row items-center justify-between text-black q-pb-md">
+        <div class="row items-center text-black q-pb-md">
           <GlobalBreadcrumbs/>
           <q-btn flat no-caps color="primary" class="q-mr-xs text-weight-bold" :label="tc('查看下载文件')"
                  @click="store.triggerDownloadProgressDialog()">
