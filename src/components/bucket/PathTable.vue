@@ -245,6 +245,7 @@ const calcSpeedTime = (event: ProgressEvent, index: number) => {
 const CancelToken = axios.CancelToken
 const source = CancelToken.source()
 const download = (fileName: string, na: string, itemIndex: number) => {
+  console.log(222)
   // axios新增用于取消请求的方式
   const controller = new AbortController()
   // 一个请求使用唯一的一个controller
@@ -399,7 +400,9 @@ emitter.on('cancelDownload', (value) => {
   }
 })
 // const cancelAll = () => {
-//   source.cancel('下载全部取消')
+//   // source.cancel('下载全部取消')
+//   // cancel()
+//   console.log(store.items.cancelDownloadArr)
 //   Notify.create({
 //     classes: 'notification-negative shadow-15',
 //     icon: 'las la-times-circle',

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { useStore } from 'stores/store'
-import { Notify, QBtn, useDialogPluginComponent } from 'quasar'
+import { QBtn, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
 
@@ -56,44 +56,12 @@ const clearAll = () => {
 const reDownload = (fileName: string, na: string, fileSize: number) => {
   const index = store.items.progressList.findIndex(progressItem => progressItem.na === na)
   if (store.items.downQueue.length < 3) {
-    // 如果重复点击下载同一文件
     if (store.items.downQueue.findIndex(item => item.na === na) === -1) {
-      Notify.create({
-        classes: 'notification-positive shadow-15',
-        icon: 'check_circle',
-        textColor: 'positive',
-        message: '已重新加入下载队列中',
-        position: 'bottom',
-        closeBtn: true,
-        timeout: 5000,
-        multiLine: false
-      })
       // 下载队列入列
       store.items.downQueue.push({ fileName, na, state: 'reload' })
-    } else {
-      Notify.create({
-        classes: 'notification-positive shadow-15',
-        icon: 'check_circle',
-        textColor: 'positive',
-        message: '文件已重新加入下载队列',
-        position: 'bottom',
-        closeBtn: true,
-        timeout: 5000,
-        multiLine: false
-      })
     }
   } else {
     if (store.items.waitQueue.findIndex(item => item.na === na) === -1) {
-      Notify.create({
-        classes: 'notification-positive shadow-15',
-        icon: 'check_circle',
-        textColor: 'positive',
-        message: '已重新加入下载队列中',
-        position: 'bottom',
-        closeBtn: true,
-        timeout: 5000,
-        multiLine: false
-      })
       // 等待队列入列
       store.items.waitQueue.push({ fileName, na })
       store.items.progressList[index] = {
@@ -124,7 +92,7 @@ const reDownload = (fileName: string, na: string, fileSize: number) => {
       </q-card-section>
       <q-separator/>
       <div class="row justify-end q-mt-xs">
-        <!--        <q-btn :disabled="store.items.downQueue.length === 0" no-caps color="primary" label="全部取消" class="q-mr-xs" @click="cancelAllDownload"/>-->
+<!--                <q-btn :disabled="store.items.downQueue.length === 0" no-caps color="primary" label="全部取消" class="q-mr-xs" @click="cancelAllDownload"/>-->
         <q-btn no-caps color="primary" label="全部删除"
                :disabled="store.items.downQueue.length + store.items.waitQueue.length !== 0 || store.items.progressList.length === 0"
                @click="clearAll"/>
