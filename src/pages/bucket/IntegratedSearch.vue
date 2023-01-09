@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, Ref, onBeforeUnmount, onBeforeMount } from 'vue'
 import { useStore } from 'stores/store'
-import { useRoute/* , useRouter */ } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { navigateToUrl } from 'single-spa'
 import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
@@ -33,7 +33,9 @@ const bucketId = route.query.bucket as string
 const defaultKeyword = route.query.keyword as string
 const dynamicTab = (index: number) => {
   pathArr.value.splice(index, 1)
-  tabActive.value = pathArr.value[0].tab.optionId
+  if (pathArr.value.length > 0) {
+    tabActive.value = pathArr.value[0].tab.optionId
+  }
 }
 const getSearchDate = async () => {
   pathArr.value = []
@@ -98,7 +100,7 @@ const search = async () => {
       multiLine: false
     })
   } else {
-    navigateToUrl('/my/storage/search/?bucket=' + selection.value.join('/') + '&keyword=' + keyword.value)
+    navigateToUrl('/my/storage/search/?bucket=' + selection.value.join('/') + '&keyword=' + keyword.value + '&stamp=' + new Date().getTime())
   }
 }
 const resetSearch = () => {
@@ -164,13 +166,12 @@ onBeforeUnmount(() => {
         <q-tabs
           v-model="tabActive"
           dense
-          class="bg-grey-2"
           active-color="primary"
           indicator-color="primary"
           align="left"
           narrow-indicator
         >
-          <q-tab v-for="(tabItem, index) in pathArr" :key="tabItem.tab.optionId" :name="tabItem.tab.optionId" no-caps>
+          <q-tab v-for="(tabItem, index) in pathArr" class="bg-grey-2 q-mr-sm" :key="tabItem.tab.optionId" :name="tabItem.tab.optionId" no-caps>
             <div class="q-py-xs">
               <span>{{ i18n.global.locale === 'zh' ? tabItem.tab.name : tabItem.tab.nameEn }}</span>
               <q-icon class="q-ml-xs" color="black" name="las la-times" size="sm" @click.stop="dynamicTab(index)"/>

@@ -110,6 +110,7 @@ const changePagination = () => {
   )
 }
 const goToPage = async () => {
+  const p = /^$|^[1-9]\d*$/
   if (jumpPage.value === '') {
     Notify.create({
       classes: 'notification-negative shadow-15',
@@ -121,7 +122,18 @@ const goToPage = async () => {
       timeout: 5000,
       multiLine: false
     })
-  } else if (Number(jumpPage.value) <= 0 || Number(jumpPage.value) > Math.ceil(currentPath?.value?.fileCount / paginationTable.value.limit)) {
+  } else if (p.test(jumpPage.value) && Number(jumpPage.value) <= Math.ceil(currentPath?.value?.fileCount / paginationTable.value.limit)) {
+    const page = Number(jumpPage.value)
+    paginationTable.value.offset = (page - 1) * paginationTable.value.limit
+    void await store.addPathTable(
+      currentBucket.value.id,
+      route.query.path as string,
+      paginationTable.value.limit,
+      paginationTable.value.offset
+    )
+    paginationTable.value.page = page
+    jumpPage.value = ''
+  } else {
     Notify.create({
       classes: 'notification-negative shadow-15',
       icon: 'las la-times-circle',
@@ -132,17 +144,6 @@ const goToPage = async () => {
       timeout: 5000,
       multiLine: false
     })
-  } else {
-    const page = parseInt(jumpPage.value)
-    paginationTable.value.offset = (page - 1) * paginationTable.value.limit
-    void await store.addPathTable(
-      currentBucket.value.id,
-      route.query.path as string,
-      paginationTable.value.limit,
-      paginationTable.value.offset
-    )
-    paginationTable.value.page = page
-    jumpPage.value = ''
   }
 }
 </script>
@@ -202,14 +203,16 @@ const goToPage = async () => {
 
         <div class="row items-center justify-between text-black q-pb-md">
           <GlobalBreadcrumbs/>
-          <q-btn flat no-caps color="primary" class="q-mr-xs text-weight-bold" :label="tc('查看下载文件')"
+        </div>
+        <PathTable :pathObj="currentPath"/>
+        <q-page-sticky position="top-right" :offset="[18, 105]">
+          <q-btn no-caps color="primary" class="q-px-sm" :label="tc('查看下载文件')"
                  @click="store.triggerDownloadProgressDialog()">
             <q-badge color="orange" floating v-show="store.items.waitQueue.length + store.items.downQueue.length !== 0">
               {{ store.items.waitQueue.length + store.items.downQueue.length }}
             </q-badge>
           </q-btn>
-        </div>
-        <PathTable :pathObj="currentPath"/>
+        </q-page-sticky>
         <div class="row q-mt-md text-grey justify-between items-center">
           <div class="row items-center">
             <div>每页文件数：</div>
@@ -219,12 +222,17 @@ const goToPage = async () => {
             <div>/{{ tc('页') }}</div>
           </div>
           <div class="row items-center justify-end">
-            <div class="row items-center q-mr-md">
-              <div class="q-mr-sm">跳转到</div>
-              <q-input class="q-mr-sm" style="width: 50px" outlined dense v-model="jumpPage"/>
-              <div class="q-mr-sm">页</div>
-              <q-btn color="primary" label="跳转" @click="goToPage" />
-            </div>
+            <q-form
+              @submit="goToPage"
+              class="q-gutter-md q-mr-md"
+            >
+              <div class="row items-center">
+                <div class="q-mr-sm">跳转到</div>
+                <q-input class="q-mr-sm" style="width: 50px" outlined dense v-model="jumpPage"/>
+                <div class="q-mr-sm">页</div>
+                <q-btn color="primary" label="跳转" @click="goToPage"/>
+              </div>
+            </q-form>
               <q-pagination
                 v-model="paginationTable.page"
                 :max="Math.ceil(currentPath?.fileCount/paginationTable.limit)"

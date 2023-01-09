@@ -245,7 +245,6 @@ const calcSpeedTime = (event: ProgressEvent, index: number) => {
 const CancelToken = axios.CancelToken
 const source = CancelToken.source()
 const download = (fileName: string, na: string, itemIndex: number) => {
-  console.log(222)
   // axios新增用于取消请求的方式
   const controller = new AbortController()
   // 一个请求使用唯一的一个controller
@@ -390,6 +389,8 @@ emitter.on('cancelDownload', (value) => {
     const progressIndex = store.items.progressList.findIndex(item => item.na === value)
     // 取消正在进行的下载请求
     store.items.cancelDownloadArr[cancelIndex].controller.abort()
+    store.items.progressList[progressIndex].progress = 0
+    store.items.progressList[progressIndex].loadedSize = 0
     store.items.progressList[progressIndex].surplusTime = '已取消'
     store.items.progressList[progressIndex].downSpeed = '已取消'
     store.items.progressList[progressIndex].state = 'cancel'
