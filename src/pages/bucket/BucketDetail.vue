@@ -205,18 +205,30 @@ const goToPage = async () => {
           <GlobalBreadcrumbs/>
         </div>
         <PathTable :pathObj="currentPath"/>
-        <q-page-sticky position="top-right" :offset="[18, 105]">
-          <q-btn no-caps color="primary" class="q-px-sm" :label="tc('查看下载文件')"
-                 @click="store.triggerDownloadProgressDialog()">
-            <q-badge color="orange" floating v-show="store.items.waitQueue.length + store.items.downQueue.length !== 0">
-              {{ store.items.waitQueue.length + store.items.downQueue.length }}
-            </q-badge>
-          </q-btn>
+        <q-page-sticky position="top-right" :offset="[18, 20]">
+          <div class="row cursor-pointer" @click="store.triggerDownloadProgressDialog()">
+            <div class="bg-blue-5 q-py-xs q-px-sm">
+              <q-icon color="white" name="las la-cloud-download-alt" size="sm"/>
+            </div>
+            <div class="row items-center bg-light-blue-3 q-py-xs q-px-sm">
+              <div class="text-black">{{ tc('查看下载任务') }}</div>
+              <q-badge color="orange" floating v-show="store.items.waitQueue.length + store.items.downQueue.length !== 0">
+                {{ store.items.waitQueue.length + store.items.downQueue.length }}
+              </q-badge>
+            </div>
+          </div>
+<!--                    <q-btn no-caps color="purple" class="q-px-sm" :label="tc('查看下载文件')"-->
+<!--                           @click="store.triggerDownloadProgressDialog()">-->
+<!--                      <q-badge color="orange" floating v-show="store.items.waitQueue.length + store.items.downQueue.length !== 0">-->
+<!--                        {{ store.items.waitQueue.length + store.items.downQueue.length }}-->
+<!--                      </q-badge>-->
+<!--                    </q-btn>-->
         </q-page-sticky>
         <div class="row q-mt-md text-grey justify-between items-center">
           <div class="row items-center">
             <div>每页文件数：</div>
-            <q-select color="grey" v-model="paginationTable.limit" :options="[100, 150, 200, 250,300]" dense options-dense
+            <q-select color="grey" v-model="paginationTable.limit" :options="[100, 150, 200, 250,300]" dense
+                      options-dense
                       borderless @update:model-value="changePageSize">
             </q-select>
             <div>/{{ tc('页') }}</div>
@@ -233,18 +245,18 @@ const goToPage = async () => {
                 <q-btn color="primary" label="跳转" @click="goToPage"/>
               </div>
             </q-form>
-              <q-pagination
-                v-model="paginationTable.page"
-                :max="Math.ceil(currentPath?.fileCount/paginationTable.limit)"
-                :max-pages="10"
-                direction-links
-                boundary-links
-                icon-first="skip_previous"
-                icon-last="skip_next"
-                icon-prev="fast_rewind"
-                icon-next="fast_forward"
-                @update:model-value="changePagination"
-              />
+            <q-pagination
+              v-model="paginationTable.page"
+              :max="Math.ceil(currentPath?.fileCount/paginationTable.limit)"
+              :max-pages="10"
+              direction-links
+              boundary-links
+              icon-first="skip_previous"
+              icon-last="skip_next"
+              icon-prev="fast_rewind"
+              icon-next="fast_forward"
+              @update:model-value="changePagination"
+            />
           </div>
         </div>
       </q-tab-panel>
