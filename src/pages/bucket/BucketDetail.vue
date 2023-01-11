@@ -108,9 +108,10 @@ const changePagination = () => {
     paginationTable.value.limit,
     paginationTable.value.offset
   )
+  store.items.pathPage = paginationTable.value
 }
 const goToPage = async () => {
-  const p = /^$|^[1-9]\d*$/
+  const pageCheck = /^$|^[1-9]\d*$/
   if (jumpPage.value === '') {
     Notify.create({
       classes: 'notification-negative shadow-15',
@@ -122,7 +123,7 @@ const goToPage = async () => {
       timeout: 5000,
       multiLine: false
     })
-  } else if (p.test(jumpPage.value) && Number(jumpPage.value) <= Math.ceil(currentPath?.value?.fileCount / paginationTable.value.limit)) {
+  } else if (pageCheck.test(jumpPage.value) && Number(jumpPage.value) <= Math.ceil(currentPath?.value?.fileCount / paginationTable.value.limit)) {
     const page = Number(jumpPage.value)
     paginationTable.value.offset = (page - 1) * paginationTable.value.limit
     void await store.addPathTable(

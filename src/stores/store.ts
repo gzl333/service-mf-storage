@@ -330,6 +330,12 @@ interface CancelDownloadInterface {
   controller: AbortController
 }
 
+interface pathPageInterface {
+  page: number
+  limit: number
+  offset: number
+}
+
 export interface IntegratedSearchInterface {
   service: IntegratedServiceInterface,
   bucket: Array<IntegratedBucketInterface> | []
@@ -399,7 +405,12 @@ export const useStore = defineStore('storage', {
       progressList: [] as DownloadProgressInterface[],
       downQueue: [] as QueueInterface[],
       waitQueue: [] as QueueInterface[],
-      cancelDownloadArr: [] as CancelDownloadInterface[]
+      cancelDownloadArr: [] as CancelDownloadInterface[],
+      pathPage: {
+        page: 1,
+        limit: 100,
+        offset: 0
+      } as pathPageInterface
     },
     tables: {
       serviceTable: {

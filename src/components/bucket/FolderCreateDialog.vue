@@ -23,7 +23,6 @@ const props = defineProps({
     required: true
   }
 })
-
 const store = useStore()
 const { tc } = i18n.global
 const inputRef = ref<QInput>()

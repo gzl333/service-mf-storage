@@ -232,7 +232,9 @@ const putObjPath = async (payload: { path: { bucket_name: string, objpath: strin
           cancelUpload()
           void await store.addPathTable(
             currentBucket.value.id,
-            route.query.path as string
+            route.query.path as string,
+            store.items.pathPage.limit,
+            store.items.pathPage.offset
           )
         }
       }
@@ -328,7 +330,9 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
     })
     void await store.addPathTable(
       currentBucket.value.id,
-      route.query.path as string
+      route.query.path as string,
+      store.items.pathPage.limit,
+      store.items.pathPage.offset
     )
     fileArr.value = []
     isUploading.value = false
@@ -405,7 +409,9 @@ const upload = async () => {
     // 当前path对象
     void await store.addPathTable(
       currentBucket.value.id,
-      route.query.path as string
+      route.query.path as string,
+      store.items.pathPage.limit,
+      store.items.pathPage.offset
     )
     fileArr.value = []
     isUploading.value = false
