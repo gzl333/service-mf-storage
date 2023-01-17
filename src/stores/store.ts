@@ -484,20 +484,6 @@ export const useStore = defineStore('storage', {
       })
       return services
     },
-    // getIntegratedSearchOptions (state): Record<string, string>[] {
-    //   const bucketOptions = []
-    //   let obj: Record<string, string> = {}
-    //   for (const objElement of state.tables.bucketTable.allIds) {
-    //     obj = {}
-    //     obj.bucketId = objElement
-    //     obj.serviceId = state.tables.bucketTable.byId[objElement]?.service.id
-    //     obj.optionId = state.tables.bucketTable.byId[objElement]?.service.id + '/' + state.tables.bucketTable.byId[objElement].name
-    //     // obj.id = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
-    //     obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byId[objElement].service.id].name + '/' + state.tables.bucketTable.byId[objElement].name
-    //     bucketOptions.push(obj)
-    //   }
-    //   return bucketOptions
-    // },
     getIntegratedSearchOptions (state): IntegratedSearchInterface[] {
       const IntegratedArr = []
       // 先找到每个服务

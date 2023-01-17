@@ -11,8 +11,7 @@ import { i18n } from 'boot/i18n'
 import { handleTime } from 'src/hooks/handleTools'
 import useClipText from 'src/hooks/useClipText'
 import useFormatSize from 'src/hooks/useFormatSize'
-import emitter from 'boot/mitt'
-
+import $bus from 'boot/bus'
 const props = defineProps({
   pathObj: {
     type: Object as PropType<PathInterface>,
@@ -302,21 +301,6 @@ const download = (fileName: string, na: string, itemIndex: number) => {
   })
 }
 const putQueue = async (fileName: string, na: string, fileSize: number) => {
-  // 创建a标签
-  // const a = document.createElement('a')
-  // 定义下载名称
-  // a.download = fileName
-  // 隐藏标签
-  // a.style.display = 'none'
-  // 设置文件路径
-  // a.href = download_url
-  // 将创建的标签插入dom
-  // document.body.appendChild(a)
-  // 点击标签，执行下载
-  // a.click()
-  // 将标签从dom移除
-  // document.body.removeChild(a)
-  // const itemIndex = store.items.progressList.length
   let queueIndex
   // 如果进度条数组中已经存在某一个文件 那么再次下载同一个文件时 不再重新添加值 使用某个文件所在位置的索引
   if (store.items.progressList.findIndex(progressItem => progressItem.na === na) === -1) {
@@ -363,45 +347,61 @@ const putQueue = async (fileName: string, na: string, fileSize: number) => {
     }
   }
 }
-emitter.on('cancelDownload', (value) => {
+const cancelSingleDownload = (progressIndex: number, cancelIndex?: number) => {
+  if (cancelIndex !== undefined && cancelIndex < store.items.cancelDownloadArr.length) {
+    store.items.cancelDownloadArr[cancelIndex].controller.abort()
+  }
+  store.items.progressList[progressIndex].progress = 0
+  store.items.progressList[progressIndex].loadedSize = 0
+  store.items.progressList[progressIndex].downSpeed = '0'
+  store.items.progressList[progressIndex].surplusTime = '已取消'
+  store.items.progressList[progressIndex].state = 'cancel'
+}
+const cancelAllDownload = () => {
+  if (store.items.downQueue.length > 0) {
+    store.items.downQueue.forEach((downItem) => {
+      const cancelIndex = store.items.cancelDownloadArr.findIndex(cancelItem => cancelItem.na === downItem.na)
+      const downIndex = store.items.progressList.findIndex(progressItem => progressItem.na === downItem.na)
+      cancelSingleDownload(downIndex, cancelIndex)
+    })
+    store.items.cancelDownloadArr = []
+    store.items.downQueue = []
+  }
+  if (store.items.waitQueue.length > 0) {
+    store.items.waitQueue.forEach((waitItem) => {
+      const waitIndex = store.items.progressList.findIndex(progressItem => progressItem.na === waitItem.na)
+      cancelSingleDownload(waitIndex)
+    })
+    store.items.waitQueue = []
+  }
+}
+const startAllDownload = () => {
+  store.items.progressList.forEach((progressItem) => {
+    putQueue(progressItem.fileName, progressItem.na, progressItem.totalSize)
+  })
+}
+$bus.on('cancelSingleDown', (value: string) => {
   const cancelIndex = store.items.cancelDownloadArr.findIndex(cancelItem => cancelItem.na === value)
   if (cancelIndex !== -1) {
     const progressIndex = store.items.progressList.findIndex(item => item.na === value)
     // 取消正在进行的下载请求
-    store.items.cancelDownloadArr[cancelIndex].controller.abort()
-    store.items.progressList[progressIndex].progress = 0
-    store.items.progressList[progressIndex].loadedSize = 0
-    store.items.progressList[progressIndex].surplusTime = '已取消'
-    store.items.progressList[progressIndex].downSpeed = '已取消'
-    store.items.progressList[progressIndex].state = 'cancel'
+    cancelSingleDownload(progressIndex, cancelIndex)
     // 取消下载出列
     store.items.downQueue = store.items.downQueue.filter(item => item.na !== value)
     // 下载完成 用于存储取消下载controller的数组删除下载完的controller
     store.items.cancelDownloadArr = store.items.cancelDownloadArr.filter(cancelItem => cancelItem.na !== value)
   }
 })
-// const cancelAll = () => {
-//   // source.cancel('下载全部取消')
-//   // cancel()
-//   console.log(store.items.cancelDownloadArr)
-//   Notify.create({
-//     classes: 'notification-negative shadow-15',
-//     icon: 'las la-times-circle',
-//     textColor: 'negative',
-//     message: tc('下载已经全部取消'),
-//     position: 'bottom',
-//     closeBtn: true,
-//     timeout: 5000,
-//     multiLine: false
-//   })
-//   store.items.downQueue = []
-//   store.items.waitQueue = []
-// }
-// emitter.on('cancelAll', (value) => {
-//   if (value) {
-//     cancelAll()
-//   }
-// })
+$bus.on('cancelAllDown', (value: boolean) => {
+  if (value) {
+    cancelAllDownload()
+  }
+})
+$bus.on('startAllDown', (value: boolean) => {
+  if (value) {
+    startAllDownload()
+  }
+})
 const toggleExpansion = (props: { expand: boolean, row: FileInterface }) => {
   if (props.expand) {
     props.expand = !props.expand
@@ -444,7 +444,9 @@ watch(
   })
 onBeforeUnmount(() => {
   // 离开页面清空emitter
-  emitter.off('cancelDownload')
+  $bus.off('cancelSingleDown')
+  $bus.off('cancelAllDown')
+  $bus.off('startAllDown')
 })
 </script>
 

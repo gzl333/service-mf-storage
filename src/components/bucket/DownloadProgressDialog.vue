@@ -3,8 +3,7 @@ import { computed } from 'vue'
 import { useStore } from 'stores/store'
 import { QBtn, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
-import emitter from 'boot/mitt'
-
+import $bus from 'boot/bus'
 // const props = defineProps({
 
 // })
@@ -20,7 +19,7 @@ const {
   // onDialogOK,
   // onDialogCancel
 } = useDialogPluginComponent()
-// const onCancelClick = onDialogCancel
+// const onCancelClick = onDialogCancel\
 // 计算文件大小函数(保留两位小数), Size为字节大小
 const getFileSize = (size: number) => {
   const num = 1024.00 // byte
@@ -45,11 +44,14 @@ const deleteFile = (na: string) => {
   store.items.progressList.splice(index, 1)
 }
 const cancelDownload = (na: string) => {
-  emitter.emit('cancelDownload', na)
+  $bus.emit('cancelSingleDown', na)
 }
-// const cancelAllDownload = () => {
-//   emitter.emit('cancelAll', true)
-// }
+const cancelAllDownload = () => {
+  $bus.emit('cancelAllDown', true)
+}
+const startAll = () => {
+  $bus.emit('startAllDown', true)
+}
 const clearAll = () => {
   store.items.progressList = []
 }
@@ -92,8 +94,8 @@ const reDownload = (fileName: string, na: string, fileSize: number) => {
       </q-card-section>
       <q-separator/>
       <div class="row justify-end q-mt-xs">
-        <q-btn no-caps color="primary" label="全部开始" class="q-mr-xs" />
-        <q-btn no-caps color="primary" label="全部取消" class="q-mr-xs" />
+        <q-btn :disabled="!(downloadProgress.length > 0 && downloadProgress.findIndex(progress => progress.state === 'cancel') !== -1 && downloadProgress.findIndex(progress => progress.state === 'download') === -1)" no-caps color="primary" label="全部开始" class="q-mr-xs" @click="startAll"/>
+        <q-btn :disabled="!(downloadProgress.length > 0 && downloadProgress.findIndex(progress => progress.state === 'download') !== -1)" no-caps color="primary" label="全部取消" class="q-mr-xs" @click="cancelAllDownload" />
         <q-btn no-caps color="primary" label="全部删除"
                :disabled="store.items.downQueue.length + store.items.waitQueue.length !== 0 || store.items.progressList.length === 0"
                @click="clearAll"/>

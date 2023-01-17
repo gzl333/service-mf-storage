@@ -206,19 +206,6 @@ const goToPage = async () => {
           <GlobalBreadcrumbs/>
         </div>
         <PathTable :pathObj="currentPath"/>
-<!--        <q-page-sticky position="top-right" :offset="[18, 20]">-->
-<!--          <div class="row cursor-pointer" @click="store.triggerDownloadProgressDialog()">-->
-<!--            <div class="bg-blue-5 q-py-xs q-px-sm">-->
-<!--              <q-icon color="white" name="las la-cloud-download-alt" size="sm"/>-->
-<!--            </div>-->
-<!--            <div class="row items-center bg-light-blue-3 q-py-xs q-px-sm">-->
-<!--              <div class="text-black">{{ tc('查看下载任务') }}</div>-->
-<!--              <q-badge color="orange" floating v-show="store.items.waitQueue.length + store.items.downQueue.length !== 0">-->
-<!--                {{ store.items.waitQueue.length + store.items.downQueue.length }}-->
-<!--              </q-badge>-->
-<!--            </div>-->
-<!--          </div>-->
-<!--        </q-page-sticky>-->
         <div class="row q-mt-md text-grey justify-between items-center">
           <div class="row items-center">
             <div>每页文件数：</div>
