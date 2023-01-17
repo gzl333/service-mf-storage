@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import { useStore } from 'stores/store'
-import { QBtn, useDialogPluginComponent } from 'quasar'
+import { QBtn } from 'quasar'
 import { i18n } from 'boot/i18n'
 import emitter from 'boot/mitt'
 
@@ -9,17 +9,11 @@ import emitter from 'boot/mitt'
 
 // })
 
-defineEmits([...useDialogPluginComponent.emits])
+// defineEmits()
 
 const store = useStore()
 const { tc } = i18n.global
 const downloadProgress = computed(() => store.items.progressList)
-const {
-  dialogRef,
-  onDialogHide
-  // onDialogOK,
-  // onDialogCancel
-} = useDialogPluginComponent()
 // const onCancelClick = onDialogCancel
 // 计算文件大小函数(保留两位小数), Size为字节大小
 const getFileSize = (size: number) => {
@@ -80,23 +74,12 @@ const reDownload = (fileName: string, na: string, fileSize: number) => {
 </script>
 
 <template>
-  <!-- notice dialogRef here -->
-  <q-dialog ref="dialogRef" @hide="onDialogHide">
-    <q-card class="q-dialog-plugin dialog-primary q-pb-md">
-      <q-card-section class="row items-center justify-center q-pb-md">
-        <div class="text-primary">
-          {{ tc('文件下载进度') }}
-        </div>
-        <q-space/>
-        <q-btn icon="close" flat dense size="sm" v-close-popup/>
-      </q-card-section>
-      <q-separator/>
+  <div class="DownloadProgress">
+    <div class="q-pb-lg">
       <div class="row justify-end q-mt-xs">
-        <q-btn no-caps color="primary" label="全部开始" class="q-mr-xs" />
-        <q-btn no-caps color="primary" label="全部取消" class="q-mr-xs" />
-        <q-btn no-caps color="primary" label="全部删除"
-               :disabled="store.items.downQueue.length + store.items.waitQueue.length !== 0 || store.items.progressList.length === 0"
-               @click="clearAll"/>
+        <q-btn no-caps color="primary" label="全部开始" />
+        <q-btn no-caps color="primary" label="全部取消" />
+        <q-btn no-caps color="primary" label="删除全部任务" :disabled="store.items.downQueue.length + store.items.waitQueue.length !== 0 || store.items.progressList.length === 0" @click="clearAll"/>
       </div>
       <q-list separator>
         <div v-if="downloadProgress.length > 0">
@@ -140,8 +123,8 @@ const reDownload = (fileName: string, na: string, fileSize: number) => {
           暂无下载文件
         </div>
       </q-list>
-    </q-card>
-  </q-dialog>
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>

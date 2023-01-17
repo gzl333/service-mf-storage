@@ -7,7 +7,6 @@ import { i18n } from 'boot/i18n'
 import FtpStatus from 'components/ui/FtpStatus.vue'
 import AccessStatus from 'components/ui/AccessStatus.vue'
 import GlobalBreadcrumbs from 'components/ui/GlobalBreadcrumbs.vue'
-
 import useClipText from 'src/hooks/useClipText'
 import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 
@@ -345,7 +344,6 @@ const unwatch = watch(store.tables.serviceTable, () => {
       <q-separator/>
 
     </div>
-
   </div>
 </template>
 

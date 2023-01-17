@@ -331,16 +331,6 @@ const putQueue = async (fileName: string, na: string, fileSize: number) => {
   if (store.items.downQueue.length < 3) {
     // 如果重复点击下载同一文件
     if (store.items.downQueue.findIndex(item => item.na === na) === -1) {
-      Notify.create({
-        classes: 'notification-positive shadow-15',
-        icon: 'check_circle',
-        textColor: 'positive',
-        message: '已加入下载队列中',
-        position: 'bottom',
-        closeBtn: true,
-        timeout: 5000,
-        multiLine: false
-      })
       // 下载队列入列
       store.items.downQueue.push({ fileName, na, state: 'normal' })
       download(fileName, na, queueIndex)
@@ -358,16 +348,6 @@ const putQueue = async (fileName: string, na: string, fileSize: number) => {
     }
   } else {
     if (store.items.waitQueue.findIndex(item => item.na === na) === -1) {
-      Notify.create({
-        classes: 'notification-positive shadow-15',
-        icon: 'check_circle',
-        textColor: 'positive',
-        message: '已加入下载队列中',
-        position: 'bottom',
-        closeBtn: true,
-        timeout: 5000,
-        multiLine: false
-      })
       // 等待队列入列
       store.items.waitQueue.push({ fileName, na })
       store.items.progressList[queueIndex] = {
