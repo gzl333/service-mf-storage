@@ -3,7 +3,7 @@ import { useStore } from 'stores/store'
 import { Notify, QBtn, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import api from 'src/api/index'
-import emitter from 'boot/mitt'
+import $bus from 'boot/bus'
 const props = defineProps({
   serviceId: {
     type: String,
@@ -36,7 +36,7 @@ const onOKClick = async () => {
   })
   await api.storage.storage.putAuthToken({ base: store.tables.serviceTable.byId[props.serviceId]?.endpoint_url })
   // store.tables.authTokenTable.byId[props.serviceId] = respGetToken.data.token
-  emitter.emit('tokenRefresh', true)
+  $bus.emit('tokenRefresh', true)
   onDialogOK()
   Notify.create({
     classes: 'notification-positive shadow-15',

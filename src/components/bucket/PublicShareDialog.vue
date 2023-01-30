@@ -4,9 +4,8 @@ import { useStore } from 'stores/store'
 import { Notify, useDialogPluginComponent } from 'quasar'
 // import { useRoute } from 'vue-router'
 import { i18n } from 'boot/i18n'
-import emitter from 'boot/mitt'
 import api from 'src/api/index'
-
+import $bus from 'boot/bus'
 const props = defineProps({
   bucketId: {
     type: String,
@@ -168,7 +167,7 @@ const share = async () => {
     } else {
       // 综合检索页面 如果修改权限为私有直接刷新数据
       if (shareQuery.value.share === 0 || props.pathObj.fileArrs.length > 1) {
-        emitter.emit('refresh', true)
+        $bus.emit('refresh', true)
       }
     }
     onDialogOK()

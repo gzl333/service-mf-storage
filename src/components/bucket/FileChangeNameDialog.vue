@@ -3,9 +3,8 @@ import { ref } from 'vue'
 import { useStore } from 'stores/store'
 import { Notify, QInput, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
-import emitter from 'boot/mitt'
 import api from 'src/api'
-
+import $bus from 'boot/bus'
 const props = defineProps({
   bucketId: {
     type: String,
@@ -104,7 +103,7 @@ const onOKClick = async () => {
         })
       } else {
         // 在综合检索页面，刷新数据
-        emitter.emit('refresh', true)
+        $bus.emit('refresh', true)
       }
       Notify.create({
         classes: 'notification-positive shadow-15',

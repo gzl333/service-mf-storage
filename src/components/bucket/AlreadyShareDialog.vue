@@ -5,8 +5,7 @@ import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 import { useStore } from 'stores/store'
 import { i18n } from 'boot/i18n'
 import api from 'src/api/index'
-import emitter from 'boot/mitt'
-
+import $bus from 'boot/bus'
 const props = defineProps({
   bucketId: {
     type: String,
@@ -63,7 +62,7 @@ const onDialogHide = () => {
   // 窗口关闭时判断是否刷新数据，还是需要操作store
   if (!props.isOperationStore && props.isRefresh) {
     // 在综合检索页面窗口关闭需要重新请求
-    emitter.emit('refresh', true)
+    $bus.emit('refresh', true)
   }
 }
 onBeforeMount(async () => {

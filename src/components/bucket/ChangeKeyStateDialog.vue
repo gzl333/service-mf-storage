@@ -3,8 +3,7 @@ import { useStore } from 'stores/store'
 import { Notify, QBtn, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import api from 'src/api/index'
-import emitter from 'boot/mitt'
-
+import $bus from 'boot/bus'
 const props = defineProps({
   serviceId: {
     type: String,
@@ -33,7 +32,7 @@ const onCancelClick = onDialogCancel
 const onOKClick = async () => {
   await api.storage.storage.patchAuthKey({ base: store.tables.serviceTable.byId[props.serviceId]?.endpoint_url, path: { access_key: props.accessKey }, query: { active: !props.state } })
   // 修改store中状态
-  emitter.emit('keysRefresh', true)
+  $bus.emit('keysRefresh', true)
   // store.tables.keyPairTable.byId[props.accessKey].state = !store.tables.keyPairTable.byId[props.accessKey].state
   onDialogOK()
   Notify.create({

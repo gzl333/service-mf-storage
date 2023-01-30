@@ -6,7 +6,7 @@ import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
 import PasswordToggle from 'components/ui/PasswordToggle.vue'
 import api from 'src/api'
-import emitter from 'boot/mitt'
+import $bus from 'boot/bus'
 // const props = defineProps({
 //   foo: {
 //     type: String as PropType<'bar'>,
@@ -133,20 +133,20 @@ watch(store.tables.bucketTable, () => {
     chooseDefaultSelect()
   }
 })
-emitter.on('tokenRefresh', async (value) => {
+$bus.on('tokenRefresh', async (value: boolean) => {
   if (value) {
     await getAuthToken()
   }
 })
-emitter.on('keysRefresh', async (value) => {
+$bus.on('keysRefresh', async (value: boolean) => {
   if (value) {
     await getKeyPairs()
   }
 })
 onBeforeUnmount(() => {
   // 离开页面清空emitter
-  emitter.off('tokenRefresh')
-  emitter.off('keysRefresh')
+  $bus.off('tokenRefresh')
+  $bus.off('keysRefresh')
 })
 </script>
 

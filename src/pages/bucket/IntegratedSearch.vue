@@ -6,9 +6,8 @@ import { navigateToUrl } from 'single-spa'
 import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
 import api from 'src/api'
-import emitter from 'boot/mitt'
 import SearchTable from 'components/bucket/SearchTable.vue'
-
+import $bus from 'boot/bus'
 // const props = defineProps({
 //   foo: {
 //     type: String,
@@ -106,7 +105,7 @@ const search = async () => {
 const resetSearch = () => {
   navigateToUrl('/my/storage/search/?bucket=' + selection.value.join('/'))
 }
-emitter.on('refresh', async (value) => {
+$bus.on('refresh', async (value: boolean) => {
   if (value) {
     await getSearchDate()
   }
@@ -129,7 +128,7 @@ onBeforeMount(async () => {
 })
 onBeforeUnmount(() => {
   // 离开页面清空emitter
-  emitter.off('refresh')
+  $bus.off('refresh')
 })
 </script>
 
