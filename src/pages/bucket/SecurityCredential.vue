@@ -6,7 +6,7 @@ import { i18n } from 'boot/i18n'
 import { Notify } from 'quasar'
 import PasswordToggle from 'components/ui/PasswordToggle.vue'
 import api from 'src/api'
-import $bus from 'boot/bus'
+import $bus from 'src/hooks/bus'
 // const props = defineProps({
 //   foo: {
 //     type: String as PropType<'bar'>,

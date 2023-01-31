@@ -4,7 +4,7 @@ import { useStore } from 'stores/store'
 import { Notify, QInput, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import api from 'src/api'
-import $bus from 'boot/bus'
+import $bus from 'src/hooks/bus'
 const props = defineProps({
   bucketId: {
     type: String,

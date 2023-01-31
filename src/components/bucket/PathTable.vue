@@ -11,7 +11,7 @@ import { i18n } from 'boot/i18n'
 import { handleTime } from 'src/hooks/handleTools'
 import useClipText from 'src/hooks/useClipText'
 import useFormatSize from 'src/hooks/useFormatSize'
-import $bus from 'boot/bus'
+import $bus from 'src/hooks/bus'
 const props = defineProps({
   pathObj: {
     type: Object as PropType<PathInterface>,
