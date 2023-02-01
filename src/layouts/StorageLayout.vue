@@ -149,6 +149,13 @@ const releaseTime = process.env.releaseTime
           </div>
 
           <!--          <div class="text-grey text-body2 text-center q-pt-xl">v0.0.1</div>-->
+          <div class="row justify-center q-mt-sm">
+            <q-btn no-caps unelevated class="q-px-sm" color="primary" icon="las la-cloud-download-alt" label="下载队列" @click="store.triggerDownloadProgressDialog()" >
+              <q-badge color="red" floating v-show="store.items.waitQueue.length + store.items.downQueue.length !== 0">
+                {{ store.items.waitQueue.length + store.items.downQueue.length }}
+              </q-badge>
+            </q-btn>
+          </div>
           <div class="row justify-center q-pt-lg">
             <q-icon class="text-center" name="info" color="grey-5" size="xs">
               <q-tooltip class="bg-grey-3">
@@ -160,13 +167,6 @@ const releaseTime = process.env.releaseTime
             </q-icon>
           </div>
           <!--          <div class="text-grey text-body2 text-center">{{ new Date(releaseTime).toLocaleString() }}</div>-->
-          <div class="row justify-center q-mt-sm">
-          <q-btn class="q-px-sm" color="primary" icon="las la-cloud-download-alt" label="下载队列" @click="store.triggerDownloadProgressDialog()" >
-            <q-badge color="red" floating v-show="store.items.waitQueue.length + store.items.downQueue.length !== 0">
-              {{ store.items.waitQueue.length + store.items.downQueue.length }}
-            </q-badge>
-          </q-btn>
-          </div>
         </q-scroll-area>
       </div>
     </q-drawer>
