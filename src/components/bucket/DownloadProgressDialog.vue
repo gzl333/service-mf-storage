@@ -94,11 +94,12 @@ const reDownload = (fileName: string, na: string, fileSize: number) => {
       </q-card-section>
       <q-separator/>
       <div class="row justify-end q-mt-xs">
-        <q-btn :disabled="!(downloadProgress.length > 0 && downloadProgress.findIndex(progress => progress.state === 'cancel') !== -1 && downloadProgress.findIndex(progress => progress.state === 'download') === -1)" no-caps color="primary" label="全部开始" class="q-mr-xs" @click="startAll"/>
-        <q-btn :disabled="!(downloadProgress.length > 0 && downloadProgress.findIndex(progress => progress.state === 'download') !== -1)" no-caps color="primary" label="全部取消" class="q-mr-xs" @click="cancelAllDownload" />
-        <q-btn no-caps color="primary" label="全部删除"
-               :disabled="store.items.downQueue.length + store.items.waitQueue.length !== 0 || store.items.progressList.length === 0"
-               @click="clearAll"/>
+        <q-btn :disabled="!(downloadProgress.length > 0 && downloadProgress.findIndex(progress => progress.state === 'cancel') !== -1 && downloadProgress.findIndex(progress => progress.state === 'download') === -1)"
+               unelevated no-caps color="primary" label="全部开始" class="q-mr-xs" @click="startAll"/>
+        <q-btn :disabled="!(downloadProgress.length > 0 && downloadProgress.findIndex(progress => progress.state === 'download') !== -1)"
+               unelevated no-caps color="primary" label="全部取消" class="q-mr-xs" @click="cancelAllDownload" />
+        <q-btn no-caps color="primary" label="全部删除" :disabled="store.items.downQueue.length + store.items.waitQueue.length !== 0 || store.items.progressList.length === 0"
+               unelevated @click="clearAll"/>
       </div>
       <q-list separator>
         <div v-if="downloadProgress.length > 0">

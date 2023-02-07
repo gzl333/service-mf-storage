@@ -206,7 +206,7 @@ const goToPage = async () => {
           <GlobalBreadcrumbs/>
         </div>
         <PathTable :pathObj="currentPath"/>
-        <div class="row q-mt-md text-grey justify-between items-center">
+        <div class="row q-mt-md text-grey items-center justify-between">
           <div class="row items-center">
             <div>每页文件数：</div>
             <q-select color="grey" v-model="paginationTable.limit" :options="[100, 150, 200, 250,300]" dense
@@ -224,7 +224,7 @@ const goToPage = async () => {
                 <div class="q-mr-sm">跳转到</div>
                 <q-input class="q-mr-sm" style="width: 50px" outlined dense v-model="jumpPage"/>
                 <div class="q-mr-sm">页</div>
-                <q-btn color="primary" label="跳转" @click="goToPage"/>
+                <q-btn unelevated color="primary" label="跳转" @click="goToPage"/>
               </div>
             </q-form>
             <q-pagination
@@ -233,6 +233,7 @@ const goToPage = async () => {
               :max-pages="10"
               direction-links
               boundary-links
+              active-design="unelevated"
               icon-first="skip_previous"
               icon-last="skip_next"
               icon-prev="fast_rewind"
@@ -611,5 +612,15 @@ const goToPage = async () => {
 
 <style lang="scss" scoped>
 .BucketDetail {
+}
+.q-btn:before {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: inherit;
 }
 </style>
