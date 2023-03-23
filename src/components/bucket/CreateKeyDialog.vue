@@ -3,8 +3,7 @@ import { useStore } from 'stores/store'
 import { Notify, QBtn, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import api from 'src/api/index'
-import emitter from 'boot/mitt'
-
+import $bus from 'src/hooks/bus'
 const props = defineProps({
   serviceId: {
     type: String,
@@ -40,7 +39,7 @@ const onOKClick = async () => {
   // })
   // store.tables.keyPairTable.allIds.unshift(respGetKeys.data.key.access_key)
   // store.tables.keyPairTable.allIds = [...new Set(store.tables.keyPairTable.allIds)]
-  emitter.emit('keysRefresh', true)
+  $bus.emit('keysRefresh', true)
   onDialogOK()
   Notify.create({
     classes: 'notification-positive shadow-15',

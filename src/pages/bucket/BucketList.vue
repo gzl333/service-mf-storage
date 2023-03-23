@@ -7,7 +7,6 @@ import { i18n } from 'boot/i18n'
 import FtpStatus from 'components/ui/FtpStatus.vue'
 import AccessStatus from 'components/ui/AccessStatus.vue'
 import GlobalBreadcrumbs from 'components/ui/GlobalBreadcrumbs.vue'
-
 import useClipText from 'src/hooks/useClipText'
 import useCopyToClipboard from 'src/hooks/useCopyToClipboard'
 
@@ -200,7 +199,7 @@ const unwatch = watch(store.tables.serviceTable, () => {
 
     </div>
 
-    <div class="row q-py-md">
+    <div class="row q-pt-md">
       <q-table
         class="col"
         flat
@@ -341,11 +340,8 @@ const unwatch = watch(store.tables.serviceTable, () => {
 
         </template>
       </q-table>
-
-      <q-separator/>
-
     </div>
-
+    <q-separator/>
   </div>
 </template>
 

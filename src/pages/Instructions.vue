@@ -334,7 +334,7 @@ const goPage = (url: string) => {
       </q-tab-panel>
       <q-tab-panel name="rclone" class="no-scroll">
         <span>使用说明下载链接：</span>
-        <span class="download cursor-pointer" @click="goPage('https://obs.cstcloud.cn/share/obs/rclone-doc/doc/iharbor%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8rclone%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8Cv1.0.4.2.docx')">https://obs.cstcloud.cn/share/obs/rclone-doc/doc/iharbor%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8rclone%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8Cv1.0.4.2.docx</span>
+        <span class="download cursor-pointer" @click="goPage('https://obs.cstcloud.cn/share/obs/rclone-doc/doc/iharbor%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8rclone%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8Cv1.0.4.2%20.pdf')">https://obs.cstcloud.cn/share/obs/rclone-doc/doc/iharbor%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8rclone%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8Cv1.0.4.2%20.pdf</span>
       </q-tab-panel>
     </q-tab-panels>
   </div>

@@ -6,7 +6,7 @@ import { Notify, useDialogPluginComponent } from 'quasar'
 import { axiosStorage } from 'boot/axios'
 import axios from 'axios'
 import api from 'src/api/index'
-import { FloatSub } from 'src/hooks/handleFloat'
+import { handleTime } from 'src/hooks/handleTools'
 import { i18n } from 'boot/i18n'
 // import SparkMD5 from 'spark-md5'
 
@@ -150,39 +150,6 @@ const addFile = (files: string | File[]) => {
 //   // fileReader读取二进制文件
 //   // await fileReader.readAsArrayBuffer(file)
 // }
-const handleTime = (time: number) => {
-  // 文件切片上传 每一片开始的时候 会有一刻速度为0
-  if (time > 0) {
-    // 超过一小时
-    if (time / 60 / 60 > 1) {
-      const intHour = parseInt((time / 60 / 60).toString())
-      const floatHour = parseFloat((time / 60 / 60).toFixed(1))
-      const num = FloatSub(floatHour, intHour)
-      const min = num * 60
-      if (intHour < 24) {
-        return intHour + tc('小时') + min + tc('分钟')
-      } else {
-        return tc('超过一天')
-      }
-      //  超过一分钟
-    } else if (time / 60 > 1) {
-      const intMin = parseInt((time / 60).toString())
-      const floatMin = parseFloat((time / 60).toFixed(1))
-      const num = FloatSub(floatMin, intMin)
-      const sec = num * 60
-      return intMin + tc('分钟') + sec + tc('秒')
-    } else {
-      const sec = parseInt(time.toString())
-      if (sec > 0) {
-        return sec + tc('秒')
-      } else {
-        return 0 + tc('秒')
-      }
-    }
-  } else {
-    return tc('计算中')
-  }
-}
 const calcSpeedTime = (event: ProgressEvent, size?: number) => {
   // 计算间隔
   const nowTime = new Date().getTime()
@@ -265,7 +232,9 @@ const putObjPath = async (payload: { path: { bucket_name: string, objpath: strin
           cancelUpload()
           void await store.addPathTable(
             currentBucket.value.id,
-            route.query.path as string
+            route.query.path as string,
+            store.items.pathPage.limit,
+            store.items.pathPage.offset
           )
         }
       }
@@ -361,7 +330,9 @@ const postObjPath = async (payload: { path: { bucket_name: string, objpath: stri
     })
     void await store.addPathTable(
       currentBucket.value.id,
-      route.query.path as string
+      route.query.path as string,
+      store.items.pathPage.limit,
+      store.items.pathPage.offset
     )
     fileArr.value = []
     isUploading.value = false
@@ -438,7 +409,9 @@ const upload = async () => {
     // 当前path对象
     void await store.addPathTable(
       currentBucket.value.id,
-      route.query.path as string
+      route.query.path as string,
+      store.items.pathPage.limit,
+      store.items.pathPage.offset
     )
     fileArr.value = []
     isUploading.value = false

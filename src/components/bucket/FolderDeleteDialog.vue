@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useStore } from 'stores/store'
+import { useRoute/* , useRouter */ } from 'vue-router'
 import { Notify, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
-import emitter from 'boot/mitt'
 import api from 'src/api/index'
-
+import $bus from 'src/hooks/bus'
 const props = defineProps({
   bucketId: {
     type: String,
@@ -28,9 +28,9 @@ const props = defineProps({
     required: false
   }
 })
-
 const store = useStore()
 const { tc } = i18n.global
+const route = useRoute()
 defineEmits([...useDialogPluginComponent.emits])
 const {
   dialogRef,
@@ -39,7 +39,6 @@ const {
   onDialogCancel
 } = useDialogPluginComponent()
 const isDisable = ref(false)
-
 const onOKClick = async () => {
   // 用于存放删除成功的文件夹
   const deleteDirArr: string[] = []
@@ -91,17 +90,23 @@ const onOKClick = async () => {
   } else {
     // 从store中删除文件夹以及文件
     if (props.isOperationStore) {
-      store.deleteFile(
-        {
-          localId: props.localId,
-          dirpath: {
-            dirArrs: deleteDirArr,
-            fileArrs: deleteFileArr
-          }
-        })
+      // store.deleteFile(
+      //   {
+      //     localId: props.localId,
+      //     dirpath: {
+      //       dirArrs: deleteDirArr,
+      //       fileArrs: deleteFileArr
+      //     }
+      //   })
+      void await store.addPathTable(
+        props.bucketId,
+        route.query.path as string,
+        store.items.pathPage.limit,
+        store.items.pathPage.offset
+      )
     } else {
       // 综合检索页面刷新数据
-      emitter.emit('refresh', true)
+      $bus.emit('refresh', true)
     }
     Notify.create({
       classes: 'notification-positive shadow-15',

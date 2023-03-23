@@ -21,6 +21,7 @@ import ChangeKeyStateDialog from 'components/bucket/ChangeKeyStateDialog.vue'
 import CreateKeyDialog from 'components/bucket/CreateKeyDialog.vue'
 import DeleteKeyDialog from 'components/bucket/DeleteKeyDialog.vue'
 import RedeemCouponDialog from 'components/coupon/RedeemCouponDialog.vue'
+import DownloadProgressDialog from 'components/bucket/DownloadProgressDialog.vue'
 
 const exceptionNotifier = useExceptionNotifier()
 
@@ -189,8 +190,8 @@ export interface FileInterface {
 export interface PathInterface {
   bucket_name: string
   dir_path: string
+  fileCount: number
   files: FileInterface[]
-
   // 自己定义的localId，来自bucketId dir_path 两者的拼接 'bucketId' or 'bucketId/path1/path2/path3...'
   localId: string
   bucketId: string
@@ -307,6 +308,34 @@ export interface IntegratedBucketInterface {
   bucketName: string
 }
 
+export interface DownloadProgressInterface {
+  fileName: string,
+  na: string,
+  progress: number,
+  loadedSize: number,
+  totalSize: number,
+  downSpeed: string,
+  surplusTime: string,
+  state: 'download' | 'wait' | 'complete' | 'cancel'
+}
+
+interface QueueInterface {
+  fileName: string
+  na: string
+  state?: 'normal' | 'reload'
+}
+
+interface CancelDownloadInterface {
+  na: string,
+  controller: AbortController
+}
+
+interface pathPageInterface {
+  page: number
+  limit: number
+  offset: number
+}
+
 export interface IntegratedSearchInterface {
   service: IntegratedServiceInterface,
   bucket: Array<IntegratedBucketInterface> | []
@@ -372,7 +401,16 @@ export const useStore = defineStore('storage', {
       // 例如'/my/server/personal/list' -> ['personal', 'list'], 供二级三级导航栏在刷新时保持选择使用
       currentPath: [] as string[],
       // 分享链接所用的服务单元信息
-      shareService: {} as ServiceInterface
+      shareService: {} as ServiceInterface,
+      progressList: [] as DownloadProgressInterface[],
+      downQueue: [] as QueueInterface[],
+      waitQueue: [] as QueueInterface[],
+      cancelDownloadArr: [] as CancelDownloadInterface[],
+      pathPage: {
+        page: 1,
+        limit: 100,
+        offset: 0
+      } as pathPageInterface
     },
     tables: {
       serviceTable: {
@@ -446,20 +484,6 @@ export const useStore = defineStore('storage', {
       })
       return services
     },
-    // getIntegratedSearchOptions (state): Record<string, string>[] {
-    //   const bucketOptions = []
-    //   let obj: Record<string, string> = {}
-    //   for (const objElement of state.tables.bucketTable.allIds) {
-    //     obj = {}
-    //     obj.bucketId = objElement
-    //     obj.serviceId = state.tables.bucketTable.byId[objElement]?.service.id
-    //     obj.optionId = state.tables.bucketTable.byId[objElement]?.service.id + '/' + state.tables.bucketTable.byId[objElement].name
-    //     // obj.id = state.tables.serviceTable.byId[state.tables.bucketTable.byLocalId[objElement].service_id].name + '/' + state.tables.bucketTable.byLocalId[objElement].name
-    //     obj.desc = state.tables.serviceTable.byId[state.tables.bucketTable.byId[objElement].service.id].name + '/' + state.tables.bucketTable.byId[objElement].name
-    //     bucketOptions.push(obj)
-    //   }
-    //   return bucketOptions
-    // },
     getIntegratedSearchOptions (state): IntegratedSearchInterface[] {
       const IntegratedArr = []
       // 先找到每个服务
@@ -713,7 +737,7 @@ export const useStore = defineStore('storage', {
       }
     },
     // PathTable: 累积加载，localId (bucketId/path1/path2)
-    async addPathTable (bucketId: string, path?: string) {
+    async addPathTable (bucketId: string, path?: string, limit?: number, offset?: number) {
       const bucket = this.tables.bucketTable.byId[bucketId]
       const base = this.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
       // 1. status改为loading
@@ -725,7 +749,7 @@ export const useStore = defineStore('storage', {
         if (!path) { // 桶的根目录
           const respGetDirBucket = await api.storage.single.getDirBucketName({
             base,
-            query: { limit: 99999 },
+            query: { limit, offset },
             path: { bucket_name: bucket.name }
           })
           const item = {
@@ -734,6 +758,7 @@ export const useStore = defineStore('storage', {
               localId: bucket.id,
               bucket_name: respGetDirBucket.data.bucket_name,
               dir_path: respGetDirBucket.data.dir_path,
+              fileCount: respGetDirBucket.data.count,
               files: respGetDirBucket.data.files
             })
           }
@@ -743,6 +768,10 @@ export const useStore = defineStore('storage', {
         } else { // 次级目录
           const respGetDirPath = await api.storage.single.getDirBucketNameDirPath({
             base,
+            query: {
+              limit,
+              offset
+            },
             path: {
               bucket_name: bucket.name,
               dirpath: path
@@ -754,6 +783,7 @@ export const useStore = defineStore('storage', {
               localId: bucket.id + '/' + respGetDirPath.data.dir_path,
               bucket_name: respGetDirPath.data.bucket_name,
               dir_path: respGetDirPath.data.dir_path,
+              fileCount: respGetDirPath.data.count,
               files: respGetDirPath.data.files
             })
           }
@@ -930,6 +960,10 @@ export const useStore = defineStore('storage', {
         exceptionNotifier(exception)
       }
     },
+    // 存储下载进度条
+    async storageProgressList (payload: { progressData: DownloadProgressInterface, itemIndex: number }) {
+      this.items.progressList[payload.itemIndex] = payload.progressData
+    },
     /* dialogs */
     // 触发新建存储桶对话框
     triggerCreateBucketDialog () {
@@ -1101,7 +1135,12 @@ export const useStore = defineStore('storage', {
         }
       })
     },
-
+    // 触发下载进度条对话框
+    triggerDownloadProgressDialog () {
+      Dialog.create({
+        component: DownloadProgressDialog
+      })
+    },
     /* coupon */
     redeemCouponDialog () {
       Dialog.create({

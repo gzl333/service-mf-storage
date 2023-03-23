@@ -33,7 +33,7 @@ const search = ref('')
 </script>
 
 <template>
-  <div class="CouponList">
+  <div class="CouponList q-mt-xl">
 <!--    <div class="row items-center justify-between q-py-md">-->
 <!--      <div class="col-2">-->
 <!--        <div class="row justify-start">-->

@@ -1,15 +1,17 @@
 <script lang="ts" setup>
-import { ref, computed, PropType, watch } from 'vue'
-import { FileInterface, PathInterface } from 'src/stores/store'
+import { ref, computed, PropType, watch, onBeforeUnmount } from 'vue'
 import { useStore } from 'stores/store'
+import { FileInterface, PathInterface } from 'src/stores/store'
 // import { useRoute } from 'vue-router'
 import { navigateToUrl } from 'single-spa'
+import { axiosStorage } from 'boot/axios'
+import axios from 'axios'
+import { Notify } from 'quasar'
 import { i18n } from 'boot/i18n'
+import { handleTime } from 'src/hooks/handleTools'
 import useClipText from 'src/hooks/useClipText'
 import useFormatSize from 'src/hooks/useFormatSize'
-import { Notify } from 'quasar'
-import api from 'src/api/index'
-
+import $bus from 'src/hooks/bus'
 const props = defineProps({
   pathObj: {
     type: Object as PropType<PathInterface>,
@@ -17,11 +19,9 @@ const props = defineProps({
   }
 })
 // const emit = defineEmits(['change', 'delete'])
-// code starts...
 const store = useStore()
 // const route = useRoute()
 const { tc } = i18n.global
-
 const currentBucket = computed(() => store.tables.bucketTable.byId[props.pathObj.bucketId])
 
 const filter = ref('')
@@ -199,58 +199,209 @@ const changeName = (path: string, name: string) => {
 const comprehensiveSearch = () => {
   navigateToUrl('/my/storage/search/?bucket=' + props.pathObj.bucketId)
 }
-const download = async (fileName: string, na: string) => {
-  // 创建a标签
-  // const a = document.createElement('a')
-  // 定义下载名称
-  // a.download = fileName
-  // 隐藏标签
-  // a.style.display = 'none'
-  // 设置文件路径
-  // a.href = download_url
-  // 将创建的标签插入dom
-  // document.body.appendChild(a)
-  // 点击标签，执行下载
-  // a.click()
-  // 将标签从dom移除
-  // document.body.removeChild(a)
-  Notify.create({
-    classes: 'notification-positive shadow-15',
-    icon: 'las la-redo-alt',
-    textColor: 'positive',
-    message: `${tc('正在下载中，请稍等')}...`,
-    position: 'bottom',
-    closeBtn: true,
-    timeout: 5000,
-    multiLine: false
-  })
+const lastTimeArr: number[] = []
+// 上一次计算的文件大小
+const lastSizeArr: number[] = []
+const downSpeed = ref('')
+// 上传剩余时间
+const downTime = ref('')
+const calcSpeedTime = (event: ProgressEvent, index: number) => {
+  // 计算间隔
+  const nowTime = new Date().getTime()
+  // 时间单位为毫秒，需转化为秒
+  const intervalTime = (nowTime - lastTimeArr[index]) / 1000
+  const intervalSize = event.loaded - lastSizeArr[index]
+  // 重新赋值以便于下次计算
+  lastTimeArr[index] = nowTime
+  lastSizeArr[index] = event.loaded
+  // 计算速度
+  let speed = intervalSize / intervalTime
+  // 保存以b/s为单位的速度值，方便计算剩余时间
+  const bSpeed = speed
+  // 单位名称
+  let units = 'b/s'
+  if (speed / 1024 > 1) {
+    speed = speed / 1024
+    units = 'k/s'
+  }
+  if (speed / 1024 > 1) {
+    speed = speed / 1024
+    units = 'M/s'
+  }
+  if (speed > 0) {
+    // 如果速度大于0
+    downSpeed.value = speed.toFixed(1) + units
+  } else {
+    // 如果速度小于等于0 则赋值为0.0
+    downSpeed.value = (0.0).toString() + units
+  }
+  // 计算剩余时间
+  const leftTime = ((event.total - event.loaded) / bSpeed)
+  downTime.value = handleTime(Number(leftTime.toFixed(1)))
+  return { downSpeed: downSpeed.value, downTime: downTime.value }
+}
+// 用于全部取消下载请求
+const CancelToken = axios.CancelToken
+const source = CancelToken.source()
+const download = (fileName: string, na: string, itemIndex: number) => {
+  // axios新增用于取消请求的方式
+  const controller = new AbortController()
+  // 一个请求使用唯一的一个controller
+  store.items.cancelDownloadArr.push({ na, controller })
   const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.pathObj.bucketId]?.service.id]?.endpoint_url
   const objPath = props.pathObj.bucket_name + '/' + na
-  const res = await api.storage.single.getObjPath({
-    base,
-    path: { objpath: objPath }
-  })
-  const url = window.URL.createObjectURL(new Blob([res.data]))
-  const link = document.createElement('a')
-  link.style.display = 'none'
-  link.href = url
-  link.setAttribute('download', fileName)
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  // 释放blob URL地址
-  window.URL.revokeObjectURL(url)
-  Notify.create({
-    classes: 'notification-positive shadow-15',
-    icon: 'las la-redo-alt',
-    textColor: 'positive',
-    message: tc('下载完成'),
-    position: 'bottom',
-    closeBtn: true,
-    timeout: 5000,
-    multiLine: false
+  axiosStorage({
+    url: base + `/share/obs/${objPath}`,
+    method: 'get',
+    signal: controller.signal,
+    cancelToken: source.token,
+    responseType: 'blob',
+    onDownloadProgress: async function (progressEvent) {
+      if (progressEvent.lengthComputable) {
+        const progress = (Math.round(progressEvent.loaded / progressEvent.total * 100))
+        const downSpeedAndTime = calcSpeedTime(progressEvent, itemIndex)
+        await store.storageProgressList({
+          progressData: {
+            fileName,
+            na,
+            progress,
+            loadedSize: progressEvent.loaded,
+            totalSize: progressEvent.total,
+            downSpeed: downSpeedAndTime.downSpeed,
+            surplusTime: downSpeedAndTime.downTime,
+            state: 'download'
+          },
+          itemIndex
+        })
+      }
+    }
+  }).then((res) => {
+    const url = window.URL.createObjectURL(new Blob([res.data]))
+    const link = document.createElement('a')
+    link.style.display = 'none'
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    // 释放blob URL地址
+    window.URL.revokeObjectURL(url)
+    // 更改文件状态
+    store.items.progressList[itemIndex].state = 'complete'
+    // 下载完成 下载队列出列
+    store.items.downQueue = store.items.downQueue.filter(item => item.na !== na)
+    // 下载完成 用于存储取消下载controller的数组删除下载完的controller
+    store.items.cancelDownloadArr = store.items.cancelDownloadArr.filter(cancelItem => cancelItem.na !== na)
+  }).catch((thrown) => {
+    if (axios.isCancel(thrown)) {
+      console.log('Request canceled', thrown)
+    } else {
+      console.log(thrown)
+    }
   })
 }
+const putQueue = async (fileName: string, na: string, fileSize: number) => {
+  let queueIndex
+  // 如果进度条数组中已经存在某一个文件 那么再次下载同一个文件时 不再重新添加值 使用某个文件所在位置的索引
+  if (store.items.progressList.findIndex(progressItem => progressItem.na === na) === -1) {
+    queueIndex = store.items.progressList.length
+  } else {
+    queueIndex = store.items.progressList.findIndex(item => item.na === na)
+  }
+  // 用于计算 一个进度条使用数组中的唯一一个值
+  lastSizeArr[queueIndex] = 0
+  lastTimeArr[queueIndex] = 0
+  // 下载队列最多三个同时下载
+  if (store.items.downQueue.length < 3) {
+    // 如果重复点击下载同一文件
+    if (store.items.downQueue.findIndex(item => item.na === na) === -1) {
+      // 下载队列入列
+      store.items.downQueue.push({ fileName, na, state: 'normal' })
+      download(fileName, na, queueIndex)
+    } else {
+      Notify.create({
+        classes: 'notification-positive shadow-15',
+        icon: 'check_circle',
+        textColor: 'positive',
+        message: '文件已经在下载队列中',
+        position: 'bottom',
+        closeBtn: true,
+        timeout: 5000,
+        multiLine: false
+      })
+    }
+  } else {
+    if (store.items.waitQueue.findIndex(item => item.na === na) === -1) {
+      // 等待队列入列
+      store.items.waitQueue.push({ fileName, na })
+      store.items.progressList[queueIndex] = {
+        fileName,
+        na,
+        progress: 0,
+        loadedSize: 0,
+        totalSize: fileSize,
+        downSpeed: '等待开始下载',
+        surplusTime: '等待开始下载',
+        state: 'wait'
+      }
+    }
+  }
+}
+const cancelSingleDownload = (progressIndex: number, cancelIndex?: number) => {
+  if (cancelIndex !== undefined && cancelIndex < store.items.cancelDownloadArr.length) {
+    store.items.cancelDownloadArr[cancelIndex].controller.abort()
+  }
+  store.items.progressList[progressIndex].progress = 0
+  store.items.progressList[progressIndex].loadedSize = 0
+  store.items.progressList[progressIndex].downSpeed = '0'
+  store.items.progressList[progressIndex].surplusTime = '已取消'
+  store.items.progressList[progressIndex].state = 'cancel'
+}
+const cancelAllDownload = () => {
+  if (store.items.downQueue.length > 0) {
+    store.items.downQueue.forEach((downItem) => {
+      const cancelIndex = store.items.cancelDownloadArr.findIndex(cancelItem => cancelItem.na === downItem.na)
+      const downIndex = store.items.progressList.findIndex(progressItem => progressItem.na === downItem.na)
+      cancelSingleDownload(downIndex, cancelIndex)
+    })
+    store.items.cancelDownloadArr = []
+    store.items.downQueue = []
+  }
+  if (store.items.waitQueue.length > 0) {
+    store.items.waitQueue.forEach((waitItem) => {
+      const waitIndex = store.items.progressList.findIndex(progressItem => progressItem.na === waitItem.na)
+      cancelSingleDownload(waitIndex)
+    })
+    store.items.waitQueue = []
+  }
+}
+const startAllDownload = () => {
+  store.items.progressList.forEach((progressItem) => {
+    putQueue(progressItem.fileName, progressItem.na, progressItem.totalSize)
+  })
+}
+$bus.on('cancelSingleDown', (value: string) => {
+  const cancelIndex = store.items.cancelDownloadArr.findIndex(cancelItem => cancelItem.na === value)
+  if (cancelIndex !== -1) {
+    const progressIndex = store.items.progressList.findIndex(item => item.na === value)
+    // 取消正在进行的下载请求
+    cancelSingleDownload(progressIndex, cancelIndex)
+    // 取消下载出列
+    store.items.downQueue = store.items.downQueue.filter(item => item.na !== value)
+    // 下载完成 用于存储取消下载controller的数组删除下载完的controller
+    store.items.cancelDownloadArr = store.items.cancelDownloadArr.filter(cancelItem => cancelItem.na !== value)
+  }
+})
+$bus.on('cancelAllDown', (value: boolean) => {
+  if (value) {
+    cancelAllDownload()
+  }
+})
+$bus.on('startAllDown', (value: boolean) => {
+  if (value) {
+    startAllDownload()
+  }
+})
 const toggleExpansion = (props: { expand: boolean, row: FileInterface }) => {
   if (props.expand) {
     props.expand = !props.expand
@@ -269,6 +420,34 @@ watch(
     deep: true
   }
 )
+watch(
+  () => store.items.downQueue.length,
+  () => {
+    if (store.items.downQueue.length > 0 && store.items.downQueue.length < 3) {
+      if (store.items.downQueue[store.items.downQueue.length - 1]?.state === 'reload') {
+        download(store.items.downQueue[store.items.downQueue.length - 1].fileName, store.items.downQueue[store.items.downQueue.length - 1].na, store.items.progressList.findIndex(item => item.na === store.items.downQueue[store.items.downQueue.length - 1].na))
+        store.items.downQueue[store.items.downQueue.length - 1].state = 'normal'
+      } else {
+        if (store.items.waitQueue.length > 0) {
+          store.items.downQueue.push(store.items.waitQueue[0])
+          store.items.waitQueue.shift()
+          download(store.items.downQueue[store.items.downQueue.length - 1].fileName, store.items.downQueue[store.items.downQueue.length - 1].na, store.items.progressList.findIndex(item => item.na === store.items.downQueue[store.items.downQueue.length - 1].na))
+          store.items.downQueue[store.items.downQueue.length - 1].state = 'normal'
+        }
+      }
+    } else if (store.items.downQueue.length === 3) {
+      if (store.items.downQueue[store.items.downQueue.length - 1]?.state === 'reload') {
+        download(store.items.downQueue[store.items.downQueue.length - 1].fileName, store.items.downQueue[store.items.downQueue.length - 1].na, store.items.progressList.findIndex(item => item.na === store.items.downQueue[store.items.downQueue.length - 1].na))
+        store.items.downQueue[store.items.downQueue.length - 1].state = 'normal'
+      }
+    }
+  })
+onBeforeUnmount(() => {
+  // 离开页面清空emitter
+  $bus.off('cancelSingleDown')
+  $bus.off('cancelAllDown')
+  $bus.off('startAllDown')
+})
 </script>
 
 <template>
@@ -283,7 +462,8 @@ watch(
                :disable="selected.length<=0"/>
         <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('公开分享')" @click="batchShare"
                :disable="selected.length<=0"/>
-        <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('综合检索')" @click="comprehensiveSearch"/>
+        <q-btn class="col-auto" unelevated no-caps color="primary" :label="tc('综合检索')"
+               @click="comprehensiveSearch"/>
       </div>
 
       <q-input
@@ -303,9 +483,7 @@ watch(
       </q-input>
 
     </div>
-
     <div class="row">
-
       <div class="col">
         <q-table
           class="rounded-borders"
@@ -386,7 +564,7 @@ watch(
                        @click="changeName(props.row.na, props.row.name)">{{ tc('重命名') }}
                 </q-btn>
                 <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps
-                       @click="download(props.row.name, props.row.na)">{{ tc('下载') }}
+                       @click="putQueue(props.row.name, props.row.na, props.row.si)">{{ tc('下载') }}
                 </q-btn>
                 <!--                <q-btn color="primary" unelevated @click="download(fileDetail[props.row.name]?.name, fileDetail[props.row.name]?.download_url)">{{ tc('下载') }}</q-btn>-->
                 <q-btn v-if="props.row.fod === true" color="primary" flat dense no-caps
