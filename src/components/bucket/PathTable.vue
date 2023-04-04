@@ -196,6 +196,9 @@ const batchShare = async () => {
 const changeName = (path: string, name: string) => {
   void store.triggerChangeFolderDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, path, name, true)
 }
+const moveFile = (path: string) => {
+  void store.triggerMoveFileDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, path, true)
+}
 const comprehensiveSearch = () => {
   navigateToUrl('/my/storage/search/?bucket=' + props.pathObj.bucketId)
 }
@@ -562,6 +565,10 @@ onBeforeUnmount(() => {
                 </q-btn>
                 <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps
                        @click="changeName(props.row.na, props.row.name)">{{ tc('重命名') }}
+                </q-btn>
+                <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps
+                       @click="moveFile(props.row.na)">
+                  {{ tc('移动') }}
                 </q-btn>
                 <q-btn v-if="props.row.fod === true" class="q-ml-xs" color="primary" unelevated no-caps
                        @click="putQueue(props.row.name, props.row.na, props.row.si)">{{ tc('下载') }}

@@ -421,6 +421,24 @@ export default {
         params: payload.query
       }
       return axiosSingle.get(payload.base + '/api/v1/search/object/', config)
+    },
+    getListBucket (payload: {
+      base: string
+      query?: {
+        prefix?: number
+        delimiter?: number
+        'continuation-token': string
+        'max-keys': string
+        'exclude-dir': string
+      }
+      path: {
+        bucket_name: string
+      }
+    }) {
+      const config = {
+        params: payload.query
+      }
+      return axiosSingle.get(payload.base + '/api/v1/list/bucket/' + payload.path.bucket_name + '/', config)
     }
   },
   storage: {

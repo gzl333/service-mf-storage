@@ -22,6 +22,7 @@ import CreateKeyDialog from 'components/bucket/CreateKeyDialog.vue'
 import DeleteKeyDialog from 'components/bucket/DeleteKeyDialog.vue'
 import RedeemCouponDialog from 'components/coupon/RedeemCouponDialog.vue'
 import DownloadProgressDialog from 'components/bucket/DownloadProgressDialog.vue'
+import MoveFileDialog from 'components/bucket/MoveFileDialog.vue'
 
 const exceptionNotifier = useExceptionNotifier()
 
@@ -319,6 +320,15 @@ export interface DownloadProgressInterface {
   state: 'download' | 'wait' | 'complete' | 'cancel'
 }
 
+export interface DirPathInterface {
+  Creation: string
+  ETag: string
+  IsObject: boolean
+  Key: string
+  LastModified: string
+  Size: number
+}
+
 interface QueueInterface {
   fileName: string
   na: string
@@ -406,6 +416,8 @@ export const useStore = defineStore('storage', {
       downQueue: [] as QueueInterface[],
       waitQueue: [] as QueueInterface[],
       cancelDownloadArr: [] as CancelDownloadInterface[],
+      allFolderPath: [] as string[],
+      allFolderPathNew: [] as string[],
       pathPage: {
         page: 1,
         limit: 100,
@@ -467,6 +479,17 @@ export const useStore = defineStore('storage', {
         }
       })
     },
+    // 获取所有文件夹路径
+    // getAllDirPath: (state) => (type: string): string[] => {
+    //   console.log('23123', type)
+    //   if (type === 'all') {
+    //     return state.items.allFolderPath.map(serviceId => {
+    //       return serviceId.Key
+    //     })
+    //   } else {
+    //     return ['1111', '22222']
+    //   }
+    // },
     // 获取全部服务单元选项
     getAllServiceOptions: state => {
       const services = (state.tables.serviceTable.allIds).map(serviceId => {
@@ -800,6 +823,52 @@ export const useStore = defineStore('storage', {
         this.tables.pathTable.status = 'error'
       }
     },
+    async addFilePath (bucketId: string) {
+      const bucket = this.tables.bucketTable.byId[bucketId]
+      const base = this.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
+      const respGetListBucket = await api.storage.single.getListBucket({ base, path: { bucket_name: bucket.name } })
+      const filterDirData = respGetListBucket.data.Contents.filter((path: DirPathInterface) => !path.IsObject)
+      const dirItemArr = filterDirData.map((dir: DirPathInterface) => {
+        return dir.Key
+      })
+      this.items.allFolderPath = dirItemArr
+    },
+    // async addFile (data: FileInterface[], bucketId: string) {
+    //   console.log(data)
+    //   const bucket = this.tables.bucketTable.byId[bucketId]
+    //   const base = this.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
+    //   for (const data1Element of data) {
+    //     this.items.allFolderPathNew.push(data1Element.na)
+    //     const respGetDirPath = await api.storage.single.getDirBucketNameDirPath({
+    //       base,
+    //       query: {
+    //         limit: 100,
+    //         offset: 0
+    //       },
+    //       path: {
+    //         bucket_name: bucket.name,
+    //         dirpath: data1Element.na
+    //       }
+    //     })
+    //     if (respGetDirPath.data.files.length > 0) {
+    //       const data2 = respGetDirPath.data.files.filter((item: FileInterface) => !item.fod)
+    //       await this.addFile(data2, bucketId)
+    //     }
+    //   }
+    // },
+    // async addFilePathNew (bucketId: string) {
+    //   this.items.allFolderPathNew = []
+    //   const bucket = this.tables.bucketTable.byId[bucketId]
+    //   const base = this.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
+    //   const respGetDirBucket = await api.storage.single.getDirBucketName({
+    //     base,
+    //     query: { limit: 100, offset: 0 },
+    //     path: { bucket_name: bucket.name }
+    //   })
+    //   const data1 = respGetDirBucket.data.files.filter((item: FileInterface) => !item.fod)
+    //   await this.addFile(data1, bucketId)
+    //   console.log(this.items.allFolderPathNew)
+    // },
     async loadTokenTable () {
       this.tables.authTokenTable.status = 'loading'
       for (const service of this.tables.serviceTable.allIds) {
@@ -1054,6 +1123,19 @@ export const useStore = defineStore('storage', {
           bucket_name: bucketName,
           objpath: objPath,
           dirName,
+          isOperationStore
+        }
+      })
+    },
+    // 文件移动
+    triggerMoveFileDialog (bucketId: string, localId: string, bucketName: string, objPath: string, isOperationStore: boolean) {
+      Dialog.create({
+        component: MoveFileDialog,
+        componentProps: {
+          bucketId,
+          localId,
+          bucket_name: bucketName,
+          objpath: objPath,
           isOperationStore
         }
       })
