@@ -481,7 +481,6 @@ export const useStore = defineStore('storage', {
     },
     // 获取所有文件夹路径
     // getAllDirPath: (state) => (type: string): string[] => {
-    //   console.log('23123', type)
     //   if (type === 'all') {
     //     return state.items.allFolderPath.map(serviceId => {
     //       return serviceId.Key
@@ -823,18 +822,17 @@ export const useStore = defineStore('storage', {
         this.tables.pathTable.status = 'error'
       }
     },
-    async addFilePath (bucketId: string) {
-      const bucket = this.tables.bucketTable.byId[bucketId]
-      const base = this.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
-      const respGetListBucket = await api.storage.single.getListBucket({ base, path: { bucket_name: bucket.name } })
-      const filterDirData = respGetListBucket.data.Contents.filter((path: DirPathInterface) => !path.IsObject)
-      const dirItemArr = filterDirData.map((dir: DirPathInterface) => {
-        return dir.Key
-      })
-      this.items.allFolderPath = dirItemArr
-    },
+    // async addFilePath (bucketId: string) {
+    //   const bucket = this.tables.bucketTable.byId[bucketId]
+    //   const base = this.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
+    //   const respGetListBucket = await api.storage.single.getListBucket({ base, path: { bucket_name: bucket.name } })
+    //   const filterDirData = respGetListBucket.data.Contents.filter((path: DirPathInterface) => !path.IsObject)
+    //   const dirItemArr = filterDirData.map((dir: DirPathInterface) => {
+    //     return dir.Key
+    //   })
+    //   this.items.allFolderPath = dirItemArr
+    // },
     // async addFile (data: FileInterface[], bucketId: string) {
-    //   console.log(data)
     //   const bucket = this.tables.bucketTable.byId[bucketId]
     //   const base = this.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
     //   for (const data1Element of data) {
@@ -867,7 +865,6 @@ export const useStore = defineStore('storage', {
     //   })
     //   const data1 = respGetDirBucket.data.files.filter((item: FileInterface) => !item.fod)
     //   await this.addFile(data1, bucketId)
-    //   console.log(this.items.allFolderPathNew)
     // },
     async loadTokenTable () {
       this.tables.authTokenTable.status = 'loading'
@@ -1128,15 +1125,12 @@ export const useStore = defineStore('storage', {
       })
     },
     // 文件移动
-    triggerMoveFileDialog (bucketId: string, localId: string, bucketName: string, objPath: string, isOperationStore: boolean) {
+    triggerMoveFileDialog (bucketId: string, objPath: string) {
       Dialog.create({
         component: MoveFileDialog,
         componentProps: {
           bucketId,
-          localId,
-          bucket_name: bucketName,
-          objpath: objPath,
-          isOperationStore
+          objpath: objPath
         }
       })
     },

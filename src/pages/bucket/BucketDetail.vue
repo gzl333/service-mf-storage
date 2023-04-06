@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { navigateToUrl } from 'single-spa'
 import { useStore } from 'stores/store'
 import { useRoute/* , useRouter */ } from 'vue-router'
@@ -65,71 +65,8 @@ const loadNeededTables = () => {
     paginationTable.value.limit,
     paginationTable.value.offset
   )
-  void store.addFilePath(currentBucket.value.id)
-  // void addFilePathNew(currentBucket.value.id)
+  // void store.addFilePath(currentBucket.value.id)
 }
-// const arr: string[] = []
-// const addFile = async (data: FileInterface[]) => {
-//   const bucket = store.tables.bucketTable.byId[currentBucket.value.id]
-//   const base = store.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
-//   for (const data1Element of data) {
-//     console.log(data1Element)
-//     arr.push(data1Element.na)
-//     let num = 0
-//     const respGetDirPath = await api.storage.single.getDirBucketNameDirPath({
-//       base,
-//       query: {
-//         limit: 100,
-//         offset: 0
-//       },
-//       path: {
-//         bucket_name: bucket.name,
-//         dirpath: data1Element.na
-//       }
-//     })
-//     num = respGetDirPath.data.count / 1000
-//     for (let i = 0; i < Math.ceil(num); i++) {
-//       const respGetDirPath1 = await api.storage.single.getDirBucketNameDirPath({
-//         base,
-//         query: {
-//           limit: 1000,
-//           offset: i * 1000
-//         },
-//         path: {
-//           bucket_name: bucket.name,
-//           dirpath: data1Element.na
-//         }
-//       })
-//       console.log(respGetDirPath1)
-//       if (respGetDirPath1.data.files.length > 0) {
-//         const data2 = respGetDirPath1.data.files.filter((item: FileInterface) => !item.fod)
-//         await addFile(data2)
-//       }
-//     }
-//   }
-// }
-// const addFilePathNew = async (bucketId: string) => {
-//   const bucket = store.tables.bucketTable.byId[bucketId]
-//   const base = store.tables.serviceTable.byId[bucket.service.id]?.endpoint_url
-//   let num = 0
-//   const respGetDirBucket = await api.storage.single.getDirBucketName({
-//     base,
-//     query: { limit: 100, offset: 0 },
-//     path: { bucket_name: bucket.name }
-//   })
-//   num = respGetDirBucket.data.count / 1000
-//   for (let i = 0; i < Math.ceil(num); i++) {
-//     const respGetDirBucket1 = await api.storage.single.getDirBucketName({
-//       base,
-//       query: { limit: 1000, offset: i * 1000 },
-//       path: { bucket_name: bucket.name }
-//     })
-//     const data1 = respGetDirBucket1.data.files.filter((item: FileInterface) => !item.fod)
-//     await addFile(data1)
-//   }
-//   store.items.allFolderPathNew = arr
-//   console.log(store.items.allFolderPathNew)
-// }
 // setup时调用一次 已经在layout调用了
 if (currentService.value?.endpoint_url) {
   void loadNeededTables()
@@ -218,6 +155,10 @@ $bus.on('refreshPaginationTable', (value: boolean) => {
       paginationTable.value.offset
     )
   }
+})
+onBeforeUnmount(() => {
+  // 离开页面清空emitter
+  $bus.off('refreshPaginationTable')
 })
 </script>
 

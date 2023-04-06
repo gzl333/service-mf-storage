@@ -193,7 +193,6 @@ const calcSpeedTime = (event: ProgressEvent, size?: number) => {
   }
 }
 // const putObjPath1 = async (payload: { path: { objpath: string, bucket_name: string }, body: File | string, index?: number, md5: string }) => {
-//   console.log(payload)
 //   // const formData = new FormData()
 //   // formData.append('file', payload.body.file)
 //   return axiosStorage({

@@ -197,7 +197,7 @@ const changeName = (path: string, name: string) => {
   void store.triggerChangeFolderDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, path, name, true)
 }
 const moveFile = (path: string) => {
-  void store.triggerMoveFileDialog(props.pathObj.bucketId, props.pathObj.localId, props.pathObj.bucket_name, path, true)
+  void store.triggerMoveFileDialog(props.pathObj.bucketId, path)
 }
 const comprehensiveSearch = () => {
   navigateToUrl('/my/storage/search/?bucket=' + props.pathObj.bucketId)
