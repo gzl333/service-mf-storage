@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { FileInterface, useStore } from 'stores/store'
-import { Notify, QInput, useDialogPluginComponent } from 'quasar'
+import { Notify, useDialogPluginComponent } from 'quasar'
 import { i18n } from 'boot/i18n'
 import api from 'src/api'
 import $bus from 'src/hooks/bus'
@@ -21,10 +21,8 @@ interface BreadcrumbsInterface {
   name: string
   na: string
 }
-
 const store = useStore()
 const { tc } = i18n.global
-const inputRef = ref<QInput>()
 defineEmits([...useDialogPluginComponent.emits])
 const {
   dialogRef,
@@ -143,39 +141,51 @@ const scrolling = async (details: Record<string, never>) => {
   }
 }
 const onOKClick = async () => {
-  Notify.create({
-    classes: 'notification-positive shadow-15',
-    icon: 'las la-redo-alt',
-    textColor: 'positive',
-    message: `${tc('正在移动中')}`,
-    position: 'bottom',
-    closeBtn: true,
-    timeout: 5000,
-    multiLine: false
-  })
-  try {
-    const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service?.id]?.endpoint_url
-    const renameRes = await api.storage.single.postObjPath({
-      base,
-      path: { bucket_name: bucket.name, objpath: props.objpath },
-      query: { move_to: movePath.value }
-    })
-    if (renameRes.status === 201) {
-      $bus.emit('refreshPaginationTable', true)
+  if ((movePath.value === '/' && props.objpath?.lastIndexOf('/') !== -1) || (movePath.value !== '/' && movePath.value !== props.objpath?.slice(0, props.objpath?.lastIndexOf('/')))) {
+    try {
+      const base = store.tables.serviceTable.byId[store.tables.bucketTable.byId[props.bucketId]?.service?.id]?.endpoint_url
+      const renameRes = await api.storage.single.postObjPath({
+        base,
+        path: { bucket_name: bucket.name, objpath: props.objpath },
+        query: { move_to: movePath.value }
+      })
+      if (renameRes.status === 201) {
+        $bus.emit('refreshPaginationTable', true)
+      }
+      Notify.create({
+        classes: 'notification-positive shadow-15',
+        icon: 'check_circle',
+        textColor: 'positive',
+        message: `${tc('文件移动成功')}`,
+        position: 'bottom',
+        closeBtn: true,
+        timeout: 5000,
+        multiLine: false
+      })
+      onDialogOK()
+    } catch (error) {
+      Notify.create({
+        classes: 'notification-negative shadow-15',
+        icon: 'las la-times-circle',
+        textColor: 'negative',
+        message: error?.response.data.code_text,
+        position: 'bottom',
+        closeBtn: true,
+        timeout: 5000,
+        multiLine: false
+      })
     }
+  } else {
     Notify.create({
-      classes: 'notification-positive shadow-15',
-      icon: 'check_circle',
-      textColor: 'positive',
-      message: `${tc('文件移动成功')}`,
+      classes: 'notification-negative shadow-15',
+      icon: 'las la-times-circle',
+      textColor: 'negative',
+      message: `${tc('不能将文件移动到自身目录下')}`,
       position: 'bottom',
       closeBtn: true,
       timeout: 5000,
       multiLine: false
     })
-    onDialogOK()
-  } catch (error: unknown) {
-    inputRef.value!.focus()
   }
 }
 const onCancelClick = onDialogCancel
