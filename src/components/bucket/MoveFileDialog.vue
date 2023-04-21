@@ -193,7 +193,7 @@ const onCancelClick = onDialogCancel
 
 <template>
   <q-dialog ref="dialogRef" @hide="onDialogHide">
-    <q-card class="q-dialog-plugin dialog-primary row column justify-between" style="height: 470px">
+    <q-card class="q-dialog-plugin dialog-primary row column justify-between" style="min-height: 470px; max-height: 800px;">
       <div>
         <q-card-section class="row items-center justify-center q-pb-md">
           <div class="text-primary">
@@ -211,6 +211,7 @@ const onCancelClick = onDialogCancel
               <span>{{ item.name }}</span>
             </q-breadcrumbs-el>
           </q-breadcrumbs>
+          <q-separator/>
           <div v-if="dirList.length > 0" class="q-py-xs">
             <q-virtual-scroll
               type="table"
@@ -231,17 +232,17 @@ const onCancelClick = onDialogCancel
                   </q-btn>
                 </td>
               </tr>
+              <q-separator/>
             </q-virtual-scroll>
-            <q-separator/>
           </div>
           <div v-else class="text-center q-pt-xl q-mt-xl">
             <q-icon class="col-auto" color="yellow-8" name="folder" size="xl"/>
-            <div>移动到此文件夹中</div>
+            <div>此目录为空</div>
           </div>
         </q-card-section>
       </div>
       <q-card-actions align="between">
-        <q-btn class="q-ml-sm" color="primary" :label="tc('移动')" no-caps unelevated @click="onOKClick"/>
+        <q-btn class="q-ml-sm" color="primary" :label="tc('移动到此目录')" no-caps unelevated @click="onOKClick"/>
         <q-btn class="q-mr-sm" color="primary" :label="tc('取消')" no-caps unelevated @click="onCancelClick"/>
       </q-card-actions>
     </q-card>
